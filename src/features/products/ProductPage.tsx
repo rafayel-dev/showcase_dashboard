@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   Button,
   Space,
-  Popconfirm,
   Card,
   Typography,
   Modal,
@@ -12,9 +11,20 @@ import {
   InputNumber,
   Select,
   Tag,
-  message,
   Spin,
+  Tooltip,
+  Row,
+  Col,
+  message,
 } from "antd";
+import {
+  FiPlus,
+  FiEdit,
+  FiEye,
+  FiTrash2,
+  FiGrid,
+  FiList,
+} from "react-icons/fi";
 import type { TableProps } from "antd";
 import { useNavigate } from "react-router-dom";
 import type { Product } from "../../types";
@@ -25,392 +35,246 @@ import {
   deleteProduct,
 } from "../../services/productService";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Option } = Select;
 
 const ProductPage: React.FC = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
-
-  const [isEditModalVisible, setIsEditModalVisible] = useState<boolean>(false);
-  const [isViewModalVisible, setIsViewModalVisible] = useState<boolean>(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
-  const [tableLoading, setTableLoading] = useState<boolean>(false);
-  const [formLoading, setFormLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [viewing, setViewing] = useState<Product | null>(null);
+
+  // 🔍 Filters
+  const [searchText, setSearchText] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
+
   const [form] = Form.useForm();
 
-  // Fetch products on component mount
   useEffect(() => {
-    const getProducts = async () => {
-      setTableLoading(true);
-      try {
-        const data = await fetchProducts();
-        setProducts(data);
-      } catch (error) {
-        message.error("Failed to fetch products.");
-      } finally {
-        setTableLoading(false);
-      }
-    };
-    getProducts();
+    loadProducts();
   }, []);
 
-  const handleAddProduct = () => {
-    navigate("/dashboard/add-products");
-  };
-
-  const handleEditProduct = (record: Product) => {
-    setEditingProduct(record);
-    form.setFieldsValue({
-      ...record,
-      title: record.title,
-      imageUrl:
-        record.imageUrls && record.imageUrls.length > 0
-          ? record.imageUrls[0]
-          : "",
-    });
-    setIsEditModalVisible(true);
-  };
-
-  const handleViewDetails = (record: Product) => {
-    setViewingProduct(record);
-    setIsViewModalVisible(true);
-  };
-
-  const handleDeleteProduct = async (id: string) => {
-    setTableLoading(true);
+  const loadProducts = async () => {
+    setLoading(true);
     try {
-      await deleteProduct(id);
-      setProducts(products.filter((product) => product.id !== id));
-      message.success(`Product with ID: ${id} deleted.`);
-    } catch (error) {
-      message.error("Failed to delete product.");
+      const data = await fetchProducts();
+      setProducts(data);
+    } catch {
+      message.error("Failed to load products");
     } finally {
-      setTableLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleEditModalOk = async () => {
-    try {
-      setFormLoading(true);
-      const values = await form.validateFields();
-      if (editingProduct) {
-        const updated = await updateProduct({ ...editingProduct, ...values });
-        setProducts(
-          products.map((product) =>
-            product.id === updated.id ? updated : product,
-          ),
-        );
-        message.success("Product updated successfully!");
-        setIsEditModalVisible(false);
-        setEditingProduct(null);
-        form.resetFields();
-      }
-    } catch (errorInfo) {
-      message.error("Failed to update product.");
-      console.log("Failed:", errorInfo);
-    } finally {
-      setFormLoading(false);
-    }
+  const statusColor = (status: Product["status"]) => {
+    if (status === "In Stock") return "success";
+    if (status === "Out of Stock") return "warning";
+    if (status === "Discontinued") return "error";
+    return "default";
   };
 
-  const handleEditModalCancel = () => {
-    setIsEditModalVisible(false);
-    setEditingProduct(null);
-    form.resetFields();
-  };
+  // ✅ Filter logic
+  const filteredProducts = products.filter((p) => {
+    const matchSearch = p.title
+      .toLowerCase()
+      .includes(searchText.toLowerCase());
 
-  const handleViewModalCancel = () => {
-    setIsViewModalVisible(false);
-    setViewingProduct(null);
-  };
+    const matchCategory = categoryFilter
+      ? p.category === categoryFilter
+      : true;
 
-  const getStatusTagColor = (status: Product["status"]) => {
-    switch (status) {
-      case "In Stock":
-        return "success";
-      case "Out of Stock":
-        return "warning";
-      case "Discontinued":
-        return "error";
-      default:
-        return "default";
-    }
-  };
+    return matchSearch && matchCategory;
+  });
 
   const columns: TableProps<Product>["columns"] = [
     {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-    },
-    {
-      title: "Product Name",
+      title: "Product",
       dataIndex: "title",
-      key: "title",
+      render: (text, record) => (
+        <Text strong className={record.stock < 5 ? "text-red-600" : ""}>
+          {text}
+        </Text>
+      ),
     },
     {
       title: "Category",
       dataIndex: "category",
-      key: "category",
     },
     {
       title: "Price",
       dataIndex: "price",
-      key: "price",
-      render: (price: number) => `${price.toFixed(2)}`,
+      align: "right",
+      render: (p) => `৳ ${p}`,
     },
     {
       title: "Stock",
       dataIndex: "stock",
-      key: "stock",
-      sorter: (a, b) => a.stock - b.stock,
+      align: "center",
+      render: (stock) => (
+        <Text type={stock < 5 ? "danger" : undefined}>{stock}</Text>
+      ),
     },
     {
       title: "Status",
       dataIndex: "status",
-      key: "status",
-      render: (status: Product["status"]) => (
-        <Tag color={getStatusTagColor(status)}>{status}</Tag>
-      ),
+      render: (s) => <Tag color={statusColor(s)}>{s}</Tag>,
     },
     {
       title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <Space size="middle">
-          <Button type="link" onClick={() => handleViewDetails(record)}>
-            View
-          </Button>
-          <Button type="link" onClick={() => handleEditProduct(record)}>
-            Edit
-          </Button>
-          <Popconfirm
-            title="Are you sure to delete this product?"
-            onConfirm={() => handleDeleteProduct(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="link" danger>
-              Delete
-            </Button>
-          </Popconfirm>
+      align: "right",
+      render: (_, r) => (
+        <Space>
+          <Tooltip title="View">
+            <Button icon={<FiEye />} onClick={() => setViewing(r)} />
+          </Tooltip>
+          <Tooltip title="Edit">
+            <Button
+              icon={<FiEdit />}
+              onClick={() => {
+                setEditing(r);
+                form.setFieldsValue(r);
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              danger
+              icon={<FiTrash2 />}
+              onClick={async () => {
+                await deleteProduct(r.id);
+                loadProducts();
+              }}
+            />
+          </Tooltip>
         </Space>
       ),
     },
   ];
 
   return (
-    <div className="p-4">
-      <Card
-        title={
-          <Title level={2} className="text-gray-800 m-0">
-            Product Management
-          </Title>
-        }
-        extra={
-          <Space>
-            <Button
-              onClick={() =>
-                setViewMode(viewMode === "table" ? "card" : "table")
-              }
-            >
-              {viewMode === "table"
-                ? "Switch to Card View"
-                : "Switch to Table View"}
-            </Button>
-            <Button
-              type="default"
-              onClick={() => navigate("/dashboard/draft-products")}
-            >
-              Drafted Products
-            </Button>
-            <Button type="primary" onClick={handleAddProduct}>
-              Add New Product
-            </Button>
-          </Space>
-        }
-      >
-        <Spin spinning={tableLoading}>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <Card className="rounded-2xl">
+        {/* Header */}
+        <Row justify="space-between" align="middle" className="mb-4">
+          <Col>
+            <Title level={3}>Product Management</Title>
+            <Text type="secondary">
+              Manage your ecommerce inventory
+            </Text>
+          </Col>
+          <Col>
+            <Space>
+              <Button
+                icon={viewMode === "table" ? <FiGrid /> : <FiList />}
+                onClick={() =>
+                  setViewMode(viewMode === "table" ? "card" : "table")
+                }
+              />
+              <Button
+                type="primary"
+                icon={<FiPlus />}
+                onClick={() => navigate("/add-product")}
+              >
+                Add Product
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+
+        {/* 🔍 Filters */}
+        <Space className="mb-4">
+          <Input.Search
+            placeholder="Search product"
+            allowClear
+            style={{ width: 220 }}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          <Select
+            allowClear
+            placeholder="Category"
+            style={{ width: 180 }}
+            onChange={(v) => setCategoryFilter(v)}
+          >
+            {[...new Set(products.map((p) => p.category))].map((cat) => (
+              <Option key={cat} value={cat}>
+                {cat}
+              </Option>
+            ))}
+          </Select>
+        </Space>
+
+        {/* Content */}
+        <Spin spinning={loading}>
           {viewMode === "table" ? (
             <Table
-              dataSource={products}
               columns={columns}
-              pagination={{ pageSize: 5 }}
+              dataSource={filteredProducts}
+              rowKey="id"
+              rowClassName={(record) =>
+                record.stock < 5 ? "bg-red-50" : ""
+              }
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {filteredProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
               ))}
             </div>
           )}
         </Spin>
       </Card>
 
-      {/* Edit Product Modal */}
+      {/* Edit Modal */}
       <Modal
         title="Edit Product"
-        open={isEditModalVisible}
-        onOk={handleEditModalOk}
-        onCancel={handleEditModalCancel}
-        okText="Update Product"
-        confirmLoading={formLoading}
+        open={!!editing}
+        onCancel={() => setEditing(null)}
+        onOk={async () => {
+          const v = await form.validateFields();
+          await updateProduct({ ...editing!, ...v });
+          setEditing(null);
+          loadProducts();
+        }}
       >
-        <Form form={form} layout="vertical" name="edit_product_form">
-          <Form.Item
-            name="title"
-            label="Product Name"
-            rules={[
-              { required: true, message: "Please input the product name!" },
-            ]}
-          >
+        <Form layout="vertical" form={form}>
+          <Form.Item name="title" label="Product Name" required>
             <Input />
           </Form.Item>
-          <Form.Item
-            name="category"
-            label="Category"
-            rules={[{ required: true, message: "Please select a category!" }]}
-          >
-            <Select placeholder="Select a category">
-              <Option value="Apparel">Apparel</Option>
+          <Form.Item name="category" label="Category" required>
+            <Select>
               <Option value="Electronics">Electronics</Option>
-              <Option value="Footwear">Footwear</Option>
-              <Option value="Books">Books</Option>
-              <Option value="Home Decor">Home Decor</Option>
+              <Option value="Fashion">Fashion</Option>
+              <Option value="Home">Home</Option>
             </Select>
           </Form.Item>
-          <Form.Item
-            name="price"
-            label="Price"
-            rules={[{ required: true, message: "Please input the price!" }]}
-          >
-            <InputNumber min={0.01} step={0.01} className="w-full" />
+          <Form.Item name="price" label="Price" required>
+            <InputNumber className="w-full" />
           </Form.Item>
-          <Form.Item
-            name="stock"
-            label="Stock"
-            rules={[
-              { required: true, message: "Please input the stock quantity!" },
-            ]}
-          >
-            <InputNumber min={0} className="w-full" />
-          </Form.Item>
-          <Form.Item name="sku" label="SKU">
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: "Please select a status!" }]}
-          >
-            <Select placeholder="Select status">
-              <Option value="In Stock">In Stock</Option>
-              <Option value="Out of Stock">Out of Stock</Option>
-              <Option value="Discontinued">Discontinued</Option>
-            </Select>
+          <Form.Item name="stock" label="Stock" required>
+            <InputNumber className="w-full" />
           </Form.Item>
         </Form>
       </Modal>
 
-      {/* View Product Details Modal */}
+      {/* View Modal */}
       <Modal
         title="Product Details"
-        open={isViewModalVisible}
-        onCancel={handleViewModalCancel}
-        footer={[
-          <Button key="back" onClick={handleViewModalCancel}>
-            Close
-          </Button>,
-        ]}
+        open={!!viewing}
+        footer={null}
+        onCancel={() => setViewing(null)}
       >
-        {viewingProduct && (
-          <div>
-            <p>
-              <b>ID:</b> {viewingProduct.id}
-            </p>
-            <p>
-              <b>Title:</b> {viewingProduct.title}
-            </p>
-            <p>
-              <b>Category:</b> {viewingProduct.category}
-            </p>
-            <p>
-              <b>Price:</b> ${viewingProduct.price?.toFixed(2)}
-            </p>
-            <p>
-              <b>Stock:</b> {viewingProduct.stock}
-            </p>
-            <p>
-              <b>SKU:</b> {viewingProduct.sku || "N/A"}
-            </p>
-            <p>
-              <b>Status:</b>{" "}
-              <Tag color={getStatusTagColor(viewingProduct.status)}>
-                {viewingProduct.status}
-              </Tag>
-            </p>
-            <p>
-              <b>Published:</b> {viewingProduct.isPublished ? "Yes" : "No"}
-            </p>
-            <p>
-              <b>Short Description:</b> {viewingProduct.description || "N/A"}
-            </p>
-            <p>
-              <b>Detailed Description:</b>{" "}
-              {viewingProduct.productDetails?.description || "N/A"}
-            </p>
-            {viewingProduct.tags && viewingProduct.tags.length > 0 && (
-              <p>
-                <b>Tags:</b>{" "}
-                {viewingProduct.tags.map((tag) => (
-                  <Tag key={tag}>{tag}</Tag>
-                ))}
-              </p>
-            )}
-            {viewingProduct.specifications && (
-              <>
-                <p>
-                  <b>Brand:</b> {viewingProduct.specifications.brand || "N/A"}
-                </p>
-                <p>
-                  <b>Material:</b>{" "}
-                  {viewingProduct.specifications.material || "N/A"}
-                </p>
-                {viewingProduct.specifications.availableSizes &&
-                  viewingProduct.specifications.availableSizes.length > 0 && (
-                    <p>
-                      <b>Available Sizes:</b>{" "}
-                      {viewingProduct.specifications.availableSizes.join(", ")}
-                    </p>
-                  )}
-                {viewingProduct.specifications.availableColors &&
-                  viewingProduct.specifications.availableColors.length > 0 && (
-                    <p>
-                      <b>Available Colors:</b>{" "}
-                      {viewingProduct.specifications.availableColors.join(", ")}
-                    </p>
-                  )}
-                <p>
-                  <b>Country of Origin:</b>{" "}
-                  {viewingProduct.specifications.countryOfOrigin || "N/A"}
-                </p>
-              </>
-            )}
-            {viewingProduct.imageUrls &&
-              viewingProduct.imageUrls.length > 0 && (
-                <p>
-                  <b>Image:</b>{" "}
-                  <img
-                    src={viewingProduct.imageUrls[0]}
-                    alt={viewingProduct.title}
-                    style={{ maxWidth: "100px", maxHeight: "100px" }}
-                  />
-                </p>
-              )}
-          </div>
+        {viewing && (
+          <Space direction="vertical">
+            <Text><b>Name:</b> {viewing.title}</Text>
+            <Text><b>Category:</b> {viewing.category}</Text>
+            <Text><b>Price:</b> ৳ {viewing.price}</Text>
+            <Text><b>Stock:</b> {viewing.stock}</Text>
+            <Tag color={statusColor(viewing.status)}>
+              {viewing.status}
+            </Tag>
+          </Space>
         )}
       </Modal>
     </div>

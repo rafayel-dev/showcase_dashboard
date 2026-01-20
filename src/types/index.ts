@@ -50,6 +50,8 @@ export interface Order {
   shippingAddress: string;
   paymentMethod: string;
   items: OrderItem[];
+  customerMobile: string;
+  courier: 'Pathao' | 'Steadfast' | 'RedX'
 }
 
 export interface Admin {

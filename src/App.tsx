@@ -44,10 +44,10 @@ const App: React.FC = () => {
     <BrowserRouter>
       <Routes>
         {/* Redirect from root to login if not authenticated, or to dashboard if authenticated */}
-        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard/overview" replace /> : <Navigate to="/login" replace />} />
+        <Route path="/" element={isAuthenticated ? <Navigate to="/overview" replace /> : <Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route
-          path="/dashboard"
+          path="/"
           element={
             <ProtectedRoute>
               <DashboardLayout onLogout={handleLogout} />
@@ -57,8 +57,8 @@ const App: React.FC = () => {
           {/* Nested routes for the dashboard */}
           <Route path="overview" element={<DashboardOverview />} />
           <Route path="products" element={<ProductPage />} />
-          <Route path="add-products" element={<AddProductPage />} />
-          <Route path="draft-products" element={<DraftPage />} />
+          <Route path="add-product" element={<AddProductPage />} />
+          <Route path="drafts-product" element={<DraftPage />} />
           <Route path="orders" element={<OrderPage />} />
           <Route path="admins" element={<AdminPage />} />
           <Route path="categories" element={<CategoryPage />} />

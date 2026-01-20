@@ -1,2 +1,25 @@
 @import "antd/dist/reset.css";
 @import "tailwindcss";
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #8e51ff;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7f3bff;
+}
+
+body::selection {
+  background: #8e51ff;
+  color: white;
+}

@@ -1,121 +1,149 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Popconfirm, Card, Typography, Modal, Form, Input, message, Spin } from 'antd';
-import type { TableProps } from 'antd';
-import type { Category } from '../../types'; // Import Category interface
-import { fetchCategories, addCategory, updateCategory, deleteCategory } from '../../services/categoryService'; // Import service functions
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  Button,
+  Space,
+  Popconfirm,
+  Card,
+  Typography,
+  Modal,
+  Form,
+  Input,
+  message,
+  Spin,
+  Row,
+  Col,
+  Tooltip,
+  Empty,
+} from "antd";
+import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
+import type { TableProps } from "antd";
+import type { Category } from "../../types";
+import {
+  fetchCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+} from "../../services/categoryService";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const CategoryPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [tableLoading, setTableLoading] = useState<boolean>(false);
-  const [formLoading, setFormLoading] = useState<boolean>(false);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [form] = Form.useForm();
 
-  // Fetch categories on component mount
   useEffect(() => {
-    const getCategories = async () => {
-      setTableLoading(true);
-      try {
-        const data = await fetchCategories();
-        setCategories(data);
-      } catch (error) {
-        message.error('Failed to fetch categories.');
-      } finally {
-        setTableLoading(false);
-      }
-    };
-    getCategories();
+    loadCategories();
   }, []);
 
-  const handleAddCategory = () => {
-    setEditingCategory(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const handleEditCategory = (record: Category) => {
-    setEditingCategory(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
-  };
-
-  const handleDeleteCategory = async (id: string) => {
+  const loadCategories = async () => {
     setTableLoading(true);
     try {
-      await deleteCategory(id);
-      setCategories(categories.filter(category => category.id !== id));
-      message.success(`Category with ID: ${id} deleted successfully.`);
-    } catch (error) {
-      message.error('Failed to delete category.');
+      const data = await fetchCategories();
+      setCategories(data);
+    } catch {
+      message.error("Failed to load categories");
     } finally {
       setTableLoading(false);
     }
   };
 
-  const handleModalOk = async () => {
+  const openAddModal = () => {
+    setEditingCategory(null);
+    form.resetFields();
+    setModalOpen(true);
+  };
+
+  const openEditModal = (record: Category) => {
+    setEditingCategory(record);
+    form.setFieldsValue(record);
+    setModalOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    setTableLoading(true);
+    try {
+      await deleteCategory(id);
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      message.success("Category deleted successfully");
+    } catch {
+      message.error("Failed to delete category");
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
     try {
       setFormLoading(true);
       const values = await form.validateFields();
+
       if (editingCategory) {
-        // Edit existing category
-        const updated = await updateCategory({ ...editingCategory, ...values });
-        setCategories(categories.map(cat => cat.id === updated.id ? updated : cat));
-        message.success('Category updated successfully!');
+        const updated = await updateCategory({
+          ...editingCategory,
+          ...values,
+        });
+        setCategories((prev) =>
+          prev.map((c) => (c.id === updated.id ? updated : c))
+        );
+        message.success("Category updated successfully");
       } else {
-        // Add new category
-        const newCategory = await addCategory({ ...values });
-        setCategories([...categories, newCategory]);
-        message.success('Category added successfully!');
+        const created = await addCategory(values);
+        setCategories((prev) => [...prev, created]);
+        message.success("Category added successfully");
       }
-      setIsModalVisible(false);
+
+      setModalOpen(false);
       setEditingCategory(null);
       form.resetFields();
-    } catch (errorInfo) {
-      message.error('Failed to save category.');
-      console.log('Failed:', errorInfo);
+    } catch {
+      message.error("Failed to save category");
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
-    setEditingCategory(null);
-    form.resetFields();
-  };
-
-  const columns: TableProps<Category>['columns'] = [
+  const columns: TableProps<Category>["columns"] = [
     {
-      title: 'Category ID',
-      dataIndex: 'id',
-      key: 'id',
+      title: "Category Name",
+      dataIndex: "name",
+      render: (text) => <Text strong>{text}</Text>,
     },
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Description",
+      dataIndex: "description",
+      render: (text) => text || <Text type="secondary">—</Text>,
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      align: "right",
       render: (_, record) => (
-        <Space size="middle">
-          <Button type="link" onClick={() => handleEditCategory(record)}>Edit</Button>
+        <Space>
+          <Tooltip title="Edit Category">
+            <Button
+              icon={<FiEdit2 />}
+              onClick={() => openEditModal(record)}
+            >
+              Edit
+            </Button>
+          </Tooltip>
+
           <Popconfirm
-            title="Are you sure to delete this category?"
-            onConfirm={() => handleDeleteCategory(record.id)}
-            okText="Yes"
-            cancelText="No"
+            title="Delete this category?"
+            description="This action cannot be undone"
+            okText="Delete"
+            cancelText="Cancel"
+            onConfirm={() => handleDelete(record.id)}
           >
-            <Button type="link" danger>Delete</Button>
+            <Tooltip title="Delete Category">
+              <Button danger icon={<FiTrash2 />}>
+                Delete
+              </Button>
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -123,41 +151,64 @@ const CategoryPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-4">
-      <Card
-        title={<Title level={2} className="text-gray-800 m-0">Category Management</Title>}
-        extra={
-          <Button type="primary" onClick={handleAddCategory}>
-            Add New Category
-          </Button>
-        }
-      >
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <Card className="rounded-2xl">
+        {/* Header */}
+        <Row justify="space-between" align="middle" className="mb-4">
+          <Col>
+            <Title level={3} className="mb-0">
+              Category Management
+            </Title>
+            <Text type="secondary">
+              Organize your products with proper categories
+            </Text>
+          </Col>
+
+          <Col>
+            <Button
+              type="primary"
+              icon={<FiPlus />}
+              onClick={openAddModal}
+            >
+              Add Category
+            </Button>
+          </Col>
+        </Row>
+
+        {/* Table */}
         <Spin spinning={tableLoading}>
-          <Table dataSource={categories} columns={columns} pagination={{ pageSize: 5 }} />
+          <Table
+            rowKey="id"
+            dataSource={categories}
+            columns={columns}
+            pagination={{ pageSize: 6 }}
+            locale={{
+              emptyText: (
+                <Empty description="No categories found" />
+              ),
+            }}
+          />
         </Spin>
       </Card>
 
+      {/* Modal */}
       <Modal
-        title={editingCategory ? 'Edit Category' : 'Add New Category'}
-        open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-        okText={editingCategory ? 'Update Category' : 'Add Category'}
+        title={editingCategory ? "Edit Category" : "Add New Category"}
+        open={modalOpen}
+        onOk={handleSave}
+        onCancel={() => setModalOpen(false)}
         confirmLoading={formLoading}
+        okText={editingCategory ? "Update Category" : "Add Category"}
       >
-        <Form form={form} layout="vertical" name="category_form">
+        <Form form={form} layout="vertical">
           <Form.Item
             name="name"
             label="Category Name"
-            rules={[{ required: true, message: 'Please input the category name!' }]}
+            rules={[
+              { required: true, message: "Category name is required" },
+            ]}
           >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="Description"
-          >
-            <Input.TextArea rows={4} />
+            <Input placeholder="e.g. Electronics" />
           </Form.Item>
         </Form>
       </Modal>
