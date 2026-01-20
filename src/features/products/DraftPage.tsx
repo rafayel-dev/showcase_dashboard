@@ -6,7 +6,6 @@ import {
   Button,
   Space,
   Typography,
-  message,
   Row,
   Col,
   Tooltip,
@@ -16,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { FiEdit2, FiUploadCloud } from "react-icons/fi";
 import { fetchProducts, updateProduct } from "../../services/productService";
 import type { Product } from "../../types";
+import toast from "../../../utils/toast"
 
 const { Title, Text } = Typography;
 
@@ -37,7 +37,7 @@ const DraftPage: React.FC = () => {
       );
       setData(draftProducts);
     } catch {
-      message.error("Failed to load draft products");
+      toast.error("Failed to load draft products");
     } finally {
       setLoading(false);
     }
@@ -47,9 +47,9 @@ const DraftPage: React.FC = () => {
     try {
       await updateProduct({ ...product, isPublished: true });
       setData((prev) => prev.filter((p) => p.id !== product.id));
-      message.success(`"${product.title}" published successfully`);
+      toast.success(`"${product.title}" published successfully`);
     } catch {
-      message.error("Failed to publish product");
+      toast.error("Failed to publish product");
     }
   };
 

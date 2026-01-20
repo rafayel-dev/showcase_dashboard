@@ -9,7 +9,6 @@ import {
   Modal,
   Form,
   Input,
-  message,
   Spin,
   Row,
   Col,
@@ -25,6 +24,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "../../services/categoryService";
+import toast from "../../../utils/toast";
 
 const { Title, Text } = Typography;
 
@@ -46,7 +46,7 @@ const CategoryPage: React.FC = () => {
       const data = await fetchCategories();
       setCategories(data);
     } catch {
-      message.error("Failed to load categories");
+      toast.error("Failed to load categories");
     } finally {
       setTableLoading(false);
     }
@@ -69,9 +69,9 @@ const CategoryPage: React.FC = () => {
     try {
       await deleteCategory(id);
       setCategories((prev) => prev.filter((c) => c.id !== id));
-      message.success("Category deleted successfully");
+      toast.success("Category deleted successfully");
     } catch {
-      message.error("Failed to delete category");
+      toast.error("Failed to delete category");
     } finally {
       setTableLoading(false);
     }
@@ -88,20 +88,20 @@ const CategoryPage: React.FC = () => {
           ...values,
         });
         setCategories((prev) =>
-          prev.map((c) => (c.id === updated.id ? updated : c))
+          prev.map((c) => (c.id === updated.id ? updated : c)),
         );
-        message.success("Category updated successfully");
+        toast.success("Category updated successfully");
       } else {
         const created = await addCategory(values);
         setCategories((prev) => [...prev, created]);
-        message.success("Category added successfully");
+        toast.success("Category added successfully");
       }
 
       setModalOpen(false);
       setEditingCategory(null);
       form.resetFields();
     } catch {
-      message.error("Failed to save category");
+      toast.error("Failed to save category");
     } finally {
       setFormLoading(false);
     }
@@ -124,26 +124,22 @@ const CategoryPage: React.FC = () => {
       render: (_, record) => (
         <Space>
           <Tooltip title="Edit Category">
-            <Button
-              icon={<FiEdit2 />}
-              onClick={() => openEditModal(record)}
-            >
+            <Button icon={<FiEdit2 />} onClick={() => openEditModal(record)}>
               Edit
             </Button>
           </Tooltip>
 
           <Popconfirm
+          placement="topRight"
             title="Delete this category?"
             description="This action cannot be undone"
             okText="Delete"
             cancelText="Cancel"
             onConfirm={() => handleDelete(record.id)}
           >
-            <Tooltip title="Delete Category">
-              <Button danger icon={<FiTrash2 />}>
-                Delete
-              </Button>
-            </Tooltip>
+            <Button title="Delete Category" danger icon={<FiTrash2 />}>
+              Delete
+            </Button>
           </Popconfirm>
         </Space>
       ),
@@ -165,11 +161,7 @@ const CategoryPage: React.FC = () => {
           </Col>
 
           <Col>
-            <Button
-              type="primary"
-              icon={<FiPlus />}
-              onClick={openAddModal}
-            >
+            <Button type="primary" icon={<FiPlus />} onClick={openAddModal}>
               Add Category
             </Button>
           </Col>
@@ -183,9 +175,7 @@ const CategoryPage: React.FC = () => {
             columns={columns}
             pagination={{ pageSize: 6 }}
             locale={{
-              emptyText: (
-                <Empty description="No categories found" />
-              ),
+              emptyText: <Empty description="No categories found" />,
             }}
           />
         </Spin>
@@ -204,9 +194,7 @@ const CategoryPage: React.FC = () => {
           <Form.Item
             name="name"
             label="Category Name"
-            rules={[
-              { required: true, message: "Category name is required" },
-            ]}
+            rules={[{ required: true, message: "Category name is required" }]}
           >
             <Input placeholder="e.g. Electronics" />
           </Form.Item>

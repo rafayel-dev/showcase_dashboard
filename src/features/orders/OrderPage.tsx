@@ -10,7 +10,6 @@ import {
   Select,
   Descriptions,
   Spin,
-  message,
   Row,
   Col,
   Statistic,
@@ -27,6 +26,7 @@ import {
 } from "@ant-design/icons";
 import type { Order } from "../../types";
 import { fetchOrders, updateOrder } from "../../services/orderService";
+import toast from "../../../utils/toast"
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -48,7 +48,7 @@ const OrderPage: React.FC = () => {
       const data = await fetchOrders();
       setOrders(data);
     } catch {
-      message.error("Failed to load orders");
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }
@@ -83,9 +83,9 @@ const OrderPage: React.FC = () => {
         prev.map((o) => updated.find((u) => u.id === o.id) || o)
       );
       setSelectedRowKeys([]);
-      message.success("Bulk update successful");
+      toast.success("Bulk update successful");
     } catch {
-      message.error("Bulk update failed");
+      toast.error("Bulk update failed");
     }
   };
 
@@ -123,7 +123,7 @@ const OrderPage: React.FC = () => {
     {
       title: "Status",
       dataIndex: "status",
-      render: (status, record) => (
+      render: (status, _record) => (
         <Select size="small" value={status}>
           <Option value="Pending">Pending</Option>
           <Option value="Processing">Processing</Option>

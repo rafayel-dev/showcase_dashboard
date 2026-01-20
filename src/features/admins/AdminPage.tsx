@@ -10,7 +10,6 @@ import {
   Form,
   Input,
   Select,
-  message,
   Spin,
   Row,
   Col,
@@ -27,6 +26,7 @@ import {
   updateAdmin,
   deleteAdmin,
 } from "../../services/adminService";
+import toast from "../../../utils/toast"
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -62,7 +62,7 @@ const AdminPage: React.FC = () => {
       const data = await fetchAdmins();
       setAdmins(data);
     } catch {
-      message.error("Failed to load administrators");
+      toast.error("Failed to load administrators");
     } finally {
       setTableLoading(false);
     }
@@ -85,9 +85,9 @@ const AdminPage: React.FC = () => {
     try {
       await deleteAdmin(id);
       setAdmins((prev) => prev.filter((a) => a.id !== id));
-      message.success("Administrator deleted successfully");
+      toast.success("Administrator deleted successfully");
     } catch {
-      message.error("Failed to delete administrator");
+      toast.error("Failed to delete administrator");
     } finally {
       setTableLoading(false);
     }
@@ -106,18 +106,18 @@ const AdminPage: React.FC = () => {
         setAdmins((prev) =>
           prev.map((a) => (a.id === updated.id ? updated : a)),
         );
-        message.success("Administrator updated successfully");
+        toast.success("Administrator updated successfully");
       } else {
         const created = await addAdmin(values);
         setAdmins((prev) => [...prev, created]);
-        message.success("Administrator added successfully");
+        toast.success("Administrator added successfully");
       }
 
       setModalOpen(false);
       setEditingAdmin(null);
       form.resetFields();
     } catch {
-      message.error("Failed to save administrator");
+      toast.error("Failed to save administrator");
     } finally {
       setFormLoading(false);
     }

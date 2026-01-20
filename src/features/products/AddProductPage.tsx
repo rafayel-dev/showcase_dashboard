@@ -8,7 +8,6 @@ import {
   Typography,
   Select,
   Space,
-  message,
   Spin,
   Upload,
   Modal,
@@ -23,6 +22,7 @@ import type { Product } from "../../types";
 import { addProduct } from "../../services/productService";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
 import CustomJoditEditor from "../../components/common/JoditEditor";
+import toast from "../../../utils/toast"
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -46,7 +46,7 @@ const AddProductPage: React.FC = () => {
 
   const onFinish = async (values: Omit<Product, "id" | "key">) => {
     if (!fileList.length) {
-      message.error("কমপক্ষে ১টি পণ্যের ছবি দিন");
+      toast.error("কমপক্ষে ১টি পণ্যের ছবি দিন");
       return;
     }
 
@@ -60,10 +60,10 @@ const AddProductPage: React.FC = () => {
         status: "In Stock",
       });
 
-      message.success("✅ Product added successfully");
+      toast.success("✅ Product added successfully");
       navigate("/dashboard/products");
     } catch {
-      message.error("❌ Product add failed");
+      toast.error("❌ Product add failed");
     } finally {
       setLoading(false);
     }

@@ -15,7 +15,7 @@ import {
   Tooltip,
   Row,
   Col,
-  message,
+  Popconfirm,
 } from "antd";
 import {
   FiPlus,
@@ -34,6 +34,7 @@ import {
   updateProduct,
   deleteProduct,
 } from "../../services/productService";
+import toast from "../../../utils/toast";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -62,7 +63,7 @@ const ProductPage: React.FC = () => {
       const data = await fetchProducts();
       setProducts(data);
     } catch {
-      message.error("Failed to load products");
+      toast.error("Failed to load products");
     } finally {
       setLoading(false);
     }
@@ -81,9 +82,7 @@ const ProductPage: React.FC = () => {
       .toLowerCase()
       .includes(searchText.toLowerCase());
 
-    const matchCategory = categoryFilter
-      ? p.category === categoryFilter
-      : true;
+    const matchCategory = categoryFilter ? p.category === categoryFilter : true;
 
     return matchSearch && matchCategory;
   });
@@ -138,16 +137,19 @@ const ProductPage: React.FC = () => {
               }}
             />
           </Tooltip>
-          <Tooltip title="Delete">
-            <Button
-              danger
-              icon={<FiTrash2 />}
-              onClick={async () => {
-                await deleteProduct(r.id);
-                loadProducts();
-              }}
-            />
-          </Tooltip>
+          <Popconfirm
+            placement="topRight"
+            title="Delete this Product?"
+            description="This action cannot be undone"
+            okText="Delete"
+            cancelText="Cancel"
+            onConfirm={async () => {
+              await deleteProduct(r.id);
+              loadProducts();
+            }}
+          >
+            <Button title="Delete Product" danger icon={<FiTrash2 />} />
+          </Popconfirm>
         </Space>
       ),
     },
@@ -160,9 +162,7 @@ const ProductPage: React.FC = () => {
         <Row justify="space-between" align="middle" className="mb-4">
           <Col>
             <Title level={3}>Product Management</Title>
-            <Text type="secondary">
-              Manage your ecommerce inventory
-            </Text>
+            <Text type="secondary">Manage your ecommerce inventory</Text>
           </Col>
           <Col>
             <Space>
@@ -212,9 +212,7 @@ const ProductPage: React.FC = () => {
               columns={columns}
               dataSource={filteredProducts}
               rowKey="id"
-              rowClassName={(record) =>
-                record.stock < 5 ? "bg-red-50" : ""
-              }
+              rowClassName={(record) => (record.stock < 5 ? "bg-red-50" : "")}
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -267,13 +265,19 @@ const ProductPage: React.FC = () => {
       >
         {viewing && (
           <Space direction="vertical">
-            <Text><b>Name:</b> {viewing.title}</Text>
-            <Text><b>Category:</b> {viewing.category}</Text>
-            <Text><b>Price:</b> ৳ {viewing.price}</Text>
-            <Text><b>Stock:</b> {viewing.stock}</Text>
-            <Tag color={statusColor(viewing.status)}>
-              {viewing.status}
-            </Tag>
+            <Text>
+              <b>Name:</b> {viewing.title}
+            </Text>
+            <Text>
+              <b>Category:</b> {viewing.category}
+            </Text>
+            <Text>
+              <b>Price:</b> ৳ {viewing.price}
+            </Text>
+            <Text>
+              <b>Stock:</b> {viewing.stock}
+            </Text>
+            <Tag color={statusColor(viewing.status)}>{viewing.status}</Tag>
           </Space>
         )}
       </Modal>
