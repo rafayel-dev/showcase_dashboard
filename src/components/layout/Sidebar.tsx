@@ -14,7 +14,7 @@ const Sidebar: React.FC = () => {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all \
      ${isActive
-        ? "bg-violet-600 text-white shadow"
+        ? "bg-violet-500 text-white shadow"
         : "text-black hover:bg-gray-300 hover:text-gray-600"}`;
 
   return (

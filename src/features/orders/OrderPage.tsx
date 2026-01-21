@@ -21,12 +21,11 @@ import {
   ShoppingCartOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
-  DownloadOutlined,
   TruckOutlined,
 } from "@ant-design/icons";
 import type { Order } from "../../types";
 import { fetchOrders, updateOrder } from "../../services/orderService";
-import toast from "../../../utils/toast"
+import toast from "../../../utils/toast";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -54,13 +53,14 @@ const OrderPage: React.FC = () => {
     }
   };
 
-  const statusColor = (status: Order["status"]) => ({
-    Pending: "default",
-    Processing: "processing",
-    Shipped: "geekblue",
-    Delivered: "success",
-    Cancelled: "error",
-  }[status] || "default");
+  const statusColor = (status: Order["status"]) =>
+    ({
+      Pending: "yellow",
+      Processing: "processing",
+      Shipped: "geekblue",
+      Delivered: "success",
+      Cancelled: "error",
+    })[status] || "default";
 
   const filteredOrders = useMemo(() => {
     if (activeTab === "All") return orders;
@@ -77,10 +77,10 @@ const OrderPage: React.FC = () => {
       const updated = await Promise.all(
         orders
           .filter((o) => selectedRowKeys.includes(o.id))
-          .map((o) => updateOrder({ ...o, status }))
+          .map((o) => updateOrder({ ...o, status })),
       );
       setOrders((prev) =>
-        prev.map((o) => updated.find((u) => u.id === o.id) || o)
+        prev.map((o) => updated.find((u) => u.id === o.id) || o),
       );
       setSelectedRowKeys([]);
       toast.success("Bulk update successful");
@@ -89,35 +89,22 @@ const OrderPage: React.FC = () => {
     }
   };
 
-  const exportCSV = () => {
-    const header = ["Order ID","Customer","Mobile","Product","Status","Amount","Courier"];
-    const rows = orders.map(o => [
-      o.id,
-      o.customerName,
-      o.customerMobile,
-      o.items?.map(i=>i.productName).join(" | "),
-      o.status,
-      o.totalAmount,
-      o.courier || ""
-    ]);
-    const csv = [header, ...rows].map(r=>r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "orders.csv";
-    a.click();
-  };
-
   const columns: TableProps<Order>["columns"] = [
     { title: "Order ID", dataIndex: "id", width: 110 },
     { title: "Customer", dataIndex: "customerName" },
-    { title: "Mobile", dataIndex: "customerMobile", render: (m) => <Text strong>{m}</Text> },
+    {
+      title: "Mobile",
+      dataIndex: "customerMobile",
+      render: (m) => <Text strong>{m}</Text>,
+    },
     {
       title: "Product",
       dataIndex: "items",
       render: (items) => (
-        <Text>{items?.[0]?.productName}{items?.length > 1 && ` +${items.length - 1} more`}</Text>
+        <Text>
+          {items?.[0]?.productName}
+          {items?.length > 1 && ` +${items.length - 1} more`}
+        </Text>
       ),
     },
     {
@@ -158,7 +145,11 @@ const OrderPage: React.FC = () => {
     {
       title: "Action",
       render: (_, record) => (
-        <Button type="link" icon={<EyeOutlined />} onClick={() => setViewOrder(record)}>
+        <Button
+          type="link"
+          icon={<EyeOutlined />}
+          onClick={() => setViewOrder(record)}
+        >
           View
         </Button>
       ),
@@ -170,10 +161,42 @@ const OrderPage: React.FC = () => {
       <Title level={3}>📦 Order Management</Title>
 
       <Row gutter={16} className="mt-4">
-        <Col md={6}><Card><Statistic title="Total Orders" value={orders.length} prefix={<ShoppingCartOutlined />} /></Card></Col>
-        <Col md={6}><Card><Statistic title="Pending" value={orders.filter(o=>o.status==='Pending').length} prefix={<ClockCircleOutlined />} /></Card></Col>
-        <Col md={6}><Card><Statistic title="Delivered" value={orders.filter(o=>o.status==='Delivered').length} prefix={<CheckCircleOutlined />} /></Card></Col>
-        <Col md={6}><Card><Statistic title="Shipped" value={orders.filter(o=>o.status==='Shipped').length} prefix={<TruckOutlined />} /></Card></Col>
+        <Col md={6}>
+          <Card>
+            <Statistic
+              title="Total Orders"
+              value={orders.length}
+              prefix={<ShoppingCartOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col md={6}>
+          <Card>
+            <Statistic
+              title="Pending"
+              value={orders.filter((o) => o.status === "Pending").length}
+              prefix={<ClockCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col md={6}>
+          <Card>
+            <Statistic
+              title="Delivered"
+              value={orders.filter((o) => o.status === "Delivered").length}
+              prefix={<CheckCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col md={6}>
+          <Card>
+            <Statistic
+              title="Shipped"
+              value={orders.filter((o) => o.status === "Shipped").length}
+              prefix={<TruckOutlined />}
+            />
+          </Card>
+        </Col>
       </Row>
 
       <Card className="mt-6! rounded-2xl">
@@ -181,23 +204,40 @@ const OrderPage: React.FC = () => {
           <Tabs
             activeKey={activeTab}
             onChange={setActiveTab}
-            items={["All","Pending","Processing","Shipped","Delivered","Cancelled"].map(k=>({key:k,label:`${k} (${k==='All'?orders.length:orders.filter(o=>o.status===k).length})`}))}
+            items={[
+              "All",
+              "Pending",
+              "Processing",
+              "Shipped",
+              "Delivered",
+              "Cancelled",
+            ].map((k) => ({
+              key: k,
+              label: `${k} (${k === "All" ? orders.length : orders.filter((o) => o.status === k).length})`,
+            }))}
           />
-          <Button icon={<DownloadOutlined />} onClick={exportCSV}>Export CSV</Button>
         </Row>
 
         {selectedRowKeys.length > 0 && (
           <Space className="mb-3">
             <Text strong>{selectedRowKeys.length} selected</Text>
-            <Button onClick={() => bulkUpdateStatus("Shipped")}>Mark Shipped</Button>
-            <Button onClick={() => bulkUpdateStatus("Delivered")}>Mark Delivered</Button>
+            <Button onClick={() => bulkUpdateStatus("Shipped")}>
+              Mark Shipped
+            </Button>
+            <Button onClick={() => bulkUpdateStatus("Delivered")}>
+              Mark Delivered
+            </Button>
           </Space>
         )}
 
         <Spin spinning={loading}>
           <Table
             rowKey="id"
-            rowClassName={(record) => record.status === 'Pending' && isSLABreached(record.orderDate) ? 'bg-red-50' : ''}
+            rowClassName={(record) =>
+              record.status === "Pending" && isSLABreached(record.orderDate)
+                ? "bg-red-50"
+                : ""
+            }
             rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
             columns={columns}
             dataSource={filteredOrders}
@@ -206,26 +246,49 @@ const OrderPage: React.FC = () => {
         </Spin>
       </Card>
 
-      <Modal open={!!viewOrder} onCancel={() => setViewOrder(null)} footer={null} width={820}>
+      <Modal
+        open={!!viewOrder}
+        onCancel={() => setViewOrder(null)}
+        footer={null}
+        width={820}
+      >
         {viewOrder && (
           <Row gutter={16}>
             <Col span={12}>
               <Card title="Customer & Delivery">
                 <Descriptions column={1} size="small">
-                  <Descriptions.Item label="Name">{viewOrder.customerName}</Descriptions.Item>
-                  <Descriptions.Item label="Mobile">{viewOrder.customerMobile}</Descriptions.Item>
-                  <Descriptions.Item label="Address">{viewOrder.shippingAddress}</Descriptions.Item>
+                  <Descriptions.Item label="Name">
+                    {viewOrder.customerName}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Mobile">
+                    {viewOrder.customerMobile}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Address">
+                    {viewOrder.shippingAddress}
+                  </Descriptions.Item>
                 </Descriptions>
               </Card>
             </Col>
             <Col span={12}>
               <Card title="Order & Payment">
                 <Descriptions column={1} size="small">
-                  <Descriptions.Item label="Order ID">{viewOrder.id}</Descriptions.Item>
-                  <Descriptions.Item label="Status"><Tag color={statusColor(viewOrder.status)}>{viewOrder.status}</Tag></Descriptions.Item>
-                  <Descriptions.Item label="Payment">{viewOrder.paymentMethod}</Descriptions.Item>
-                  <Descriptions.Item label="Courier">{viewOrder.courier}</Descriptions.Item>
-                  <Descriptions.Item label="Total">৳ {viewOrder.totalAmount}</Descriptions.Item>
+                  <Descriptions.Item label="Order ID">
+                    {viewOrder.id}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Status">
+                    <Tag color={statusColor(viewOrder.status)}>
+                      {viewOrder.status}
+                    </Tag>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Payment">
+                    {viewOrder.paymentMethod}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Courier">
+                    {viewOrder.courier}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Total">
+                    ৳ {viewOrder.totalAmount}
+                  </Descriptions.Item>
                 </Descriptions>
               </Card>
             </Col>

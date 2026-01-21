@@ -60,7 +60,7 @@ const CategoryPage: React.FC = () => {
 
   const openEditModal = (record: Category) => {
     setEditingCategory(record);
-    form.setFieldsValue(record);
+    form.setFieldsValue({ name: record.name });
     setModalOpen(true);
   };
 
@@ -114,11 +114,6 @@ const CategoryPage: React.FC = () => {
       render: (text) => <Text strong>{text}</Text>,
     },
     {
-      title: "Description",
-      dataIndex: "description",
-      render: (text) => text || <Text type="secondary">—</Text>,
-    },
-    {
       title: "Actions",
       align: "right",
       render: (_, record) => (
@@ -130,14 +125,14 @@ const CategoryPage: React.FC = () => {
           </Tooltip>
 
           <Popconfirm
-          placement="topRight"
+            placement="topRight"
             title="Delete this category?"
             description="This action cannot be undone"
             okText="Delete"
             cancelText="Cancel"
             onConfirm={() => handleDelete(record.id)}
           >
-            <Button title="Delete Category" danger icon={<FiTrash2 />}>
+            <Button danger icon={<FiTrash2 />}>
               Delete
             </Button>
           </Popconfirm>
@@ -148,7 +143,7 @@ const CategoryPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <Card className="rounded-2xl">
+      <Card className="rounded-2xl shadow-sm">
         {/* Header */}
         <Row justify="space-between" align="middle" className="mb-4">
           <Col>
@@ -161,7 +156,12 @@ const CategoryPage: React.FC = () => {
           </Col>
 
           <Col>
-            <Button type="primary" icon={<FiPlus />} onClick={openAddModal}>
+            <Button
+              type="primary"
+              className="bg-violet-500!"
+              icon={<FiPlus />}
+              onClick={openAddModal}
+            >
               Add Category
             </Button>
           </Col>
@@ -189,6 +189,7 @@ const CategoryPage: React.FC = () => {
         onCancel={() => setModalOpen(false)}
         confirmLoading={formLoading}
         okText={editingCategory ? "Update Category" : "Add Category"}
+        destroyOnClose
       >
         <Form form={form} layout="vertical">
           <Form.Item

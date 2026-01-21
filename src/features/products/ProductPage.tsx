@@ -8,6 +8,7 @@ import {
   Modal,
   Form,
   Input,
+  Image,
   InputNumber,
   Select,
   Tag,
@@ -78,7 +79,7 @@ const ProductPage: React.FC = () => {
 
   // ✅ Filter logic
   const filteredProducts = products.filter((p) => {
-    const matchSearch = p.title
+    const matchSearch = p.productName
       .toLowerCase()
       .includes(searchText.toLowerCase());
 
@@ -90,7 +91,7 @@ const ProductPage: React.FC = () => {
   const columns: TableProps<Product>["columns"] = [
     {
       title: "Product",
-      dataIndex: "title",
+      dataIndex: "productName",
       render: (text, record) => (
         <Text strong className={record.stock < 5 ? "text-red-600" : ""}>
           {text}
@@ -102,9 +103,13 @@ const ProductPage: React.FC = () => {
       dataIndex: "category",
     },
     {
+      title: "SKU",
+      dataIndex: "sku",
+    },
+    {
       title: "Price",
       dataIndex: "price",
-      align: "right",
+      align: "center",
       render: (p) => `৳ ${p}`,
     },
     {
@@ -174,6 +179,7 @@ const ProductPage: React.FC = () => {
               />
               <Button
                 type="primary"
+                className="bg-violet-500!"
                 icon={<FiPlus />}
                 onClick={() => navigate("/add-product")}
               >
@@ -259,26 +265,43 @@ const ProductPage: React.FC = () => {
       {/* View Modal */}
       <Modal
         title="Product Details"
+        width={700}
         open={!!viewing}
         footer={null}
         onCancel={() => setViewing(null)}
       >
         {viewing && (
-          <Space direction="vertical">
-            <Text>
-              <b>Name:</b> {viewing.title}
-            </Text>
-            <Text>
-              <b>Category:</b> {viewing.category}
-            </Text>
-            <Text>
-              <b>Price:</b> ৳ {viewing.price}
-            </Text>
-            <Text>
-              <b>Stock:</b> {viewing.stock}
-            </Text>
-            <Tag color={statusColor(viewing.status)}>{viewing.status}</Tag>
-          </Space>
+          <>
+            <Space direction="vertical">
+              <Text>
+                <b>Name:</b> {viewing.productName}
+              </Text>
+              <Text>
+                <b>Category:</b> {viewing.category}
+              </Text>
+              <Text>
+                <b>Price:</b> ৳ {viewing.price}
+              </Text>
+              <Text>
+                <b>Stock:</b> {viewing.stock}
+              </Text>
+              <Text>
+                <b>Status:</b>{" "}
+                <Tag color={statusColor(viewing.status)}>{viewing.status}</Tag>
+              </Text>
+            </Space>
+            <div className="mt-4">
+              <div className="flex gap-2">
+                <Image.PreviewGroup>
+                  <Image
+                    src={viewing.imageUrl || ""}
+                    alt=""
+                    className="w-32! h-32!"
+                  />
+                </Image.PreviewGroup>
+              </div>
+            </div>
+          </>
         )}
       </Modal>
     </div>

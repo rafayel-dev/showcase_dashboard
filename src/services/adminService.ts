@@ -4,7 +4,6 @@ import type { Admin } from '../types';
 let _admins: Admin[] = [
   { key: 'ADM001', id: 'ADM001', name: 'Rafiul Islam', email: 'rafi@example.com', role: 'Super Admin' },
   { key: 'ADM002', id: 'ADM002', name: 'Jane Doe', email: 'jane@example.com', role: 'Admin' },
-  { key: 'ADM003', id: 'ADM003', name: 'Peter Jones', email: 'peter@example.com', role: 'Editor' },
 ];
 
 const generateAdminId = (): string => {

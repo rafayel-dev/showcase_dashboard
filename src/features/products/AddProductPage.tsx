@@ -56,12 +56,12 @@ const AddProductPage: React.FC = () => {
 
       await addProduct({
         ...values,
-        imageUrls: images,
+        imageUrl: images[0],
         status: "In Stock",
       });
 
-      toast.success("✅ Product added successfully");
-      navigate("/dashboard/products");
+      toast.success("Product added successfully✅");
+      navigate("/products");
     } catch {
       toast.error("❌ Product add failed");
     } finally {
@@ -294,7 +294,7 @@ const AddProductPage: React.FC = () => {
                 <Button
                   danger
                   size="large"
-                  onClick={() => navigate("/dashboard/products")}
+                  onClick={() => navigate("/products")}
                 >
                   Cancel
                 </Button>

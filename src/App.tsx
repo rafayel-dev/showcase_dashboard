@@ -9,6 +9,7 @@ import OrderPage from './features/orders/OrderPage';
 import AdminPage from './features/admins/AdminPage';
 import CategoryPage from './features/categories/CategoryPage';
 import DraftPage from './features/products/DraftPage';
+import ErrorFallbackPage from './components/common/ErrorFallbackPage';
 
 const App: React.FC = () => {
   // Initialize isAuthenticated state from localStorage
@@ -62,8 +63,8 @@ const App: React.FC = () => {
           <Route path="orders" element={<OrderPage />} />
           <Route path="admins" element={<AdminPage />} />
           <Route path="categories" element={<CategoryPage />} />
-          <Route path="*" element={<Navigate to="overview" replace />} />
         </Route>
+        <Route path="*" element={<ErrorFallbackPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -41,7 +41,7 @@ const DashboardOverview: React.FC = () => {
   ];
 
   const PIE_COLORS = [
-    "#16a34a", // green
+    "#adadad", // gray
     "#2563eb", // blue
     "#f59e0b", // amber
     "#22c55e", // success
@@ -90,12 +90,12 @@ const DashboardOverview: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card className="rounded-2xl shadow-sm">
             <Statistic
-              title={<Text type="secondary">New Customers</Text>}
+              title={<Text type="secondary">Total Orders</Text>}
               value={320}
               prefix={<UserOutlined className="text-purple-600" />}
               valueStyle={{ color: "#6d28d9" }}
             />
-            <Text className="text-xs">Last 30 days</Text>
+            <Text className="text-xs">Last 7 days</Text>
           </Card>
         </Col>
 

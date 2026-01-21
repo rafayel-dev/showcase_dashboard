@@ -2,43 +2,37 @@ import React, { useState, useEffect } from "react";
 import {
   Table,
   Button,
-  Space,
   Popconfirm,
   Card,
   Typography,
   Modal,
   Form,
   Input,
-  Select,
   Spin,
   Row,
   Col,
-  Tooltip,
   Tag,
   Empty,
 } from "antd";
-import { FiPlus, FiEdit2, FiTrash2, FiShield } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiShield } from "react-icons/fi";
 import type { TableProps } from "antd";
 import type { Admin } from "../../types";
 import {
   fetchAdmins,
   addAdmin,
-  updateAdmin,
   deleteAdmin,
 } from "../../services/adminService";
-import toast from "../../../utils/toast"
+import toast from "../../../utils/toast";
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
+/* ================= ROLE COLOR ================= */
 const roleColor = (role: string) => {
   switch (role) {
     case "Super Admin":
-      return "red";
+      return "violet";
     case "Admin":
       return "blue";
-    case "Editor":
-      return "gold";
     default:
       return "default";
   }
@@ -47,7 +41,6 @@ const roleColor = (role: string) => {
 const AdminPage: React.FC = () => {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
   const [tableLoading, setTableLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [form] = Form.useForm();
@@ -56,6 +49,7 @@ const AdminPage: React.FC = () => {
     loadAdmins();
   }, []);
 
+  /* ================= LOAD ================= */
   const loadAdmins = async () => {
     setTableLoading(true);
     try {
@@ -68,18 +62,13 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  /* ================= ADD MODAL ================= */
   const openAddModal = () => {
-    setEditingAdmin(null);
     form.resetFields();
     setModalOpen(true);
   };
 
-  const openEditModal = (record: Admin) => {
-    setEditingAdmin(record);
-    form.setFieldsValue(record);
-    setModalOpen(true);
-  };
-
+  /* ================= DELETE ================= */
   const handleDelete = async (id: string) => {
     setTableLoading(true);
     try {
@@ -93,36 +82,26 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  /* ================= SAVE (ADD ONLY) ================= */
   const handleSave = async () => {
     try {
       setFormLoading(true);
       const values = await form.validateFields();
 
-      if (editingAdmin) {
-        const updated = await updateAdmin({
-          ...editingAdmin,
-          ...values,
-        });
-        setAdmins((prev) =>
-          prev.map((a) => (a.id === updated.id ? updated : a)),
-        );
-        toast.success("Administrator updated successfully");
-      } else {
-        const created = await addAdmin(values);
-        setAdmins((prev) => [...prev, created]);
-        toast.success("Administrator added successfully");
-      }
+      const created = await addAdmin(values);
+      setAdmins((prev) => [...prev, created]);
 
+      toast.success("Administrator added successfully");
       setModalOpen(false);
-      setEditingAdmin(null);
       form.resetFields();
     } catch {
-      toast.error("Failed to save administrator");
+      toast.error("Failed to add administrator");
     } finally {
       setFormLoading(false);
     }
   };
 
+  /* ================= TABLE ================= */
   const columns: TableProps<Admin>["columns"] = [
     {
       title: "Name",
@@ -132,15 +111,14 @@ const AdminPage: React.FC = () => {
     {
       title: "Email",
       dataIndex: "email",
-      render: (email) => <Text>{email}</Text>,
     },
     {
       title: "Role",
       dataIndex: "role",
       render: (role) => (
         <Tag color={roleColor(role)}>
-          <span className="flex justify-center items-center gap-1">
-            {<FiShield />}
+          <span className="flex items-center gap-1">
+            <FiShield />
             {role}
           </span>
         </Tag>
@@ -150,44 +128,43 @@ const AdminPage: React.FC = () => {
       title: "Actions",
       align: "right",
       render: (_, record) => (
-        <Space>
-          <Tooltip title="Edit Admin">
-            <Button icon={<FiEdit2 />} onClick={() => openEditModal(record)}>
-              Edit
-            </Button>
-          </Tooltip>
-
-          <Popconfirm
-            placement="topRight"
-            title="Delete this admin?"
-            description="This action cannot be undone"
-            okText="Delete"
-            cancelText="Cancel"
-            onConfirm={() => handleDelete(record.id)}
-          >
-            <Button title="Delete Admin" danger icon={<FiTrash2 />}>
-              Delete
-            </Button>
-          </Popconfirm>
-        </Space>
+        <Popconfirm
+        placement="topRight"
+          title="Delete this admin?"
+          description="This action cannot be undone"
+          okText="Delete"
+          cancelText="Cancel"
+          onConfirm={() => handleDelete(record.id)}
+        >
+          <Button title="Delete Admin" danger icon={<FiTrash2 />}>
+            Delete
+          </Button>
+        </Popconfirm>
       ),
     },
   ];
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <Card className="rounded-2xl">
+      <Card className="rounded-2xl shadow-sm">
         {/* Header */}
         <Row justify="space-between" align="middle" className="mb-4">
           <Col>
             <Title level={3} className="mb-0">
               Admin Management
             </Title>
-            <Text type="secondary">Control dashboard access & permissions</Text>
+            <Text type="secondary">
+              Control dashboard access & permissions
+            </Text>
           </Col>
 
           <Col>
-            <Button type="primary" icon={<FiPlus />} onClick={openAddModal}>
+            <Button
+              type="primary"
+              className="bg-violet-500!"
+              icon={<FiPlus />}
+              onClick={openAddModal}
+            >
               Add Admin
             </Button>
           </Col>
@@ -207,58 +184,42 @@ const AdminPage: React.FC = () => {
         </Spin>
       </Card>
 
-      {/* Add / Edit Modal */}
+      {/* ADD MODAL */}
       <Modal
-        title={editingAdmin ? "Edit Administrator" : "Add New Administrator"}
+        title="Add New Administrator"
         open={modalOpen}
         onOk={handleSave}
         onCancel={() => setModalOpen(false)}
-        okText={editingAdmin ? "Update Admin" : "Add Admin"}
+        okText="Add Admin"
         confirmLoading={formLoading}
+        destroyOnClose
       >
         <Form form={form} layout="vertical">
           <Form.Item
             name="name"
             label="Full Name"
-            rules={[{ required: true, message: "Name is required" }]}
+            rules={[{ required: true }]}
           >
-            <Input placeholder="Admin full name" />
+            <Input />
           </Form.Item>
 
           <Form.Item
             name="email"
             label="Email Address"
             rules={[
-              { required: true, message: "Email is required" },
-              { type: "email", message: "Invalid email address" },
+              { required: true },
+              { type: "email", message: "Invalid email" },
             ]}
           >
-            <Input placeholder="admin@email.com" />
+            <Input />
           </Form.Item>
 
-          {!editingAdmin && (
-            <Form.Item
-              name="password"
-              label="Password"
-              rules={[
-                { required: true, message: "Password is required" },
-                { min: 6, message: "Minimum 6 characters" },
-              ]}
-            >
-              <Input.Password placeholder="******" />
-            </Form.Item>
-          )}
-
           <Form.Item
-            name="role"
-            label="Role"
-            rules={[{ required: true, message: "Please select a role" }]}
+            name="password"
+            label="Password"
+            rules={[{ required: true, min: 6 }]}
           >
-            <Select placeholder="Select role">
-              <Option value="Super Admin">Super Admin</Option>
-              <Option value="Admin">Admin</Option>
-              <Option value="Editor">Editor</Option>
-            </Select>
+            <Input.Password />
           </Form.Item>
         </Form>
       </Modal>

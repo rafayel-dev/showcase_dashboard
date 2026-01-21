@@ -1,43 +1,131 @@
 // src/services/orderService.ts
-import type { Order } from '../types';
+import type { Order } from "../types";
 
 let _orders: Order[] = [
   {
-    key: 'ORD001', id: 'ORD001', customerName: 'Alice Smith', customerEmail: 'alice@example.com', orderDate: '2026-01-10', status: 'Delivered', totalAmount: 120.50, shippingAddress: '123 Main St, Anytown', paymentMethod: 'Credit Card', customerMobile: '01712345678', courier: 'Pathao',
+    key: "ORD001",
+    id: "ORD001",
+    customerName: "Alice Smith",
+    customerEmail: "alice@example.com",
+    orderDate: "2026-01-10",
+    status: "Delivered",
+    totalAmount: 120.5,
+    shippingAddress: "123 Main St, Anytown",
+    paymentMethod: "Credit Card",
+    customerMobile: "01712345678",
+    courier: "Pathao",
     items: [
-      { productId: 'PROD001', productName: 'T-Shirt', quantity: 2, price: 25.00 },
-      { productId: 'PROD003', productName: 'Sneakers', quantity: 1, price: 70.50 },
-    ]
+      {
+        productId: "PROD001",
+        productName: "Stylish Casual Full Sleeve Shirt for Men",
+        quantity: 2,
+        price: 25.0,
+      },
+      {
+        productId: "PROD003",
+        productName: "Modern Slim Fit Denim Jeans with Stretch Fabric",
+        quantity: 1,
+        price: 70.5,
+      },
+    ],
   },
   {
-    key: 'ORD002', id: 'ORD002', customerName: 'Bob Johnson', customerEmail: 'bob@example.com', orderDate: '2026-01-12', status: 'Processing', totalAmount: 75.00, shippingAddress: '456 Oak Ave, Somewhere', paymentMethod: 'PayPal', customerMobile: '01712345679', courier: 'Steadfast',
+    key: "ORD002",
+    id: "ORD002",
+    customerName: "Bob Johnson",
+    customerEmail: "bob@example.com",
+    orderDate: "2026-01-12",
+    status: "Processing",
+    totalAmount: 75.0,
+    shippingAddress: "456 Oak Ave, Somewhere",
+    paymentMethod: "PayPal",
+    customerMobile: "01712345679",
+    courier: "Steadfast",
     items: [
-      { productId: 'PROD002', productName: 'Jeans', quantity: 1, price: 50.00 },
-      { productId: 'PROD005', productName: 'Mouse', quantity: 1, price: 25.00 },
-    ]
+      {
+        productId: "PROD002",
+        productName: "Soft & Comfortable Lounge Pants for Daily Wear",
+        quantity: 1,
+        price: 50.0,
+      },
+      {
+        productId: "PROD005",
+        productName: "Elegant Printed Kurti for Women with Premium Fabric",
+        quantity: 1,
+        price: 25.0,
+      },
+    ],
   },
   {
-    key: 'ORD003', id: 'ORD003', customerName: 'Charlie Brown', customerEmail: 'charlie@example.com', orderDate: '2026-01-14', status: 'Pending', totalAmount: 240.99, shippingAddress: '789 Pine Ln, Nowhere', paymentMethod: 'Credit Card', customerMobile: '01712345680', courier: 'RedX',
+    key: "ORD003",
+    id: "ORD003",
+    customerName: "Charlie Brown",
+    customerEmail: "charlie@example.com",
+    orderDate: "2026-01-14",
+    status: "Pending",
+    totalAmount: 240.99,
+    shippingAddress: "789 Pine Ln, Nowhere",
+    paymentMethod: "Credit Card",
+    customerMobile: "01712345680",
+    courier: "RedX",
     items: [
-      { productId: 'PROD004', productName: 'Laptop', quantity: 1, price: 1200.00 },
-      { productId: 'PROD001', productName: 'T-Shirt', quantity: 1, price: 25.00 },
-    ]
+      {
+        productId: "PROD004",
+        productName: "Traditional Cotton Panjabi for Festive Occasions",
+        quantity: 1,
+        price: 1200.0,
+      },
+      {
+        productId: "PROD001",
+        productName: "Trendy Hoodie Sweatshirt for Casual & Winter Wear",
+        quantity: 1,
+        price: 25.0,
+      },
+    ],
   },
   {
-    key: 'ORD004', id: 'ORD004', customerName: 'Diana Prince', customerEmail: 'diana@example.com', orderDate: '2026-01-15', status: 'Shipped', totalAmount: 30.00, shippingAddress: '101 Hero St, Themyscira', paymentMethod: 'Cash on Delivery', customerMobile: '01712345681', courier: 'Pathao',
+    key: "ORD004",
+    id: "ORD004",
+    customerName: "Diana Prince",
+    customerEmail: "diana@example.com",
+    orderDate: "2026-01-15",
+    status: "Shipped",
+    totalAmount: 30.0,
+    shippingAddress: "101 Hero St, Themyscira",
+    paymentMethod: "Cash on Delivery",
+    customerMobile: "01712345681",
+    courier: "Pathao",
     items: [
-      { productId: 'PROD001', productName: 'T-Shirt', quantity: 1, price: 30.00 },
-    ]
+      {
+        productId: "PROD001",
+        productName: "Formal Tailored Office Blazer for Professional Look",
+        quantity: 1,
+        price: 30.0,
+      },
+    ],
   },
   {
-    key: 'ORD005', id: 'ORD005', customerName: 'Clark Kent', customerEmail: 'clark@example.com', orderDate: '2026-01-16', status: 'Delivered', totalAmount: 500.00, shippingAddress: 'Daily Planet, Metropolis', paymentMethod: 'Credit Card', customerMobile: '01712345682', courier: 'Steadfast',
+    key: "ORD005",
+    id: "ORD005",
+    customerName: "Clark Kent",
+    customerEmail: "clark@example.com",
+    orderDate: "2026-01-16",
+    status: "Delivered",
+    totalAmount: 500.0,
+    shippingAddress: "Daily Planet, Metropolis",
+    paymentMethod: "Credit Card",
+    customerMobile: "01712345682",
+    courier: "Steadfast",
     items: [
-      { productId: 'PROD004', productName: 'Laptop', quantity: 1, price: 500.00 },
-    ]
+      {
+        productId: "PROD004",
+        productName: "Lightweight Summer Printed Dress for Women",
+        quantity: 1,
+        price: 500.0,
+      },
+    ],
   },
 ];
-
-
 
 export const fetchOrders = (): Promise<Order[]> => {
   return new Promise((resolve) => {
@@ -50,7 +138,7 @@ export const fetchOrders = (): Promise<Order[]> => {
 export const getOrderById = (id: string): Promise<Order | undefined> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(_orders.find(o => o.id === id));
+      resolve(_orders.find((o) => o.id === id));
     }, 300); // Simulate network delay
   });
 };
@@ -58,12 +146,12 @@ export const getOrderById = (id: string): Promise<Order | undefined> => {
 export const updateOrder = (updatedOrder: Order): Promise<Order> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      const index = _orders.findIndex(o => o.id === updatedOrder.id);
+      const index = _orders.findIndex((o) => o.id === updatedOrder.id);
       if (index !== -1) {
         _orders[index] = { ...updatedOrder, key: updatedOrder.id };
         resolve(_orders[index]);
       } else {
-        reject(new Error('Order not found'));
+        reject(new Error("Order not found"));
       }
     }, 500); // Simulate network delay
   });
@@ -73,11 +161,11 @@ export const deleteOrder = (id: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       const initialLength = _orders.length;
-      _orders = _orders.filter(o => o.id !== id);
+      _orders = _orders.filter((o) => o.id !== id);
       if (_orders.length < initialLength) {
         resolve();
       } else {
-        reject(new Error('Order not found'));
+        reject(new Error("Order not found"));
       }
     }, 500); // Simulate network delay
   });

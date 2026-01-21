@@ -1,15 +1,15 @@
 // src/types/index.ts
 
 export interface Product {
-  key: string;
   id: string;
-  title: string; // Changed from 'name' to 'title'
+  key: string;
+  productName: string;
   category: string;
   price: number;
   stock: number;
-  status: 'In Stock' | 'Out of Stock' | 'Discontinued';
+  status: "In Stock" | "Out of Stock" | "Discontinued";
   description?: string; // Short description, if still used
-  imageUrls?: string[];
+  imageUrl?: string;
   sku?: string;
   isPublished?: boolean;
   tags?: string[];
@@ -45,13 +45,13 @@ export interface Order {
   customerName: string;
   customerEmail: string;
   orderDate: string;
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  status: "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
   totalAmount: number;
   shippingAddress: string;
   paymentMethod: string;
   items: OrderItem[];
   customerMobile: string;
-  courier: 'Pathao' | 'Steadfast' | 'RedX'
+  courier: "Pathao" | "Steadfast" | "RedX";
 }
 
 export interface Admin {
@@ -59,7 +59,7 @@ export interface Admin {
   id: string;
   name: string;
   email: string;
-  role: 'Super Admin' | 'Admin' | 'Editor';
+  role: "Super Admin" | "Admin" | "Editor";
 }
 
 export interface Category {

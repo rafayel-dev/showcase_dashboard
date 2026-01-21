@@ -2,9 +2,9 @@
 import type { Category } from '../types';
 
 let _categories: Category[] = [
-  { key: 'CAT001', id: 'CAT001', name: 'Apparel', description: 'Clothing and accessories' },
-  { key: 'CAT002', id: 'CAT002', name: 'Electronics', description: 'Electronic gadgets and devices' },
-  { key: 'CAT003', id: 'CAT003', name: 'Footwear', description: 'Shoes and other foot coverings' },
+  { key: 'CAT001', id: 'CAT001', name: 'Women s Fashion', description: 'Clothing and accessories' },
+  { key: 'CAT002', id: 'CAT002', name: 'Men Fashion', description: 'Electronic gadgets and devices' },
+  { key: 'CAT003', id: 'CAT003', name: 'Fashion', description: 'Shoes and other foot coverings' },
 ];
 
 const generateCategoryId = (): string => {

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Badge } from "antd";
+import { Badge, Popconfirm } from "antd";
 import { BellOutlined } from "@ant-design/icons";
 
 interface HeaderProps {
@@ -17,17 +17,28 @@ const Header: React.FC<HeaderProps> = ({ onLogout, notificationCount }) => {
   };
 
   return (
-    <header className="flex justify-end items-center p-4 bg-white shadow-lg">
+    <header className="flex justify-between items-center p-4 bg-white shadow-lg">
+       <h2 className="text-sm! text-violet-600">Name Here</h2>
       <div className="flex justify-between items-center gap-2">
-        <Badge className="cursor-pointer" count={notificationCount} offset={[-20, 5]}>
+        <Badge
+          className="cursor-pointer"
+          count={notificationCount}
+          offset={[-20, 5]}
+        >
           <BellOutlined style={{ fontSize: "24px", marginRight: "20px" }} />
         </Badge>
-        <button
-          className="px-4 py-2 bg-violet-500 text-white! rounded hover:bg-violet-600 cursor-pointer"
-          onClick={handleLogoutClick}
+       
+        <Popconfirm
+          placement="bottomRight"
+          title="Are you sure you want logout?"
+          okText="Confirm"
+          cancelText="Cancel"
+          onConfirm={handleLogoutClick}
         >
-          Logout
-        </button>
+          <button className="px-4 py-2 bg-violet-500 text-white! rounded hover:bg-violet-600 cursor-pointer">
+            Logout
+          </button>
+        </Popconfirm>
       </div>
     </header>
   );

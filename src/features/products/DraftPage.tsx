@@ -47,7 +47,7 @@ const DraftPage: React.FC = () => {
     try {
       await updateProduct({ ...product, isPublished: true });
       setData((prev) => prev.filter((p) => p.id !== product.id));
-      toast.success(`"${product.title}" published successfully`);
+      toast.success(`"${product.productName}" published successfully`);
     } catch {
       toast.error("Failed to publish product");
     }
@@ -84,7 +84,7 @@ const DraftPage: React.FC = () => {
           columns={[
             {
               title: "Product Name",
-              dataIndex: "title",
+              dataIndex: "productName",
               render: (text) => <Text strong>{text}</Text>,
             },
             {
