@@ -29,8 +29,9 @@ import { useNavigate } from "react-router-dom";
 import type { Product } from "../../types";
 import ProductCard from "../../components/common/ProductCard";
 import {
-  fetchProducts,
   deleteProduct,
+  fetchProducts,
+  updateProduct,
 } from "../../services/productService";
 import toast from "../../../utils/toast";
 
@@ -44,11 +45,15 @@ const ProductPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [viewing, setViewing] = useState<Product | null>(null);
 
+  // 📝 Inline Editing
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [editingStockId, setEditingStockId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState<number>(0);
+  const [editStock, setEditStock] = useState<number>(0);
+
   // 🔍 Filters
   const [searchText, setSearchText] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
-
-
 
   useEffect(() => {
     loadProducts();
@@ -63,6 +68,70 @@ const ProductPage: React.FC = () => {
       toast.error("Failed to load products");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startInlineEditPrice = (record: Product) => {
+    setEditingPriceId(record.id);
+    setEditPrice(record.price);
+  };
+
+  const cancelInlineEditPrice = () => {
+    setEditingPriceId(null);
+  };
+
+  const saveInlineEditPrice = async (id: string) => {
+    try {
+      const productToUpdate = products.find((p) => p.id === id);
+      if (productToUpdate) {
+        const updatedProduct = {
+          ...productToUpdate,
+          price: editPrice,
+        };
+        await updateProduct(updatedProduct);
+        toast.success("Product price updated successfully!");
+        setEditingPriceId(null);
+        loadProducts();
+      }
+    } catch (error) {
+      toast.error("Failed to update product price.");
+    }
+  };
+
+  const startInlineEditStock = (record: Product) => {
+    setEditingStockId(record.id);
+    setEditStock(record.stock);
+  };
+
+  const cancelInlineEditStock = () => {
+    setEditingStockId(null);
+  };
+
+  const saveInlineEditStock = async (id: string) => {
+    try {
+      const productToUpdate = products.find((p) => p.id === id);
+      if (productToUpdate) {
+        const updatedProduct = {
+          ...productToUpdate,
+          stock: editStock,
+        };
+        // Determine status based on new stock
+        if (updatedProduct.stock === 0) {
+          updatedProduct.status = "Out of Stock";
+        } else if (
+          updatedProduct.stock > 0 &&
+          productToUpdate.status === "Out of Stock"
+        ) {
+          updatedProduct.status = "In Stock";
+        }
+
+        await updateProduct(updatedProduct);
+        toast.success("Product stock updated successfully!");
+        setEditingStockId(null);
+        loadProducts();
+      }
+    } catch (error) {
+      toast.error("Failed to update product stock.");
     }
   };
 
@@ -106,16 +175,82 @@ const ProductPage: React.FC = () => {
       title: "Price",
       dataIndex: "price",
       align: "center",
-      render: (p) => `৳ ${p}`,
+      render: (_, record) =>
+        editingPriceId === record.id ? (
+          <Space>
+            <Input
+              type="number"
+              min={0}
+              value={editPrice}
+              onChange={(e) => setEditPrice(Number(e.target.value))}
+              className="w-18!"
+            />
+            <Button
+              type="primary"
+              size="small"
+              className="bg-violet-500!"
+              onClick={() => saveInlineEditPrice(record.id)}
+            >
+              Save
+            </Button>
+            <Button danger size="small" onClick={cancelInlineEditPrice}>
+              Cancel
+            </Button>
+          </Space>
+        ) : (
+          <Space>
+            <Text>৳ {record.price}</Text>
+            <Button
+              type="text"
+              size="small"
+              icon={<FiEdit />}
+              onClick={() => startInlineEditPrice(record)}
+            />
+          </Space>
+        ),
     },
+
     {
       title: "Stock",
       dataIndex: "stock",
       align: "center",
-      render: (stock) => (
-        <Text type={stock < 5 ? "danger" : undefined}>{stock}</Text>
-      ),
+      render: (_, record) =>
+        editingStockId === record.id ? (
+          <Space>
+            <Input
+              type="number"
+              min={0}
+              value={editStock}
+              onChange={(e) => setEditStock(Number(e.target.value))}
+              className="w-16!"
+            />
+            <Button
+              type="primary"
+              size="small"
+              className="bg-violet-500!"
+              onClick={() => saveInlineEditStock(record.id)}
+            >
+              Save
+            </Button>
+            <Button danger size="small" onClick={cancelInlineEditStock}>
+              Cancel
+            </Button>
+          </Space>
+        ) : (
+          <Space>
+            <Text type={record.stock < 5 ? "danger" : undefined}>
+              {record.stock}
+            </Text>
+            <Button
+              type="text"
+              size="small"
+              icon={<FiEdit />}
+              onClick={() => startInlineEditStock(record)}
+            />
+          </Space>
+        ),
     },
+
     {
       title: "Status",
       dataIndex: "status",
@@ -124,15 +259,15 @@ const ProductPage: React.FC = () => {
     {
       title: "Actions",
       align: "right",
-      render: (_, r) => (
+      render: (_, record) => (
         <Space>
           <Tooltip title="View">
-            <Button icon={<FiEye />} onClick={() => setViewing(r)} />
+            <Button icon={<FiEye />} onClick={() => setViewing(record)} />
           </Tooltip>
           <Tooltip title="Edit">
             <Button
               icon={<FiEdit />}
-              onClick={() => navigate(`/edit-product/${r.id}`)}
+              onClick={() => navigate(`/edit-product/${record.id}`)}
             />
           </Tooltip>
           <Popconfirm
@@ -142,11 +277,11 @@ const ProductPage: React.FC = () => {
             okText="Delete"
             cancelText="Cancel"
             onConfirm={async () => {
-              await deleteProduct(r.id);
+              await deleteProduct(record.id);
               loadProducts();
             }}
           >
-            <Button title="Delete Product" danger icon={<FiTrash2 />} />
+            <Button danger icon={<FiTrash2 />} />
           </Popconfirm>
         </Space>
       ),
@@ -222,8 +357,6 @@ const ProductPage: React.FC = () => {
           )}
         </Spin>
       </Card>
-
-
 
       {/* View Modal */}
       <Modal

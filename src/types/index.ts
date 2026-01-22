@@ -52,6 +52,8 @@ export interface Order {
   items: OrderItem[];
   customerMobile: string;
   courier: "Pathao" | "Steadfast" | "RedX";
+  deliveryCharge: number;
+  paymentStatus: "Paid" | "Unpaid";
 }
 
 export interface Admin {

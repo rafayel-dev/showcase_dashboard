@@ -246,22 +246,29 @@ const AddProductPage: React.FC = () => {
                       label="Available Colors"
                     >
                       <Select mode="tags">
-                        {["Ash", "Black", "Blue", "Red", "Navy Blue", "Sky Blue"].map(
-                          (c) => (
-                            <Option key={c}>{c}</Option>
-                          ),
-                        )}
+                        {[
+                          "Ash",
+                          "Black",
+                          "Blue",
+                          "Red",
+                          "Navy Blue",
+                          "Sky Blue",
+                        ].map((c) => (
+                          <Option key={c}>{c}</Option>
+                        ))}
                       </Select>
                     </Form.Item>
                   </Col>
                 </Row>
 
-                <Form.Item
-                  name={["specifications", "countryOfOrigin"]}
-                  label="Country of Origin"
-                >
-                  <Input placeholder="Bangladesh" />
-                </Form.Item>
+                <Col xs={24} md={12} lg={8}>
+                  <Form.Item
+                    name={["specifications", "countryOfOrigin"]}
+                    label="Country of Origin"
+                  >
+                    <Input placeholder="Bangladesh" />
+                  </Form.Item>
+                </Col>
               </Card>
 
               {/* ================= PRODUCT DETAILS ================= */}
@@ -343,7 +350,7 @@ const AddProductPage: React.FC = () => {
                   htmlType="submit"
                   size="large"
                 >
-                  {isEditMode ? "Save Changes" : "Save Product"}
+                  {isEditMode ? "Save Changes" : "Add Product"}
                 </Button>
                 <Button
                   danger
