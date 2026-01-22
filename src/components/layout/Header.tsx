@@ -25,7 +25,9 @@ const Header: React.FC<HeaderProps> = ({ onLogout, notificationCount }) => {
           count={notificationCount}
           offset={[-20, 5]}
         >
-          <BellOutlined style={{ fontSize: "24px", marginRight: "20px" }} />
+          <span onClick={() => navigate("/notifications")}>
+            <BellOutlined style={{ fontSize: "24px", marginRight: "20px" }} />
+          </span>
         </Badge>
        
         <Popconfirm

@@ -12,6 +12,7 @@ import PrivacyPage from './features/setting/PrivacyPage';
 import TermsPage from './features/setting/TermsPage';
 import AboutPage from './features/setting/AboutPage';
 import DraftPage from './features/products/DraftPage';
+import NotificationPage from './features/notifications/NotificationPage';
 import ErrorFallbackPage from './components/common/ErrorFallbackPage';
 
 const App: React.FC = () => {
@@ -70,6 +71,7 @@ const App: React.FC = () => {
           <Route path="privacy" element={<PrivacyPage />} />
           <Route path="terms" element={<TermsPage />} />
           <Route path="about" element={<AboutPage />} />
+          <Route path="notifications" element={<NotificationPage />} />
         </Route>
         <Route path="*" element={<ErrorFallbackPage />} />
       </Routes>

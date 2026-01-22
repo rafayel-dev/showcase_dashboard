@@ -37,6 +37,8 @@ export interface OrderItem {
   productName: string;
   quantity: number;
   price: number;
+  size?: string[];
+  color?: string[];
 }
 
 export interface Order {

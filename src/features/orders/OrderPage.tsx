@@ -14,6 +14,7 @@ import {
   Statistic,
   Tabs,
   Select,
+  Tooltip,
 } from "antd";
 import type { TableProps } from "antd";
 import {
@@ -24,6 +25,7 @@ import {
   HistoryOutlined,
   FieldTimeOutlined,
   CloseCircleOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { FiEdit } from "react-icons/fi";
 import type { Order } from "../../types";
@@ -39,6 +41,17 @@ const OrderPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("All");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
+
+  // Bulk update states
+  const [bulkUpdateStatus, setBulkUpdateStatus] = useState<
+    Order["status"] | null
+  >(null);
+  const [bulkUpdateCourier, setBulkUpdateCourier] = useState<
+    Order["courier"] | null
+  >(null);
+  const [bulkUpdatePaymentStatus, setBulkUpdatePaymentStatus] = useState<
+    Order["paymentStatus"] | null
+  >(null);
 
   // Inline editing states
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
@@ -143,6 +156,44 @@ const OrderPage: React.FC = () => {
     }
   };
 
+  const handleBulkUpdate = async () => {
+    if (!bulkUpdateStatus && !bulkUpdateCourier && !bulkUpdatePaymentStatus) {
+      toast.error("Please select at least one field to update.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const updates = selectedRowKeys.map(async (id) => {
+        const orderToUpdate = orders.find((o) => o.id === id);
+        if (orderToUpdate) {
+          const updatedOrder = { ...orderToUpdate };
+          if (bulkUpdateStatus) {
+            updatedOrder.status = bulkUpdateStatus;
+          }
+          if (bulkUpdateCourier) {
+            updatedOrder.courier = bulkUpdateCourier;
+          }
+          if (bulkUpdatePaymentStatus) {
+            updatedOrder.paymentStatus = bulkUpdatePaymentStatus;
+          }
+          await updateOrder(updatedOrder);
+        }
+      });
+      await Promise.all(updates);
+      toast.success("Selected orders updated successfully!");
+      setSelectedRowKeys([]);
+      setBulkUpdateStatus(null);
+      setBulkUpdateCourier(null);
+      setBulkUpdatePaymentStatus(null);
+      loadOrders();
+    } catch (error) {
+      toast.error("Failed to bulk update orders.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const statusColor = (status: Order["status"]) =>
     ({
       Pending: "orange",
@@ -239,27 +290,27 @@ const OrderPage: React.FC = () => {
           <Space>
             <div className="flex flex-col gap-1">
               <Select
-              value={editCourier}
-              onChange={(value) => setEditCourier(value)}
-              style={{ width: 90 }}
-            >
-              <Option value="Pathao">Pathao</Option>
-              <Option value="Steadfast">Steadfast</Option>
-              <Option value="RedX">RedX</Option>
-            </Select>
-            <div className="flex gap-1">
-              <Button
-              className="bg-violet-500!"
-              size="small"
-              type="primary"
-              onClick={() => saveInlineEditCourier(record.id)}
-            >
-              Save
-            </Button>
-            <Button danger size="small" onClick={cancelInlineEditCourier}>
-              Cancel
-            </Button>
-            </div>
+                value={editCourier}
+                onChange={(value) => setEditCourier(value)}
+                style={{ width: 90 }}
+              >
+                <Option value="Pathao">Pathao</Option>
+                <Option value="Steadfast">Steadfast</Option>
+                <Option value="RedX">RedX</Option>
+              </Select>
+              <div className="flex gap-1">
+                <Button
+                  className="bg-violet-500!"
+                  size="small"
+                  type="primary"
+                  onClick={() => saveInlineEditCourier(record.id)}
+                >
+                  Save
+                </Button>
+                <Button danger size="small" onClick={cancelInlineEditCourier}>
+                  Cancel
+                </Button>
+              </div>
             </div>
           </Space>
         ) : (
@@ -286,26 +337,30 @@ const OrderPage: React.FC = () => {
           <Space>
             <div className="flex flex-col gap-1">
               <Select
-              value={editPaymentStatus}
-              onChange={(value) => setEditPaymentStatus(value)}
-              style={{ width: 80 }}
-            >
-              <Option value="Paid">Paid</Option>
-              <Option value="Unpaid">Unpaid</Option>
-            </Select>
-           <div className="flex gap-1">
-             <Button
-              className="bg-violet-500!"
-              size="small"
-              type="primary"
-              onClick={() => saveInlineEditPaymentStatus(record.id)}
-            >
-              Save
-            </Button>
-            <Button danger size="small" onClick={cancelInlineEditPaymentStatus}>
-              Cancel
-            </Button>
-           </div>
+                value={editPaymentStatus}
+                onChange={(value) => setEditPaymentStatus(value)}
+                style={{ width: 80 }}
+              >
+                <Option value="Paid">Paid</Option>
+                <Option value="Unpaid">Unpaid</Option>
+              </Select>
+              <div className="flex gap-1">
+                <Button
+                  className="bg-violet-500!"
+                  size="small"
+                  type="primary"
+                  onClick={() => saveInlineEditPaymentStatus(record.id)}
+                >
+                  Save
+                </Button>
+                <Button
+                  danger
+                  size="small"
+                  onClick={cancelInlineEditPaymentStatus}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </Space>
         ) : (
@@ -333,14 +388,29 @@ const OrderPage: React.FC = () => {
       title: "Action",
       align: "right",
       render: (_, record) => (
-        <Button
-          type="link"
-          className="font-semibold! text-violet-500!"
-          icon={<EyeOutlined />}
-          onClick={() => setViewOrder(record)}
-        >
-          View
-        </Button>
+        <div className="flex gap-0!">
+          <Button
+            type="link"
+            className="font-semibold! text-violet-500! pr-1!"
+            icon={<EyeOutlined />}
+            onClick={() => setViewOrder(record)}
+          >
+            View
+          </Button>
+          <Tooltip title="Download Invoice">
+            <Button
+              type="link"
+              icon={<DownloadOutlined className="text-xl!"/>}
+              className="text-gray-500! hover:text-violet-500! pl-0!"
+              onClick={() =>
+                window.open(
+                  `${import.meta.env.VITE_API_URL}/orders/${record.id}/invoice`,
+                  "_blank"
+                )
+              }
+            />
+          </Tooltip>
+        </div>
       ),
     },
   ];
@@ -360,15 +430,23 @@ const OrderPage: React.FC = () => {
       title: "Size",
       dataIndex: "size",
       align: "center",
-      render: (v) =>
-        v ? <Tag color="purple">{v}</Tag> : <Text type="secondary">—</Text>,
+      render: (sizes: string[]) =>
+        sizes && sizes.length > 0 ? (
+          <Text>{sizes.join(", ")}</Text>
+        ) : (
+          <Text type="secondary">—</Text>
+        ),
     },
     {
       title: "Color",
       dataIndex: "color",
       align: "center",
-      render: (v) =>
-        v ? <Tag color="violet">{v}</Tag> : <Text type="secondary">—</Text>,
+      render: (colors: string[]) =>
+        colors && colors.length > 0 ? (
+          <Text>{colors.join(", ")}</Text>
+        ) : (
+          <Text type="secondary">—</Text>
+        ),
     },
     {
       title: "Price",
@@ -470,6 +548,52 @@ const OrderPage: React.FC = () => {
         />
 
         <Spin spinning={loading}>
+          {selectedRowKeys.length > 0 && (
+            <div className="mb-4 flex items-center space-x-2!">
+              <Text strong>Update Status:</Text>
+              <Select
+                placeholder="Status"
+                style={{ width: 120 }}
+                onChange={(value) => setBulkUpdateStatus(value)}
+                value={bulkUpdateStatus}
+                allowClear
+              >
+                <Option value="Pending">Pending</Option>
+                <Option value="Processing">Processing</Option>
+                <Option value="Shipped">Shipped</Option>
+                <Option value="Delivered">Delivered</Option>
+                <Option value="Cancelled">Cancelled</Option>
+              </Select>
+              <Select
+                placeholder="Courier"
+                style={{ width: 120 }}
+                onChange={(value) => setBulkUpdateCourier(value)}
+                value={bulkUpdateCourier}
+                allowClear
+              >
+                <Option value="Pathao">Pathao</Option>
+                <Option value="Steadfast">Steadfast</Option>
+                <Option value="RedX">RedX</Option>
+              </Select>
+              <Select
+                placeholder="Payment Status"
+                style={{ width: 140 }}
+                onChange={(value) => setBulkUpdatePaymentStatus(value)}
+                value={bulkUpdatePaymentStatus}
+                allowClear
+              >
+                <Option value="Paid">Paid</Option>
+                <Option value="Unpaid">Unpaid</Option>
+              </Select>
+              <Button
+                type="primary"
+                className="bg-violet-500!"
+                onClick={handleBulkUpdate}
+              >
+                Apply
+              </Button>
+            </div>
+          )}
           <Table
             rowKey="id"
             rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
