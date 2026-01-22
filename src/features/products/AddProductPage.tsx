@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Form,
   Input,
@@ -17,12 +17,16 @@ import {
   Col,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { Product } from "../../types";
-import { addProduct } from "../../services/productService";
+import {
+  addProduct,
+  getProductById,
+  updateProduct,
+} from "../../services/productService";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
 import CustomJoditEditor from "../../components/common/JoditEditor";
-import toast from "../../../utils/toast"
+import toast from "../../../utils/toast";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -39,14 +43,41 @@ const getBase64 = (file: RcFile): Promise<string> =>
 const AddProductPage: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { productId } = useParams<{ productId: string }>();
+  const isEditMode = !!productId;
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
 
+  useEffect(() => {
+    if (isEditMode && productId) {
+      setLoading(true);
+      getProductById(productId)
+        .then((product) => {
+          if (product) {
+            setEditingProduct(product);
+            form.setFieldsValue(product);
+            if (product.imageUrl) {
+              setFileList([
+                {
+                  uid: "-1",
+                  name: "image.png",
+                  status: "done",
+                  url: product.imageUrl,
+                },
+              ]);
+            }
+          }
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [productId, isEditMode, form]);
+
   const onFinish = async (values: Omit<Product, "id" | "key">) => {
     if (!fileList.length) {
-      toast.error("কমপক্ষে ১টি পণ্যের ছবি দিন");
+      toast.error("Please upload at least one product image.");
       return;
     }
 
@@ -54,16 +85,24 @@ const AddProductPage: React.FC = () => {
     try {
       const images = fileList.map((f) => f.url || (f.preview as string));
 
-      await addProduct({
-        ...values,
-        imageUrl: images[0],
-        status: "In Stock",
-      });
-
-      toast.success("Product added successfully✅");
+      if (isEditMode && editingProduct) {
+        await updateProduct({
+          ...editingProduct,
+          ...values,
+          imageUrl: images[0],
+        });
+        toast.success("Product updated successfully✅");
+      } else {
+        await addProduct({
+          ...values,
+          imageUrl: images[0],
+          status: "In Stock",
+        });
+        toast.success("Product added successfully✅");
+      }
       navigate("/products");
     } catch {
-      toast.error("❌ Product add failed");
+      toast.error("❌ Operation failed");
     } finally {
       setLoading(false);
     }
@@ -75,7 +114,7 @@ const AddProductPage: React.FC = () => {
         <Card bordered={false} className="rounded-2xl shadow-sm">
           {/* Header */}
           <Title level={3} className="mb-0">
-            Add New Product
+            {isEditMode ? "Edit Product" : "Add New Product"}
           </Title>
 
           <Divider className="my-5!" />
@@ -136,7 +175,11 @@ const AddProductPage: React.FC = () => {
                       label="Price (৳)"
                       rules={[{ required: true }]}
                     >
-                      <InputNumber className="w-full" min={0} />
+                      <InputNumber
+                        className="w-full"
+                        placeholder="1200"
+                        min={0}
+                      />
                     </Form.Item>
                   </Col>
 
@@ -146,13 +189,17 @@ const AddProductPage: React.FC = () => {
                       label="Stock Quantity"
                       rules={[{ required: true }]}
                     >
-                      <InputNumber className="w-full" min={0} />
+                      <InputNumber
+                        className="w-full"
+                        placeholder="15"
+                        min={0}
+                      />
                     </Form.Item>
                   </Col>
 
                   <Col xs={24} md={8} lg={6}>
                     <Form.Item name="sku" label="SKU">
-                      <Input placeholder="Optional SKU" />
+                      <Input placeholder="Product SKU" />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -165,7 +212,7 @@ const AddProductPage: React.FC = () => {
                 <Row gutter={24}>
                   <Col xs={24} md={12} lg={8}>
                     <Form.Item name={["specifications", "brand"]} label="Brand">
-                      <Input />
+                      <Input placeholder="Escape" />
                     </Form.Item>
                   </Col>
 
@@ -174,7 +221,7 @@ const AddProductPage: React.FC = () => {
                       name={["specifications", "material"]}
                       label="Material"
                     >
-                      <Input />
+                      <Input placeholder="Premium Fabric" />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -185,8 +232,8 @@ const AddProductPage: React.FC = () => {
                       name={["specifications", "availableSizes"]}
                       label="Available Sizes"
                     >
-                      <Select mode="multiple">
-                        {["S", "M", "L", "XL"].map((s) => (
+                      <Select mode="tags">
+                        {["M", "L", "XL", "30", "31", "32"].map((s) => (
                           <Option key={s}>{s}</Option>
                         ))}
                       </Select>
@@ -198,10 +245,12 @@ const AddProductPage: React.FC = () => {
                       name={["specifications", "availableColors"]}
                       label="Available Colors"
                     >
-                      <Select mode="multiple">
-                        {["Black", "Blue", "Red"].map((c) => (
-                          <Option key={c}>{c}</Option>
-                        ))}
+                      <Select mode="tags">
+                        {["Ash", "Black", "Blue", "Red", "Navy Blue", "Sky Blue"].map(
+                          (c) => (
+                            <Option key={c}>{c}</Option>
+                          ),
+                        )}
                       </Select>
                     </Form.Item>
                   </Col>
@@ -270,15 +319,15 @@ const AddProductPage: React.FC = () => {
 
               {/* ================= STATUS ================= */}
               <Card className="mb-6 bg-gray-50" bordered={false}>
+                <Title level={5}>Product Status</Title>
                 <Form.Item
                   name="isPublished"
                   valuePropName="checked"
                   initialValue={true}
-                  label="Product Status"
                 >
                   <Space>
                     <Text>Draft</Text>
-                    <Switch />
+                    <Switch className="bg-violet-500!" />
                     <Text>Publish</Text>
                   </Space>
                 </Form.Item>
@@ -288,8 +337,13 @@ const AddProductPage: React.FC = () => {
 
               {/* ================= ACTIONS ================= */}
               <Space>
-                <Button type="primary" htmlType="submit" size="large">
-                  Save Product
+                <Button
+                  type="primary"
+                  className="bg-violet-500!"
+                  htmlType="submit"
+                  size="large"
+                >
+                  {isEditMode ? "Save Changes" : "Save Product"}
                 </Button>
                 <Button
                   danger

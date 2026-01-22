@@ -129,7 +129,7 @@ const AdminPage: React.FC = () => {
       align: "right",
       render: (_, record) => (
         <Popconfirm
-        placement="topRight"
+          placement="topRight"
           title="Delete this admin?"
           description="This action cannot be undone"
           okText="Delete"
@@ -153,9 +153,7 @@ const AdminPage: React.FC = () => {
             <Title level={3} className="mb-0">
               Admin Management
             </Title>
-            <Text type="secondary">
-              Control dashboard access & permissions
-            </Text>
+            <Text type="secondary">Control dashboard access & permissions</Text>
           </Col>
 
           <Col>
@@ -195,11 +193,7 @@ const AdminPage: React.FC = () => {
         destroyOnClose
       >
         <Form form={form} layout="vertical">
-          <Form.Item
-            name="name"
-            label="Full Name"
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
 

@@ -6,10 +6,8 @@ import {
   Card,
   Typography,
   Modal,
-  Form,
   Input,
   Image,
-  InputNumber,
   Select,
   Tag,
   Spin,
@@ -32,7 +30,6 @@ import type { Product } from "../../types";
 import ProductCard from "../../components/common/ProductCard";
 import {
   fetchProducts,
-  updateProduct,
   deleteProduct,
 } from "../../services/productService";
 import toast from "../../../utils/toast";
@@ -45,14 +42,13 @@ const ProductPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
-  const [editing, setEditing] = useState<Product | null>(null);
   const [viewing, setViewing] = useState<Product | null>(null);
 
   // 🔍 Filters
   const [searchText, setSearchText] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
 
-  const [form] = Form.useForm();
+
 
   useEffect(() => {
     loadProducts();
@@ -136,10 +132,7 @@ const ProductPage: React.FC = () => {
           <Tooltip title="Edit">
             <Button
               icon={<FiEdit />}
-              onClick={() => {
-                setEditing(r);
-                form.setFieldsValue(r);
-              }}
+              onClick={() => navigate(`/edit-product/${r.id}`)}
             />
           </Tooltip>
           <Popconfirm
@@ -230,37 +223,7 @@ const ProductPage: React.FC = () => {
         </Spin>
       </Card>
 
-      {/* Edit Modal */}
-      <Modal
-        title="Edit Product"
-        open={!!editing}
-        onCancel={() => setEditing(null)}
-        onOk={async () => {
-          const v = await form.validateFields();
-          await updateProduct({ ...editing!, ...v });
-          setEditing(null);
-          loadProducts();
-        }}
-      >
-        <Form layout="vertical" form={form}>
-          <Form.Item name="title" label="Product Name" required>
-            <Input />
-          </Form.Item>
-          <Form.Item name="category" label="Category" required>
-            <Select>
-              <Option value="Electronics">Electronics</Option>
-              <Option value="Fashion">Fashion</Option>
-              <Option value="Home">Home</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="price" label="Price" required>
-            <InputNumber className="w-full" />
-          </Form.Item>
-          <Form.Item name="stock" label="Stock" required>
-            <InputNumber className="w-full" />
-          </Form.Item>
-        </Form>
-      </Modal>
+
 
       {/* View Modal */}
       <Modal

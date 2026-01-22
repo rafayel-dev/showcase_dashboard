@@ -59,6 +59,7 @@ const App: React.FC = () => {
           <Route path="overview" element={<DashboardOverview />} />
           <Route path="products" element={<ProductPage />} />
           <Route path="add-product" element={<AddProductPage />} />
+          <Route path="edit-product/:productId" element={<AddProductPage />} />
           <Route path="drafts-product" element={<DraftPage />} />
           <Route path="orders" element={<OrderPage />} />
           <Route path="admins" element={<AdminPage />} />

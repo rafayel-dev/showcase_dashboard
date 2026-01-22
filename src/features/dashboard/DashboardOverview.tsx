@@ -22,7 +22,6 @@ import {
 const { Title, Text } = Typography;
 
 const DashboardOverview: React.FC = () => {
-  // Bangladeshi e-commerce focused demo data
   const salesData = [
     { name: "Jan", sales: 420000 },
     { name: "Feb", sales: 380000 },
@@ -41,95 +40,110 @@ const DashboardOverview: React.FC = () => {
   ];
 
   const PIE_COLORS = [
-    "#adadad", // gray
-    "#2563eb", // blue
-    "#f59e0b", // amber
-    "#22c55e", // success
-    "#ef4444", // red
+    "#9ca3af",
+    "#3b82f6",
+    "#f59e0b",
+    "#8B5CF6",
+    "#ef4444",
   ];
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <Title level={3} className="mb-0!">📊 ShowCase Dashboard</Title>
-          <Text type="secondary">
-            Overview of your ShowCase online store performance
-          </Text>
-        </div>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {/* ===== HEADER ===== */}
+      <div className="mb-8">
+        <Title level={3} className="mb-1!">
+          📊 ShowCase Dashboard
+        </Title>
+        <Text type="secondary">
+          Real-time overview of your store’s performance
+        </Text>
       </div>
 
-      {/* KPI Cards */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="rounded-2xl shadow-sm">
-            <Statistic
-              title={<Text type="secondary">Total Revenue</Text>}
-              value={3050000}
-              suffix="৳"
-              prefix={<DollarOutlined className="text-green-600" />}
-              valueStyle={{ color: "#166534" }}
-            />
-            <Text className="text-xs">↑ 18% from last month</Text>
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="rounded-2xl shadow-sm">
-            <Statistic
-              title={<Text type="secondary">Total Orders</Text>}
-              value={1240}
-              prefix={<ShoppingCartOutlined className="text-blue-600" />}
-              valueStyle={{ color: "#1d4ed8" }}
-            />
-            <Text className="text-xs">This month</Text>
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="rounded-2xl shadow-sm">
-            <Statistic
-              title={<Text type="secondary">Total Orders</Text>}
-              value={320}
-              prefix={<UserOutlined className="text-purple-600" />}
-              valueStyle={{ color: "#6d28d9" }}
-            />
-            <Text className="text-xs">Last 7 days</Text>
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="rounded-2xl shadow-sm">
-            <Statistic
-              title={<Text type="secondary">Conversion Rate</Text>}
-              value={3.6}
-              suffix="%"
-              prefix={<RiseOutlined className="text-emerald-600" />}
-              valueStyle={{ color: "#047857" }}
-            />
-            <Text className="text-xs">Industry avg 2.8%</Text>
-          </Card>
-        </Col>
+      {/* ===== KPI CARDS ===== */}
+      <Row gutter={[20, 20]}>
+        {[
+          {
+            title: "Total Revenue",
+            value: 3050000,
+            suffix: "৳",
+            icon: <DollarOutlined />,
+            color: "bg-green-100 text-green-600",
+            note: "↑ 18% from last month",
+          },
+          {
+            title: "Total Orders",
+            value: 1240,
+            icon: <ShoppingCartOutlined />,
+            color: "bg-blue-100 text-blue-600",
+            note: "This month",
+          },
+          {
+            title: "Total Delivery",
+            value: 20,
+            icon: <UserOutlined />,
+            color: "bg-purple-100 text-purple-600",
+            note: "Last 7 days",
+          },
+          {
+            title: "Conversion Rate",
+            value: 3.6,
+            suffix: "%",
+            icon: <RiseOutlined />,
+            color: "bg-emerald-100 text-emerald-600",
+            note: "Industry avg 2.8%",
+          },
+        ].map((item, index) => (
+          <Col xs={24} sm={12} lg={6} key={index}>
+            <Card className="rounded-2xl shadow-sm transition">
+              <div className="flex items-center gap-4">
+                <div
+                  className={`w-12 h-12 flex items-center justify-center rounded-xl ${item.color}`}
+                >
+                  {item.icon}
+                </div>
+                <div className="flex-1">
+                  <Text type="secondary" className="text-sm!">
+                    {item.title}
+                  </Text>
+                  <Statistic
+                  className="font-semibold"
+                    value={item.value}
+                    suffix={item.suffix}
+                    valueStyle={{ fontSize: 22 }}
+                  />
+                </div>
+              </div>
+              <Text className="text-xs text-gray-400!">
+                {item.note}
+              </Text>
+            </Card>
+          </Col>
+        ))}
       </Row>
 
-      {/* Charts Section */}
-      <Row gutter={[16, 16]} className="mt-6">
+      {/* ===== CHARTS ===== */}
+      <Row gutter={[20, 20]} className="mt-8">
         <Col xs={24} lg={15}>
-          <Card
-            title="Monthly Sales (৳)"
-            className="rounded-2xl shadow-sm"
-          >
+          <Card className="rounded-2xl shadow-sm">
+            <div className="mb-4">
+              <Title level={5} className="mb-0!">
+                Monthly Sales
+              </Title>
+              <Text type="secondary" className="text-xs">
+                Revenue trend in Bangladeshi Taka
+              </Text>
+            </div>
+
             <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={salesData} barSize={42}>
+              <BarChart data={salesData} barSize={40}>
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value) => `৳ ${value}`} />
+                <Tooltip formatter={(v) => `৳ ${v}`} />
                 <Legend />
                 <Bar
                   dataKey="sales"
-                  fill="#16a34a"
-                  radius={[8, 8, 0, 0]}
+                  fill="#8B5CF6"
+                  radius={[10, 10, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -137,25 +151,28 @@ const DashboardOverview: React.FC = () => {
         </Col>
 
         <Col xs={24} lg={9}>
-          <Card
-            title="Order Status Breakdown"
-            className="rounded-2xl shadow-sm"
-          >
+          <Card className="rounded-2xl shadow-sm">
+            <div className="mb-4">
+              <Title level={5} className="mb-0!">
+                Order Status
+              </Title>
+              <Text type="secondary" className="text-xs">
+                Distribution of order lifecycle
+              </Text>
+            </div>
+
             <ResponsiveContainer width="100%" height={320}>
               <PieChart>
                 <Pie
                   data={orderStatusData}
-                  cx="50%"
-                  cy="50%"
                   innerRadius={70}
-                  outerRadius={110}
-                  paddingAngle={3}
+                  outerRadius={115}
+                  paddingAngle={4}
                   dataKey="value"
-                  label
                 >
                   {orderStatusData.map((_, index) => (
                     <Cell
-                      key={`cell-${index}`}
+                      key={index}
                       fill={PIE_COLORS[index % PIE_COLORS.length]}
                     />
                   ))}
