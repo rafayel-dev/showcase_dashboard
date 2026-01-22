@@ -178,14 +178,16 @@ const ProductPage: React.FC = () => {
       render: (_, record) =>
         editingPriceId === record.id ? (
           <Space>
-            <Input
+           <div className="flex flex-col gap-1">
+             <Input
               type="number"
               min={0}
               value={editPrice}
               onChange={(e) => setEditPrice(Number(e.target.value))}
               className="w-18!"
             />
-            <Button
+            <div className="flex gap-1">
+              <Button
               type="primary"
               size="small"
               className="bg-violet-500!"
@@ -196,6 +198,8 @@ const ProductPage: React.FC = () => {
             <Button danger size="small" onClick={cancelInlineEditPrice}>
               Cancel
             </Button>
+            </div>
+           </div>
           </Space>
         ) : (
           <Space>
@@ -217,14 +221,16 @@ const ProductPage: React.FC = () => {
       render: (_, record) =>
         editingStockId === record.id ? (
           <Space>
-            <Input
+            <div className="flex flex-col gap-1">
+              <Input
               type="number"
               min={0}
               value={editStock}
               onChange={(e) => setEditStock(Number(e.target.value))}
               className="w-16!"
             />
-            <Button
+           <div className="flex gap-1">
+             <Button
               type="primary"
               size="small"
               className="bg-violet-500!"
@@ -235,6 +241,8 @@ const ProductPage: React.FC = () => {
             <Button danger size="small" onClick={cancelInlineEditStock}>
               Cancel
             </Button>
+           </div>
+            </div>
           </Space>
         ) : (
           <Space>

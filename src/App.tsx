@@ -8,6 +8,9 @@ import AddProductPage from './features/products/AddProductPage';
 import OrderPage from './features/orders/OrderPage';
 import AdminPage from './features/admins/AdminPage';
 import CategoryPage from './features/categories/CategoryPage';
+import PrivacyPage from './features/setting/PrivacyPage';
+import TermsPage from './features/setting/TermsPage';
+import AboutPage from './features/setting/AboutPage';
 import DraftPage from './features/products/DraftPage';
 import ErrorFallbackPage from './components/common/ErrorFallbackPage';
 
@@ -64,6 +67,9 @@ const App: React.FC = () => {
           <Route path="orders" element={<OrderPage />} />
           <Route path="admins" element={<AdminPage />} />
           <Route path="categories" element={<CategoryPage />} />
+          <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="terms" element={<TermsPage />} />
+          <Route path="about" element={<AboutPage />} />
         </Route>
         <Route path="*" element={<ErrorFallbackPage />} />
       </Routes>
@@ -72,7 +78,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-
-
-

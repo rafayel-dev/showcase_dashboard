@@ -169,7 +169,7 @@ const OrderPage: React.FC = () => {
   };
 
   const columns: TableProps<Order>["columns"] = [
-    { title: "Order ID", dataIndex: "id", width: 110 },
+    { title: "Order ID", dataIndex: "id", width: 88 },
     { title: "Customer", dataIndex: "customerName" },
     {
       title: "Mobile",
@@ -192,28 +192,32 @@ const OrderPage: React.FC = () => {
       render: (status, record) =>
         editingStatusId === record.id ? (
           <Space>
-            <Select
-              value={editStatus}
-              onChange={(value) => setEditStatus(value)}
-              style={{ width: 100 }}
-            >
-              <Option value="Pending">Pending</Option>
-              <Option value="Processing">Processing</Option>
-              <Option value="Shipped">Shipped</Option>
-              <Option value="Delivered">Delivered</Option>
-              <Option value="Cancelled">Cancelled</Option>
-            </Select>
-            <Button
-              className="bg-violet-500!"
-              size="small"
-              type="primary"
-              onClick={() => saveInlineEditStatus(record.id)}
-            >
-              Save
-            </Button>
-            <Button danger size="small" onClick={cancelInlineEditStatus}>
-              Cancel
-            </Button>
+            <div className="flex flex-col gap-1">
+              <Select
+                value={editStatus}
+                onChange={(value) => setEditStatus(value)}
+                style={{ width: 100 }}
+              >
+                <Option value="Pending">Pending</Option>
+                <Option value="Processing">Processing</Option>
+                <Option value="Shipped">Shipped</Option>
+                <Option value="Delivered">Delivered</Option>
+                <Option value="Cancelled">Cancelled</Option>
+              </Select>
+              <div className="flex gap-1">
+                <Button
+                  className="bg-violet-500!"
+                  size="small"
+                  type="primary"
+                  onClick={() => saveInlineEditStatus(record.id)}
+                >
+                  Save
+                </Button>
+                <Button danger size="small" onClick={cancelInlineEditStatus}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
           </Space>
         ) : (
           <Space>
@@ -233,7 +237,8 @@ const OrderPage: React.FC = () => {
       render: (courier, record) =>
         editingCourierId === record.id ? (
           <Space>
-            <Select
+            <div className="flex flex-col gap-1">
+              <Select
               value={editCourier}
               onChange={(value) => setEditCourier(value)}
               style={{ width: 90 }}
@@ -242,7 +247,8 @@ const OrderPage: React.FC = () => {
               <Option value="Steadfast">Steadfast</Option>
               <Option value="RedX">RedX</Option>
             </Select>
-            <Button
+            <div className="flex gap-1">
+              <Button
               className="bg-violet-500!"
               size="small"
               type="primary"
@@ -253,6 +259,8 @@ const OrderPage: React.FC = () => {
             <Button danger size="small" onClick={cancelInlineEditCourier}>
               Cancel
             </Button>
+            </div>
+            </div>
           </Space>
         ) : (
           <Space>
@@ -276,7 +284,8 @@ const OrderPage: React.FC = () => {
       render: (paymentStatus, record) =>
         editingPaymentStatusId === record.id ? (
           <Space>
-            <Select
+            <div className="flex flex-col gap-1">
+              <Select
               value={editPaymentStatus}
               onChange={(value) => setEditPaymentStatus(value)}
               style={{ width: 80 }}
@@ -284,7 +293,8 @@ const OrderPage: React.FC = () => {
               <Option value="Paid">Paid</Option>
               <Option value="Unpaid">Unpaid</Option>
             </Select>
-            <Button
+           <div className="flex gap-1">
+             <Button
               className="bg-violet-500!"
               size="small"
               type="primary"
@@ -295,6 +305,8 @@ const OrderPage: React.FC = () => {
             <Button danger size="small" onClick={cancelInlineEditPaymentStatus}>
               Cancel
             </Button>
+           </div>
+            </div>
           </Space>
         ) : (
           <Space>
@@ -512,7 +524,9 @@ const OrderPage: React.FC = () => {
                       {viewOrder.paymentMethod}
                     </Descriptions.Item>
                     <Descriptions.Item label="Payment Status">
-                      {viewOrder.paymentStatus}
+                      <Tag color={paymentStatusColor(viewOrder.paymentStatus)}>
+                        {viewOrder.paymentStatus}
+                      </Tag>
                     </Descriptions.Item>
                     <Descriptions.Item label="Courier">
                       {viewOrder.courier}
