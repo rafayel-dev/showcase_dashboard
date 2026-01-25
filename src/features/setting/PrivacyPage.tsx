@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { Card, Typography, Button } from "antd";
+import { Typography } from "antd";
+import AppCard from "../../components/common/AppCard";
+import AppButton from "../../components/common/AppButton";
 import JoditEditor from "../../components/common/JoditEditor";
-import toast from "../../../utils/toast";
+import toast from "../../utils/toast";
 
 const { Title } = Typography;
 
@@ -16,13 +18,13 @@ const PrivacyPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <Card className="rounded-2xl">
+      <AppCard>
         <Title level={3}>Privacy Policy</Title>
         <JoditEditor initialContent={content} onChange={setContent} />
-        <Button type="primary" onClick={handleSave} style={{ marginTop: 16 }} className="bg-violet-500!">
+        <AppButton type="primary" onClick={handleSave} style={{ marginTop: 16 }}>
           Save Changes
-        </Button>
-      </Card>
+        </AppButton>
+      </AppCard>
     </div>
   );
 };

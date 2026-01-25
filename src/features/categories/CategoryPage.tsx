@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from "react";
 import {
   Table,
-  Button,
   Space,
-  Popconfirm,
-  Card,
   Typography,
-  Modal,
   Form,
-  Input,
-  Spin,
-  Row,
-  Col,
   Tooltip,
   Empty,
 } from "antd";
@@ -24,9 +16,17 @@ import {
   updateCategory,
   deleteCategory,
 } from "../../services/categoryService";
-import toast from "../../../utils/toast";
+import toast from "../../utils/toast";
 
-const { Title, Text } = Typography;
+import AppCard from "../../components/common/AppCard";
+import AppButton from "../../components/common/AppButton";
+import AppInput from "../../components/common/AppInput";
+import AppModal from "../../components/common/AppModal";
+import AppPopconfirm from "../../components/common/AppPopconfirm";
+import AppSpin from "../../components/common/AppSpin";
+import PageHeader from "../../components/common/PageHeader";
+
+const { Text } = Typography;
 
 const CategoryPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -119,23 +119,21 @@ const CategoryPage: React.FC = () => {
       render: (_, record) => (
         <Space>
           <Tooltip title="Edit Category">
-            <Button icon={<FiEdit2 />} onClick={() => openEditModal(record)}>
+            <AppButton icon={<FiEdit2 />} onClick={() => openEditModal(record)}>
               Edit
-            </Button>
+            </AppButton>
           </Tooltip>
 
-          <Popconfirm
-            placement="topRight"
+          <AppPopconfirm
             title="Delete this category?"
             description="This action cannot be undone"
             okText="Delete"
-            cancelText="Cancel"
             onConfirm={() => handleDelete(record.id)}
           >
-            <Button danger icon={<FiTrash2 />}>
+            <AppButton danger icon={<FiTrash2 />}>
               Delete
-            </Button>
-          </Popconfirm>
+            </AppButton>
+          </AppPopconfirm>
         </Space>
       ),
     },
@@ -143,32 +141,17 @@ const CategoryPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <Card className="rounded-2xl shadow-sm">
-        {/* Header */}
-        <Row justify="space-between" align="middle" className="mb-4">
-          <Col>
-            <Title level={3} className="mb-0">
-              Category Management
-            </Title>
-            <Text type="secondary">
-              Organize your products with proper categories
-            </Text>
-          </Col>
-
-          <Col>
-            <Button
-              type="primary"
-              className="bg-violet-500!"
-              icon={<FiPlus />}
-              onClick={openAddModal}
-            >
-              Add Category
-            </Button>
-          </Col>
-        </Row>
+      <AppCard>
+        <PageHeader
+          title="Category Management"
+          subtitle="Organize your products with proper categories"
+          actionLabel="Add Category"
+          actionIcon={<FiPlus />}
+          onAction={openAddModal}
+        />
 
         {/* Table */}
-        <Spin spinning={tableLoading}>
+        <AppSpin spinning={tableLoading}>
           <Table
             rowKey="id"
             dataSource={categories}
@@ -178,18 +161,18 @@ const CategoryPage: React.FC = () => {
               emptyText: <Empty description="No categories found" />,
             }}
           />
-        </Spin>
-      </Card>
+        </AppSpin>
+      </AppCard>
 
       {/* Modal */}
-      <Modal
+      {/* Modal */}
+      <AppModal
         title={editingCategory ? "Edit Category" : "Add New Category"}
         open={modalOpen}
         onOk={handleSave}
         onCancel={() => setModalOpen(false)}
         confirmLoading={formLoading}
         okText={editingCategory ? "Update Category" : "Add Category"}
-        destroyOnClose
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -197,10 +180,10 @@ const CategoryPage: React.FC = () => {
             label="Category Name"
             rules={[{ required: true, message: "Category name is required" }]}
           >
-            <Input placeholder="e.g. Electronics" />
+            <AppInput placeholder="e.g. Electronics" />
           </Form.Item>
         </Form>
-      </Modal>
+      </AppModal>
     </div>
   );
 };

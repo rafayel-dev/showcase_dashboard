@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
-  Card,
   Table,
   Tag,
-  Button,
   Space,
   Typography,
   Row,
@@ -11,11 +9,13 @@ import {
   Tooltip,
   Empty,
 } from "antd";
+import AppCard from "../../components/common/AppCard";
+import AppButton from "../../components/common/AppButton";
 import { useNavigate } from "react-router-dom";
 import { FiEdit2, FiUploadCloud } from "react-icons/fi";
 import { fetchProducts, updateProduct } from "../../services/productService";
 import type { Product } from "../../types";
-import toast from "../../../utils/toast"
+import toast from "../../utils/toast";
 
 const { Title, Text } = Typography;
 
@@ -55,7 +55,7 @@ const DraftPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <Card className="rounded-2xl">
+      <AppCard className="rounded-2xl">
         {/* Header */}
         <Row justify="space-between" align="middle" className="mb-4">
           <Col>
@@ -98,31 +98,31 @@ const DraftPage: React.FC = () => {
               render: (_, record) => (
                 <Space>
                   <Tooltip title="Edit Product">
-                    <Button
+                    <AppButton
                       icon={<FiEdit2 />}
                       onClick={() =>
                         navigate(`/dashboard/products/edit/${record.id}`)
                       }
                     >
                       Edit
-                    </Button>
+                    </AppButton>
                   </Tooltip>
 
                   <Tooltip title="Publish Product">
-                    <Button
+                    <AppButton
                       type="primary"
                       icon={<FiUploadCloud />}
                       onClick={() => publishProduct(record)}
                     >
                       Publish
-                    </Button>
+                    </AppButton>
                   </Tooltip>
                 </Space>
               ),
             },
           ]}
         />
-      </Card>
+      </AppCard>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Button, Card, Typography, Alert } from "antd";
-import toast from "../../../utils/toast";
+import toast from "../../utils/toast";
 
 const { Title } = Typography;
 

@@ -1,78 +1,77 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './features/auth/LoginPage';
-import DashboardLayout from './components/layout/DashboardLayout';
-import DashboardOverview from './features/dashboard/DashboardOverview';
-import ProductPage from './features/products/ProductPage';
-import AddProductPage from './features/products/AddProductPage';
-import OrderPage from './features/orders/OrderPage';
-import AdminPage from './features/admins/AdminPage';
-import CategoryPage from './features/categories/CategoryPage';
-import PrivacyPage from './features/setting/PrivacyPage';
-import TermsPage from './features/setting/TermsPage';
-import AboutPage from './features/setting/AboutPage';
-import DraftPage from './features/products/DraftPage';
-import NotificationPage from './features/notifications/NotificationPage';
-import ErrorFallbackPage from './components/common/ErrorFallbackPage';
+import React, { Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Spin } from "antd";
+import DashboardLayout from "./components/layout/DashboardLayout";
+import ErrorFallbackPage from "./components/common/ErrorFallbackPage";
+
+// Lazy Load Pages
+const LoginPage = React.lazy(() => import("./features/auth/LoginPage"));
+const DashboardOverview = React.lazy(() => import("./features/dashboard/DashboardOverview"));
+const ProductPage = React.lazy(() => import("./features/products/ProductPage"));
+const AddProductPage = React.lazy(() => import("./features/products/AddProductPage"));
+const DraftPage = React.lazy(() => import("./features/products/DraftPage"));
+const OrderPage = React.lazy(() => import("./features/orders/OrderPage"));
+const AdminPage = React.lazy(() => import("./features/admins/AdminPage"));
+const CategoryPage = React.lazy(() => import("./features/categories/CategoryPage"));
+const PrivacyPage = React.lazy(() => import("./features/setting/PrivacyPage"));
+const TermsPage = React.lazy(() => import("./features/setting/TermsPage"));
+const AboutPage = React.lazy(() => import("./features/setting/AboutPage"));
+const NotificationPage = React.lazy(() => import("./features/notifications/NotificationPage"));
+const CouponPage = React.lazy(() => import("./features/coupons/CouponPage"));
+
+const Loading: React.FC = () => (
+  <div className="flex justify-center items-center h-screen bg-gray-50">
+    <Spin size="large" />
+  </div>
+);
 
 const App: React.FC = () => {
-  // Initialize isAuthenticated state from localStorage
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    !!localStorage.getItem('isAuthenticated')
+  const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(
+    !!localStorage.getItem("isAuthenticated")
   );
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      localStorage.setItem('isAuthenticated', 'true');
-    } else {
-      localStorage.removeItem('isAuthenticated');
-    }
+  React.useEffect(() => {
+    if (isAuthenticated) localStorage.setItem("isAuthenticated", "true");
+    else localStorage.removeItem("isAuthenticated");
   }, [isAuthenticated]);
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
-
-  // Function to handle logout
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
+  const handleLogin = () => setIsAuthenticated(true);
+  const handleLogout = () => setIsAuthenticated(false);
 
   const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    if (!isAuthenticated) {
-      return <Navigate to="/login" replace />;
-    }
+    if (!isAuthenticated) return <Navigate to="/login" replace />;
     return <>{children}</>;
   };
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Redirect from root to login if not authenticated, or to dashboard if authenticated */}
         <Route path="/" element={isAuthenticated ? <Navigate to="/overview" replace /> : <Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout onLogout={handleLogout} />
-            </ProtectedRoute>
-          }
-        >
-          {/* Nested routes for the dashboard */}
-          <Route path="overview" element={<DashboardOverview />} />
-          <Route path="products" element={<ProductPage />} />
-          <Route path="add-product" element={<AddProductPage />} />
-          <Route path="edit-product/:productId" element={<AddProductPage />} />
-          <Route path="drafts-product" element={<DraftPage />} />
-          <Route path="orders" element={<OrderPage />} />
-          <Route path="admins" element={<AdminPage />} />
-          <Route path="categories" element={<CategoryPage />} />
-          <Route path="privacy" element={<PrivacyPage />} />
-          <Route path="terms" element={<TermsPage />} />
-          <Route path="about" element={<AboutPage />} />
-          <Route path="notifications" element={<NotificationPage />} />
+
+        {/* Auth Route */}
+        <Route path="/login" element={
+          <Suspense fallback={<Loading />}>
+            <LoginPage onLogin={handleLogin} />
+          </Suspense>
+        } />
+
+        {/* Protected Dashboard Routes */}
+        <Route path="/" element={<ProtectedRoute><DashboardLayout onLogout={handleLogout} /></ProtectedRoute>}>
+          <Route path="overview" element={<Suspense fallback={<Loading />}><DashboardOverview /></Suspense>} />
+          <Route path="products" element={<Suspense fallback={<Loading />}><ProductPage /></Suspense>} />
+          <Route path="add-product" element={<Suspense fallback={<Loading />}><AddProductPage /></Suspense>} />
+          <Route path="edit-product/:productId" element={<Suspense fallback={<Loading />}><AddProductPage /></Suspense>} />
+          <Route path="drafts-product" element={<Suspense fallback={<Loading />}><DraftPage /></Suspense>} />
+          <Route path="orders" element={<Suspense fallback={<Loading />}><OrderPage /></Suspense>} />
+          <Route path="admins" element={<Suspense fallback={<Loading />}><AdminPage /></Suspense>} />
+          <Route path="coupons" element={<Suspense fallback={<Loading />}><CouponPage /></Suspense>} />
+          <Route path="categories" element={<Suspense fallback={<Loading />}><CategoryPage /></Suspense>} />
+          <Route path="privacy" element={<Suspense fallback={<Loading />}><PrivacyPage /></Suspense>} />
+          <Route path="terms" element={<Suspense fallback={<Loading />}><TermsPage /></Suspense>} />
+          <Route path="about" element={<Suspense fallback={<Loading />}><AboutPage /></Suspense>} />
+          <Route path="notifications" element={<Suspense fallback={<Loading />}><NotificationPage /></Suspense>} />
         </Route>
+
         <Route path="*" element={<ErrorFallbackPage />} />
       </Routes>
     </BrowserRouter>

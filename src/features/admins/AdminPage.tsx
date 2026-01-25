@@ -22,7 +22,7 @@ import {
   addAdmin,
   deleteAdmin,
 } from "../../services/adminService";
-import toast from "../../../utils/toast";
+import toast from "../../utils/toast";
 
 const { Title, Text } = Typography;
 
@@ -191,6 +191,7 @@ const AdminPage: React.FC = () => {
         okText="Add Admin"
         confirmLoading={formLoading}
         destroyOnClose
+        okButtonProps={{ className: "bg-violet-500!" }}
       >
         <Form form={form} layout="vertical">
           <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>

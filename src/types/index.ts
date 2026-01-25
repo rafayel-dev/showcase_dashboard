@@ -13,6 +13,11 @@ export interface Product {
   sku?: string;
   isPublished?: boolean;
   tags?: string[];
+  hasDiscount?: boolean;
+  discountType?: "flat" | "percentage";
+  discountValue?: number;
+  discountStartDate?: string;
+  discountEndDate?: string;
   specifications?: {
     brand?: string;
     material?: string;
@@ -71,4 +76,17 @@ export interface Category {
   id: string;
   name: string;
   description: string;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: "flat" | "percentage";
+  discountValue: number;
+  startDate: string;
+  endDate: string;
+  usageLimit?: number;
+  usedCount: number;
+  status: "Active" | "Inactive" | "Expired";
+  minOrderValue?: number;
 }

@@ -1,15 +1,18 @@
 import React, { useState } from "react";
-import { Card, Typography, Button, Upload, Input, Row, Col } from "antd";
+import { Typography, Upload, Row, Col } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import AppCard from "../../components/common/AppCard";
+import AppButton from "../../components/common/AppButton";
+import AppInput from "../../components/common/AppInput";
 import JoditEditor from "../../components/common/JoditEditor";
-import toast from "../../../utils/toast";
+import toast from "../../utils/toast";
 
 const { Title } = Typography;
 
 interface TeamMember {
   name: string;
   title: string;
-  image: any; 
+  image: any;
 }
 
 const AboutPage: React.FC = () => {
@@ -35,51 +38,51 @@ const AboutPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <Card className="rounded-2xl">
+      <AppCard>
         <Title level={3}>About Us</Title>
-        
+
         <div style={{ marginBottom: 24 }}>
-            <Title level={5}>Cover Image</Title>
-            <Upload type="select" maxCount={1}>
-                <Button icon={<UploadOutlined />}>Upload Image</Button>
-            </Upload>
+          <Title level={5}>Cover Image</Title>
+          <Upload type="select" maxCount={1}>
+            <AppButton icon={<UploadOutlined />}>Upload Image</AppButton>
+          </Upload>
         </div>
 
         <div style={{ marginBottom: 24 }}>
-            <Title level={5}>Description</Title>
-            <JoditEditor initialContent={content} onChange={setContent} />
+          <Title level={5}>Description</Title>
+          <JoditEditor initialContent={content} onChange={setContent} />
         </div>
 
         <div>
-            <Title level={5}>Our Team</Title>
-            <Row gutter={16}>
-                {team.map((member, index) => (
-                    <Col span={6} key={index}>
-                        <Card>
-                            <Upload maxCount={1} style={{ marginBottom: 8 }}>
-                                <Button icon={<UploadOutlined />}>Upload Image</Button>
-                            </Upload>
-                            <Input
-                                placeholder="Name"
-                                value={member.name}
-                                onChange={(e) => handleTeamChange(index, "name", e.target.value)}
-                                style={{ marginBottom: 8 }}
-                            />
-                            <Input
-                                placeholder="Title"
-                                value={member.title}
-                                onChange={(e) => handleTeamChange(index, "title", e.target.value)}
-                            />
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
+          <Title level={5}>Our Team</Title>
+          <Row gutter={16}>
+            {team.map((member, index) => (
+              <Col span={6} key={index}>
+                <AppCard>
+                  <Upload maxCount={1} style={{ marginBottom: 8 }}>
+                    <AppButton icon={<UploadOutlined />}>Upload Image</AppButton>
+                  </Upload>
+                  <AppInput
+                    placeholder="Name"
+                    value={member.name}
+                    onChange={(e) => handleTeamChange(index, "name", e.target.value)}
+                    style={{ marginBottom: 8 }}
+                  />
+                  <AppInput
+                    placeholder="Title"
+                    value={member.title}
+                    onChange={(e) => handleTeamChange(index, "title", e.target.value)}
+                  />
+                </AppCard>
+              </Col>
+            ))}
+          </Row>
         </div>
 
-        <Button type="primary" onClick={handleSave} style={{ marginTop: 16 }} className="bg-violet-500!">
+        <AppButton type="primary" onClick={handleSave} style={{ marginTop: 16 }}>
           Save Changes
-        </Button>
-      </Card>
+        </AppButton>
+      </AppCard>
     </div>
   );
 };

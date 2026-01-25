@@ -1,20 +1,15 @@
 import React, { useEffect, useState } from "react";
 import {
   Table,
-  Button,
   Space,
-  Card,
   Typography,
-  Modal,
   Input,
   Image,
   Select,
   Tag,
-  Spin,
   Tooltip,
   Row,
   Col,
-  Popconfirm,
 } from "antd";
 import {
   FiPlus,
@@ -33,8 +28,17 @@ import {
   fetchProducts,
   updateProduct,
 } from "../../services/productService";
-import toast from "../../../utils/toast";
+import toast from "../../utils/toast";
 
+import InlineEditor from "../../components/common/InlineEditor";
+import DiscountInlineEditor, { type DiscountData } from "../../components/common/DiscountInlineEditor";
+import AppButton from "../../components/common/AppButton";
+import dayjs from "dayjs";
+
+import AppSpin from "../../components/common/AppSpin";
+import AppCard from "../../components/common/AppCard";
+import AppModal from "../../components/common/AppModal";
+import AppPopconfirm from "../../components/common/AppPopconfirm";
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -45,11 +49,9 @@ const ProductPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [viewing, setViewing] = useState<Product | null>(null);
 
-  // 📝 Inline Editing
-  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
-  const [editingStockId, setEditingStockId] = useState<string | null>(null);
-  const [editPrice, setEditPrice] = useState<number>(0);
-  const [editStock, setEditStock] = useState<number>(0);
+  // 📝 Inline Editing State
+  const [editingId, setEditingId] = useState<{ id: string; field: "price" | "stock" | "discount" } | null>(null);
+  const [editValue, setEditValue] = useState<number>(0);
 
   // 🔍 Filters
   const [searchText, setSearchText] = useState("");
@@ -62,8 +64,7 @@ const ProductPage: React.FC = () => {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const data = await fetchProducts();
-      setProducts(data);
+      setProducts(await fetchProducts());
     } catch {
       toast.error("Failed to load products");
     } finally {
@@ -71,85 +72,84 @@ const ProductPage: React.FC = () => {
     }
   };
 
-  const startInlineEditPrice = (record: Product) => {
-    setEditingPriceId(record.id);
-    setEditPrice(record.price);
+  const startEdit = (record: Product, field: "price" | "stock" | "discount") => {
+    setEditingId({ id: record.id, field });
+    if (field === "price") setEditValue(record.price);
+    else if (field === "stock") setEditValue(record.stock);
+    // discount logic handled in render prop via initialValue
   };
 
-  const cancelInlineEditPrice = () => {
-    setEditingPriceId(null);
+  const cancelEdit = () => {
+    setEditingId(null);
   };
 
-  const saveInlineEditPrice = async (id: string) => {
+
+  const saveDiscount = async (id: string, values: DiscountData) => {
     try {
-      const productToUpdate = products.find((p) => p.id === id);
-      if (productToUpdate) {
-        const updatedProduct = {
-          ...productToUpdate,
-          price: editPrice,
-        };
-        await updateProduct(updatedProduct);
-        toast.success("Product price updated successfully!");
-        setEditingPriceId(null);
+      const product = products.find((p) => p.id === id);
+      if (product) {
+        const updated = { ...product };
+        updated.hasDiscount = values.hasDiscount;
+
+        if (values.hasDiscount) {
+          updated.discountType = values.discountType;
+          updated.discountValue = values.discountValue;
+          if (values.discountRange) {
+            updated.discountStartDate = values.discountRange[0].toISOString();
+            updated.discountEndDate = values.discountRange[1].toISOString();
+          }
+        } else {
+          updated.discountType = undefined;
+          updated.discountValue = undefined;
+          updated.discountStartDate = undefined;
+          updated.discountEndDate = undefined;
+        }
+
+        await updateProduct(updated);
+        toast.success("Discount updated!");
+        setEditingId(null);
         loadProducts();
       }
-    } catch (error) {
-      toast.error("Failed to update product price.");
+    } catch {
+      toast.error("Update failed");
     }
   };
 
-  const startInlineEditStock = (record: Product) => {
-    setEditingStockId(record.id);
-    setEditStock(record.stock);
-  };
-
-  const cancelInlineEditStock = () => {
-    setEditingStockId(null);
-  };
-
-  const saveInlineEditStock = async (id: string) => {
+  const saveEdit = async () => {
+    if (!editingId) return;
     try {
-      const productToUpdate = products.find((p) => p.id === id);
-      if (productToUpdate) {
-        const updatedProduct = {
-          ...productToUpdate,
-          stock: editStock,
-        };
-        // Determine status based on new stock
-        if (updatedProduct.stock === 0) {
-          updatedProduct.status = "Out of Stock";
-        } else if (
-          updatedProduct.stock > 0 &&
-          productToUpdate.status === "Out of Stock"
-        ) {
-          updatedProduct.status = "In Stock";
+      const product = products.find((p) => p.id === editingId.id);
+      if (product) {
+        let updated = { ...product };
+        if (editingId.field === "price") {
+          updated.price = editValue;
+          toast.success("Price updated!");
+        } else if (editingId.field === "stock") {
+          updated.stock = editValue;
+          // Status logic
+          if (updated.stock === 0) updated.status = "Out of Stock";
+          else if (product.status === "Out of Stock") updated.status = "In Stock";
+          toast.success("Stock updated!");
         }
 
-        await updateProduct(updatedProduct);
-        toast.success("Product stock updated successfully!");
-        setEditingStockId(null);
+        await updateProduct(updated);
+        setEditingId(null);
         loadProducts();
       }
-    } catch (error) {
-      toast.error("Failed to update product stock.");
+    } catch {
+      toast.error("Update failed.");
     }
   };
 
   const statusColor = (status: Product["status"]) => {
-    if (status === "In Stock") return "success";
-    if (status === "Out of Stock") return "warning";
-    if (status === "Discontinued") return "error";
-    return "default";
+    const colors = { "In Stock": "success", "Out of Stock": "warning", "Discontinued": "error" };
+    return colors[status] || "default";
   };
 
   // ✅ Filter logic
   const filteredProducts = products.filter((p) => {
-    const matchSearch = p.productName
-      .toLowerCase()
-      .includes(searchText.toLowerCase());
-
+    const matchSearch = p.productName.toLowerCase().includes(searchText.toLowerCase());
     const matchCategory = categoryFilter ? p.category === categoryFilter : true;
-
     return matchSearch && matchCategory;
   });
 
@@ -158,107 +158,107 @@ const ProductPage: React.FC = () => {
       title: "Product",
       dataIndex: "productName",
       render: (text, record) => (
-        <Text strong className={record.stock < 5 ? "text-red-600" : ""}>
-          {text}
-        </Text>
+        <Text strong className={record.stock < 5 ? "text-red-600" : ""}>{text}</Text>
       ),
     },
-    {
-      title: "Category",
-      dataIndex: "category",
-    },
-    {
-      title: "SKU",
-      dataIndex: "sku",
-    },
+    { title: "Category", dataIndex: "category" },
+    { title: "SKU", dataIndex: "sku" },
     {
       title: "Price",
       dataIndex: "price",
       align: "center",
       render: (_, record) =>
-        editingPriceId === record.id ? (
-          <Space>
-           <div className="flex flex-col gap-1">
-             <Input
-              type="number"
-              min={0}
-              value={editPrice}
-              onChange={(e) => setEditPrice(Number(e.target.value))}
-              className="w-18!"
-            />
-            <div className="flex gap-1">
-              <Button
-              type="primary"
-              size="small"
-              className="bg-violet-500!"
-              onClick={() => saveInlineEditPrice(record.id)}
-            >
-              Save
-            </Button>
-            <Button danger size="small" onClick={cancelInlineEditPrice}>
-              Cancel
-            </Button>
-            </div>
-           </div>
-          </Space>
+        editingId?.id === record.id && editingId.field === "price" ? (
+          <InlineEditor
+            value={editValue}
+            onChange={(v) => setEditValue(Number(v))}
+            onSave={saveEdit}
+            onCancel={cancelEdit}
+            widthClass="w-18"
+          />
         ) : (
           <Space>
             <Text>৳ {record.price}</Text>
-            <Button
+            <AppButton
               type="text"
               size="small"
               icon={<FiEdit />}
-              onClick={() => startInlineEditPrice(record)}
+              onClick={() => startEdit(record, "price")}
             />
           </Space>
         ),
     },
-
     {
       title: "Stock",
       dataIndex: "stock",
       align: "center",
       render: (_, record) =>
-        editingStockId === record.id ? (
-          <Space>
-            <div className="flex flex-col gap-1">
-              <Input
-              type="number"
-              min={0}
-              value={editStock}
-              onChange={(e) => setEditStock(Number(e.target.value))}
-              className="w-16!"
-            />
-           <div className="flex gap-1">
-             <Button
-              type="primary"
-              size="small"
-              className="bg-violet-500!"
-              onClick={() => saveInlineEditStock(record.id)}
-            >
-              Save
-            </Button>
-            <Button danger size="small" onClick={cancelInlineEditStock}>
-              Cancel
-            </Button>
-           </div>
-            </div>
-          </Space>
+        editingId?.id === record.id && editingId.field === "stock" ? (
+          <InlineEditor
+            value={editValue}
+            onChange={(v) => setEditValue(Number(v))}
+            onSave={saveEdit}
+            onCancel={cancelEdit}
+            widthClass="w-16"
+          />
         ) : (
           <Space>
-            <Text type={record.stock < 5 ? "danger" : undefined}>
-              {record.stock}
-            </Text>
-            <Button
+            <Text type={record.stock < 5 ? "danger" : undefined}>{record.stock}</Text>
+            <AppButton
               type="text"
               size="small"
               icon={<FiEdit />}
-              onClick={() => startInlineEditStock(record)}
+              onClick={() => startEdit(record, "stock")}
             />
           </Space>
         ),
     },
-
+    {
+      title: "Discount",
+      dataIndex: "discountValue",
+      align: "center",
+      render: (_, record) =>
+        editingId?.id === record.id && editingId.field === "discount" ? (
+          <div className="relative">
+            <DiscountInlineEditor
+              initialValue={{
+                hasDiscount: !!record.hasDiscount,
+                discountType: record.discountType || "percentage",
+                discountValue: record.discountValue || 0,
+                discountRange: (record.discountStartDate && record.discountEndDate)
+                  ? [dayjs(record.discountStartDate), dayjs(record.discountEndDate)]
+                  : undefined
+              }}
+              onSave={(val) => {
+                // Immediate save trigger because the component passes full obj
+                saveDiscount(record.id, val);
+              }}
+              onCancel={cancelEdit}
+            />
+          </div>
+        ) : (
+          <Space>
+            <div className="flex flex-col items-center">
+              <Text>
+                {record.hasDiscount
+                  ? `${record.discountValue}${record.discountType === "percentage" ? "%" : "৳"}`
+                  : "-"}
+              </Text>
+              {record.hasDiscount && record.discountEndDate && (
+                <Text type="secondary" className="text-[10px]!">
+                  {dayjs(record.discountEndDate).format("DD MMM")}
+                </Text>
+              )}
+            </div>
+            <AppButton
+              type="text"
+              size="small"
+              icon={<FiEdit />}
+              onClick={() => startEdit(record, "discount")}
+            />
+          </Space>
+        ),
+    },
     {
       title: "Status",
       dataIndex: "status",
@@ -269,28 +269,18 @@ const ProductPage: React.FC = () => {
       align: "right",
       render: (_, record) => (
         <Space>
-          <Tooltip title="View">
-            <Button icon={<FiEye />} onClick={() => setViewing(record)} />
-          </Tooltip>
-          <Tooltip title="Edit">
-            <Button
-              icon={<FiEdit />}
-              onClick={() => navigate(`/edit-product/${record.id}`)}
-            />
-          </Tooltip>
-          <Popconfirm
-            placement="topRight"
-            title="Delete this Product?"
-            description="This action cannot be undone"
-            okText="Delete"
-            cancelText="Cancel"
+          <Tooltip title="View"><AppButton icon={<FiEye />} onClick={() => setViewing(record)} /></Tooltip>
+          <Tooltip title="Edit"><AppButton icon={<FiEdit />} onClick={() => navigate(`/edit-product/${record.id}`)} /></Tooltip>
+          <AppPopconfirm
+            title="Delete?"
+            okText="Yes"
             onConfirm={async () => {
               await deleteProduct(record.id);
               loadProducts();
             }}
           >
-            <Button danger icon={<FiTrash2 />} />
-          </Popconfirm>
+            <AppButton danger icon={<FiTrash2 />} />
+          </AppPopconfirm>
         </Space>
       ),
     },
@@ -298,7 +288,7 @@ const ProductPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <Card className="rounded-2xl">
+      <AppCard className="rounded-2xl">
         {/* Header */}
         <Row justify="space-between" align="middle" className="mb-4">
           <Col>
@@ -307,20 +297,17 @@ const ProductPage: React.FC = () => {
           </Col>
           <Col>
             <Space>
-              <Button
+              <AppButton
                 icon={viewMode === "table" ? <FiGrid /> : <FiList />}
-                onClick={() =>
-                  setViewMode(viewMode === "table" ? "card" : "table")
-                }
+                onClick={() => setViewMode(viewMode === "table" ? "card" : "table")}
               />
-              <Button
+              <AppButton
                 type="primary"
-                className="bg-violet-500!"
                 icon={<FiPlus />}
                 onClick={() => navigate("/add-product")}
               >
                 Add Product
-              </Button>
+              </AppButton>
             </Space>
           </Col>
         </Row>
@@ -340,15 +327,13 @@ const ProductPage: React.FC = () => {
             onChange={(v) => setCategoryFilter(v)}
           >
             {[...new Set(products.map((p) => p.category))].map((cat) => (
-              <Option key={cat} value={cat}>
-                {cat}
-              </Option>
+              <Option key={cat} value={cat}>{cat}</Option>
             ))}
           </Select>
         </Space>
 
         {/* Content */}
-        <Spin spinning={loading}>
+        <AppSpin spinning={loading}>
           {viewMode === "table" ? (
             <Table
               columns={columns}
@@ -363,11 +348,11 @@ const ProductPage: React.FC = () => {
               ))}
             </div>
           )}
-        </Spin>
-      </Card>
+        </AppSpin>
+      </AppCard>
 
       {/* View Modal */}
-      <Modal
+      <AppModal
         title="Product Details"
         width={700}
         open={!!viewing}
@@ -376,38 +361,21 @@ const ProductPage: React.FC = () => {
       >
         {viewing && (
           <>
-            <Space direction="vertical">
-              <Text>
-                <b>Name:</b> {viewing.productName}
-              </Text>
-              <Text>
-                <b>Category:</b> {viewing.category}
-              </Text>
-              <Text>
-                <b>Price:</b> ৳ {viewing.price}
-              </Text>
-              <Text>
-                <b>Stock:</b> {viewing.stock}
-              </Text>
-              <Text>
-                <b>Status:</b>{" "}
-                <Tag color={statusColor(viewing.status)}>{viewing.status}</Tag>
-              </Text>
+            <Space direction="vertical" className="w-full">
+              <Text><b>Name:</b> {viewing.productName}</Text>
+              <Text><b>Category:</b> {viewing.category}</Text>
+              <Text><b>Price:</b> ৳ {viewing.price}</Text>
+              <Text><b>Stock:</b> {viewing.stock}</Text>
+              <Text><b>Status:</b> <Tag color={statusColor(viewing.status)}>{viewing.status}</Tag></Text>
             </Space>
             <div className="mt-4">
-              <div className="flex gap-2">
-                <Image.PreviewGroup>
-                  <Image
-                    src={viewing.imageUrl || ""}
-                    alt=""
-                    className="w-32! h-32!"
-                  />
-                </Image.PreviewGroup>
-              </div>
+              <Image.PreviewGroup>
+                <Image src={viewing.imageUrl || ""} className="w-32! h-32!" />
+              </Image.PreviewGroup>
             </div>
           </>
         )}
-      </Modal>
+      </AppModal>
     </div>
   );
 };

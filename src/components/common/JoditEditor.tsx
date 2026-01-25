@@ -27,6 +27,7 @@ const CustomJoditEditor: React.FC<CustomJoditEditorProps> = ({
   initialContent = "",
   onChange,
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editor = useRef<any>(null);
 
   return (
@@ -35,7 +36,7 @@ const CustomJoditEditor: React.FC<CustomJoditEditorProps> = ({
       value={initialContent}
       config={joditConfig}
       onBlur={(newContent: string) => onChange(newContent)}
-      onChange={() => {}}
+      onChange={() => { }}
     />
   );
 };

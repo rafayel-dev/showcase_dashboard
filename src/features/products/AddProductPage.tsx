@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from "react";
 import {
   Form,
-  Input,
   InputNumber,
-  Button,
-  Card,
   Typography,
   Select,
   Space,
-  Spin,
   Upload,
-  Modal,
   Switch,
   Divider,
   Row,
   Col,
+  DatePicker,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
@@ -26,10 +22,17 @@ import {
 } from "../../services/productService";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
 import CustomJoditEditor from "../../components/common/JoditEditor";
-import toast from "../../../utils/toast";
+import toast from "../../utils/toast";
+import dayjs from "dayjs";
+import AppButton from "../../components/common/AppButton";
+import AppCard from "../../components/common/AppCard";
+import AppInput from "../../components/common/AppInput";
+import AppSpin from "../../components/common/AppSpin";
+import AppModal from "../../components/common/AppModal";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 /* ================= IMAGE HELPER ================= */
 const getBase64 = (file: RcFile): Promise<string> =>
@@ -58,7 +61,14 @@ const AddProductPage: React.FC = () => {
         .then((product) => {
           if (product) {
             setEditingProduct(product);
-            form.setFieldsValue(product);
+            const formValues: Partial<Product> & { discountRange?: [dayjs.Dayjs, dayjs.Dayjs] } = { ...product };
+            if (formValues.discountStartDate && formValues.discountEndDate) {
+              formValues.discountRange = [
+                dayjs(formValues.discountStartDate),
+                dayjs(formValues.discountEndDate),
+              ];
+            }
+            form.setFieldsValue(formValues);
             if (product.imageUrl) {
               setFileList([
                 {
@@ -75,7 +85,7 @@ const AddProductPage: React.FC = () => {
     }
   }, [productId, isEditMode, form]);
 
-  const onFinish = async (values: Omit<Product, "id" | "key">) => {
+  const onFinish = async (values: Omit<Product, "id" | "key"> & { discountRange?: [dayjs.Dayjs, dayjs.Dayjs] }) => {
     if (!fileList.length) {
       toast.error("Please upload at least one product image.");
       return;
@@ -85,17 +95,29 @@ const AddProductPage: React.FC = () => {
     try {
       const images = fileList.map((f) => f.url || (f.preview as string));
 
+      const { discountRange, ...restValues } = values;
+      const productData: Partial<Product> = { ...restValues, imageUrl: images[0] };
+
+      if (productData.hasDiscount && discountRange) {
+        productData.discountStartDate = discountRange[0].toISOString();
+        productData.discountEndDate = discountRange[1].toISOString();
+      } else if (!productData.hasDiscount) {
+        delete productData.hasDiscount;
+        delete productData.discountType;
+        delete productData.discountValue;
+        delete productData.discountStartDate;
+        delete productData.discountEndDate;
+      }
+
       if (isEditMode && editingProduct) {
         await updateProduct({
           ...editingProduct,
-          ...values,
-          imageUrl: images[0],
+          ...(productData as Product),
         });
         toast.success("Product updated successfully✅");
       } else {
         await addProduct({
-          ...values,
-          imageUrl: images[0],
+          ...(productData as Product),
           status: "In Stock",
         });
         toast.success("Product added successfully✅");
@@ -111,7 +133,7 @@ const AddProductPage: React.FC = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="p-4 md:p-6 max-w-7xl mx-auto">
-        <Card bordered={false} className="rounded-2xl shadow-sm">
+        <AppCard bordered={false}>
           {/* Header */}
           <Title level={3} className="mb-0">
             {isEditMode ? "Edit Product" : "Add New Product"}
@@ -119,7 +141,7 @@ const AddProductPage: React.FC = () => {
 
           <Divider className="my-5!" />
 
-          <Spin spinning={loading}>
+          <AppSpin spinning={loading}>
             <Form
               layout="vertical"
               form={form}
@@ -127,7 +149,7 @@ const AddProductPage: React.FC = () => {
               requiredMark={false}
             >
               {/* ================= BASIC INFO ================= */}
-              <Card className="mb-6!" bordered={false}>
+              <AppCard className="mb-6!" bordered={false}>
                 <Title level={4}>Basic Information</Title>
 
                 <Row gutter={24}>
@@ -137,7 +159,7 @@ const AddProductPage: React.FC = () => {
                       label="Product Name"
                       rules={[{ required: true }]}
                     >
-                      <Input placeholder="Product title" />
+                      <AppInput placeholder="Product title" />
                     </Form.Item>
                   </Col>
 
@@ -157,15 +179,15 @@ const AddProductPage: React.FC = () => {
                 </Row>
 
                 <Form.Item name="description" label="Short Description">
-                  <Input.TextArea
+                  <AppInput.TextArea
                     rows={3}
                     placeholder="Short summary for product list"
                   />
                 </Form.Item>
-              </Card>
+              </AppCard>
 
               {/* ================= PRICE & STOCK ================= */}
-              <Card className="mb-6!" bordered={false}>
+              <AppCard className="mb-6!" bordered={false}>
                 <Title level={4}>Pricing & Inventory</Title>
 
                 <Row gutter={24}>
@@ -180,6 +202,98 @@ const AddProductPage: React.FC = () => {
                         placeholder="1200"
                         min={0}
                       />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={8} lg={6}>
+                    <Form.Item label="Discount">
+                      {/* Switch */}
+                      <Form.Item
+                        name="hasDiscount"
+                        valuePropName="checked"
+                        initialValue={false}
+                        noStyle
+                      >
+                        <Switch />
+                      </Form.Item>
+
+                      {/* Conditional Render */}
+                      <Form.Item shouldUpdate>
+                        {({ getFieldValue }) => {
+                          const hasDiscount = getFieldValue("hasDiscount");
+                          const discountType = getFieldValue("discountType");
+
+                          return (
+                            hasDiscount && (
+                              <Space
+                                direction="vertical"
+                                className="w-full mt-2!"
+                              >
+                                {/* Discount Type */}
+                                <Form.Item
+                                  className="mt-0!"
+                                  name="discountType"
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Select discount type",
+                                    },
+                                  ]}
+                                >
+                                  <Select
+                                    placeholder="Discount Type"
+                                    options={[
+                                      { value: "flat", label: "Flat" },
+                                      {
+                                        value: "percentage",
+                                        label: "Percentage",
+                                      },
+                                    ]}
+                                  />
+                                </Form.Item>
+
+                                {/* Discount Value */}
+                                <Form.Item
+                                  className="mt-0!"
+                                  name="discountValue"
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message: "Enter discount value",
+                                    },
+                                  ]}
+                                >
+                                  <InputNumber
+                                    className="w-full!"
+                                    placeholder="Discount Value"
+                                    min={0}
+                                    max={
+                                      discountType === "percentage"
+                                        ? 100
+                                        : undefined
+                                    }
+                                  />
+                                </Form.Item>
+
+                                {/* Discount Start Date */}
+                                <Form.Item
+                                  className="mt-0!"
+                                  name="discountRange"
+                                  rules={[
+                                    {
+                                      required: true,
+                                      message:
+                                        "Discount start date is required",
+                                      type: "object",
+                                    },
+                                  ]}
+                                >
+                                  <RangePicker className="w-full!" />
+                                </Form.Item>
+                              </Space>
+                            )
+                          );
+                        }}
+                      </Form.Item>
                     </Form.Item>
                   </Col>
 
@@ -199,20 +313,20 @@ const AddProductPage: React.FC = () => {
 
                   <Col xs={24} md={8} lg={6}>
                     <Form.Item name="sku" label="SKU">
-                      <Input placeholder="Product SKU" />
+                      <AppInput placeholder="Product SKU" />
                     </Form.Item>
                   </Col>
                 </Row>
-              </Card>
+              </AppCard>
 
               {/* ================= SPECIFICATIONS ================= */}
-              <Card className="mb-6!" bordered={false}>
+              <AppCard className="mb-6!" bordered={false}>
                 <Title level={4}>Specifications</Title>
 
                 <Row gutter={24}>
                   <Col xs={24} md={12} lg={8}>
                     <Form.Item name={["specifications", "brand"]} label="Brand">
-                      <Input placeholder="Escape" />
+                      <AppInput placeholder="Escape" />
                     </Form.Item>
                   </Col>
 
@@ -221,7 +335,7 @@ const AddProductPage: React.FC = () => {
                       name={["specifications", "material"]}
                       label="Material"
                     >
-                      <Input placeholder="Premium Fabric" />
+                      <AppInput placeholder="Premium Fabric" />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -266,13 +380,13 @@ const AddProductPage: React.FC = () => {
                     name={["specifications", "countryOfOrigin"]}
                     label="Country of Origin"
                   >
-                    <Input placeholder="Bangladesh" />
+                    <AppInput placeholder="Bangladesh" />
                   </Form.Item>
                 </Col>
-              </Card>
+              </AppCard>
 
               {/* ================= PRODUCT DETAILS ================= */}
-              <Card className="mb-6!" bordered={false}>
+              <AppCard className="mb-6!" bordered={false}>
                 <Title level={4}>Product Details</Title>
 
                 <Form.Item
@@ -291,10 +405,10 @@ const AddProductPage: React.FC = () => {
                     }
                   />
                 </Form.Item>
-              </Card>
+              </AppCard>
 
               {/* ================= IMAGES ================= */}
-              <Card className="mb-6!" bordered={false}>
+              <AppCard className="mb-6!" bordered={false}>
                 <Title level={4}>Product Images</Title>
 
                 <Upload
@@ -315,17 +429,19 @@ const AddProductPage: React.FC = () => {
                   {fileList.length < 8 && <PlusOutlined />}
                 </Upload>
 
-                <Modal
+
+                <AppModal
                   open={previewOpen}
-                  footer={null}
                   onCancel={() => setPreviewOpen(false)}
+                  title="Image Preview"
+                  footer={null}
                 >
                   <img src={previewImage} className="w-full" />
-                </Modal>
-              </Card>
+                </AppModal>
+              </AppCard>
 
               {/* ================= STATUS ================= */}
-              <Card className="mb-6 bg-gray-50" bordered={false}>
+              <AppCard className="mb-6 bg-gray-50" bordered={false}>
                 <Title level={5}>Product Status</Title>
                 <Form.Item
                   name="isPublished"
@@ -338,31 +454,30 @@ const AddProductPage: React.FC = () => {
                     <Text>Publish</Text>
                   </Space>
                 </Form.Item>
-              </Card>
+              </AppCard>
 
               <Divider />
 
               {/* ================= ACTIONS ================= */}
               <Space>
-                <Button
+                <AppButton
                   type="primary"
-                  className="bg-violet-500!"
                   htmlType="submit"
                   size="large"
                 >
                   {isEditMode ? "Save Changes" : "Add Product"}
-                </Button>
-                <Button
+                </AppButton>
+                <AppButton
                   danger
                   size="large"
                   onClick={() => navigate("/products")}
                 >
                   Cancel
-                </Button>
+                </AppButton>
               </Space>
             </Form>
-          </Spin>
-        </Card>
+          </AppSpin>
+        </AppCard>
       </div>
     </div>
   );
