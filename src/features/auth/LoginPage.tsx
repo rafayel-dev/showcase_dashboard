@@ -26,7 +26,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     ) {
       onLogin();
       navigate("/");
-      toast.success("Login Successfully!")
+      toast.success("Login Successfully!");
     } else {
       setError("Invalid username or password");
     }

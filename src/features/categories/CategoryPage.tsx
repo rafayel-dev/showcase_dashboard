@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Table,
-  Space,
-  Typography,
-  Form,
-  Tooltip,
-  Empty,
-} from "antd";
+import { Table, Space, Typography, Form, Tooltip, Empty } from "antd";
 import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
 import type { TableProps } from "antd";
 import type { Category } from "../../types";

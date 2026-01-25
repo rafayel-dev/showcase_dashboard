@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  Tag,
-  Space,
-  Typography,
-  Row,
-  Col,
-  Tooltip,
-  Empty,
-} from "antd";
+import { Table, Tag, Space, Typography, Row, Col, Tooltip, Empty } from "antd";
 import AppCard from "../../components/common/AppCard";
 import AppButton from "../../components/common/AppButton";
 import { useNavigate } from "react-router-dom";
@@ -32,9 +23,7 @@ const DraftPage: React.FC = () => {
     setLoading(true);
     try {
       const allProducts = await fetchProducts();
-      const draftProducts = allProducts.filter(
-        (p) => p.isPublished === false
-      );
+      const draftProducts = allProducts.filter((p) => p.isPublished === false);
       setData(draftProducts);
     } catch {
       toast.error("Failed to load draft products");
@@ -62,9 +51,7 @@ const DraftPage: React.FC = () => {
             <Title level={3} className="mb-0">
               Draft Products
             </Title>
-            <Text type="secondary">
-              Products saved but not yet published
-            </Text>
+            <Text type="secondary">Products saved but not yet published</Text>
           </Col>
         </Row>
 
@@ -75,11 +62,7 @@ const DraftPage: React.FC = () => {
           loading={loading}
           pagination={false}
           locale={{
-            emptyText: (
-              <Empty
-                description="No draft products found"
-              />
-            ),
+            emptyText: <Empty description="No draft products found" />,
           }}
           columns={[
             {

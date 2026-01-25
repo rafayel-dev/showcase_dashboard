@@ -31,7 +31,9 @@ import {
 import toast from "../../utils/toast";
 
 import InlineEditor from "../../components/common/InlineEditor";
-import DiscountInlineEditor, { type DiscountData } from "../../components/common/DiscountInlineEditor";
+import DiscountInlineEditor, {
+  type DiscountData,
+} from "../../components/common/DiscountInlineEditor";
 import AppButton from "../../components/common/AppButton";
 import dayjs from "dayjs";
 
@@ -50,7 +52,10 @@ const ProductPage: React.FC = () => {
   const [viewing, setViewing] = useState<Product | null>(null);
 
   // 📝 Inline Editing State
-  const [editingId, setEditingId] = useState<{ id: string; field: "price" | "stock" | "discount" } | null>(null);
+  const [editingId, setEditingId] = useState<{
+    id: string;
+    field: "price" | "stock" | "discount";
+  } | null>(null);
   const [editValue, setEditValue] = useState<number>(0);
 
   // 🔍 Filters
@@ -72,7 +77,10 @@ const ProductPage: React.FC = () => {
     }
   };
 
-  const startEdit = (record: Product, field: "price" | "stock" | "discount") => {
+  const startEdit = (
+    record: Product,
+    field: "price" | "stock" | "discount",
+  ) => {
     setEditingId({ id: record.id, field });
     if (field === "price") setEditValue(record.price);
     else if (field === "stock") setEditValue(record.stock);
@@ -82,7 +90,6 @@ const ProductPage: React.FC = () => {
   const cancelEdit = () => {
     setEditingId(null);
   };
-
 
   const saveDiscount = async (id: string, values: DiscountData) => {
     try {
@@ -128,7 +135,8 @@ const ProductPage: React.FC = () => {
           updated.stock = editValue;
           // Status logic
           if (updated.stock === 0) updated.status = "Out of Stock";
-          else if (product.status === "Out of Stock") updated.status = "In Stock";
+          else if (product.status === "Out of Stock")
+            updated.status = "In Stock";
           toast.success("Stock updated!");
         }
 
@@ -142,13 +150,19 @@ const ProductPage: React.FC = () => {
   };
 
   const statusColor = (status: Product["status"]) => {
-    const colors = { "In Stock": "success", "Out of Stock": "warning", "Discontinued": "error" };
+    const colors = {
+      "In Stock": "success",
+      "Out of Stock": "warning",
+      Discontinued: "error",
+    };
     return colors[status] || "default";
   };
 
   // ✅ Filter logic
   const filteredProducts = products.filter((p) => {
-    const matchSearch = p.productName.toLowerCase().includes(searchText.toLowerCase());
+    const matchSearch = p.productName
+      .toLowerCase()
+      .includes(searchText.toLowerCase());
     const matchCategory = categoryFilter ? p.category === categoryFilter : true;
     return matchSearch && matchCategory;
   });
@@ -158,7 +172,9 @@ const ProductPage: React.FC = () => {
       title: "Product",
       dataIndex: "productName",
       render: (text, record) => (
-        <Text strong className={record.stock < 5 ? "text-red-600" : ""}>{text}</Text>
+        <Text strong className={record.stock < 5 ? "text-red-600" : ""}>
+          {text}
+        </Text>
       ),
     },
     { title: "Category", dataIndex: "category" },
@@ -203,7 +219,9 @@ const ProductPage: React.FC = () => {
           />
         ) : (
           <Space>
-            <Text type={record.stock < 5 ? "danger" : undefined}>{record.stock}</Text>
+            <Text type={record.stock < 5 ? "danger" : undefined}>
+              {record.stock}
+            </Text>
             <AppButton
               type="text"
               size="small"
@@ -225,9 +243,13 @@ const ProductPage: React.FC = () => {
                 hasDiscount: !!record.hasDiscount,
                 discountType: record.discountType || "percentage",
                 discountValue: record.discountValue || 0,
-                discountRange: (record.discountStartDate && record.discountEndDate)
-                  ? [dayjs(record.discountStartDate), dayjs(record.discountEndDate)]
-                  : undefined
+                discountRange:
+                  record.discountStartDate && record.discountEndDate
+                    ? [
+                        dayjs(record.discountStartDate),
+                        dayjs(record.discountEndDate),
+                      ]
+                    : undefined,
               }}
               onSave={(val) => {
                 // Immediate save trigger because the component passes full obj
@@ -269,8 +291,15 @@ const ProductPage: React.FC = () => {
       align: "right",
       render: (_, record) => (
         <Space>
-          <Tooltip title="View"><AppButton icon={<FiEye />} onClick={() => setViewing(record)} /></Tooltip>
-          <Tooltip title="Edit"><AppButton icon={<FiEdit />} onClick={() => navigate(`/edit-product/${record.id}`)} /></Tooltip>
+          <Tooltip title="View">
+            <AppButton icon={<FiEye />} onClick={() => setViewing(record)} />
+          </Tooltip>
+          <Tooltip title="Edit">
+            <AppButton
+              icon={<FiEdit />}
+              onClick={() => navigate(`/edit-product/${record.id}`)}
+            />
+          </Tooltip>
           <AppPopconfirm
             title="Delete?"
             okText="Yes"
@@ -299,7 +328,9 @@ const ProductPage: React.FC = () => {
             <Space>
               <AppButton
                 icon={viewMode === "table" ? <FiGrid /> : <FiList />}
-                onClick={() => setViewMode(viewMode === "table" ? "card" : "table")}
+                onClick={() =>
+                  setViewMode(viewMode === "table" ? "card" : "table")
+                }
               />
               <AppButton
                 type="primary"
@@ -327,7 +358,9 @@ const ProductPage: React.FC = () => {
             onChange={(v) => setCategoryFilter(v)}
           >
             {[...new Set(products.map((p) => p.category))].map((cat) => (
-              <Option key={cat} value={cat}>{cat}</Option>
+              <Option key={cat} value={cat}>
+                {cat}
+              </Option>
             ))}
           </Select>
         </Space>
@@ -362,11 +395,22 @@ const ProductPage: React.FC = () => {
         {viewing && (
           <>
             <Space direction="vertical" className="w-full">
-              <Text><b>Name:</b> {viewing.productName}</Text>
-              <Text><b>Category:</b> {viewing.category}</Text>
-              <Text><b>Price:</b> ৳ {viewing.price}</Text>
-              <Text><b>Stock:</b> {viewing.stock}</Text>
-              <Text><b>Status:</b> <Tag color={statusColor(viewing.status)}>{viewing.status}</Tag></Text>
+              <Text>
+                <b>Name:</b> {viewing.productName}
+              </Text>
+              <Text>
+                <b>Category:</b> {viewing.category}
+              </Text>
+              <Text>
+                <b>Price:</b> ৳ {viewing.price}
+              </Text>
+              <Text>
+                <b>Stock:</b> {viewing.stock}
+              </Text>
+              <Text>
+                <b>Status:</b>{" "}
+                <Tag color={statusColor(viewing.status)}>{viewing.status}</Tag>
+              </Text>
             </Space>
             <div className="mt-4">
               <Image.PreviewGroup>

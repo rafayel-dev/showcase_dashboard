@@ -61,7 +61,9 @@ const AddProductPage: React.FC = () => {
         .then((product) => {
           if (product) {
             setEditingProduct(product);
-            const formValues: Partial<Product> & { discountRange?: [dayjs.Dayjs, dayjs.Dayjs] } = { ...product };
+            const formValues: Partial<Product> & {
+              discountRange?: [dayjs.Dayjs, dayjs.Dayjs];
+            } = { ...product };
             if (formValues.discountStartDate && formValues.discountEndDate) {
               formValues.discountRange = [
                 dayjs(formValues.discountStartDate),
@@ -85,7 +87,11 @@ const AddProductPage: React.FC = () => {
     }
   }, [productId, isEditMode, form]);
 
-  const onFinish = async (values: Omit<Product, "id" | "key"> & { discountRange?: [dayjs.Dayjs, dayjs.Dayjs] }) => {
+  const onFinish = async (
+    values: Omit<Product, "id" | "key"> & {
+      discountRange?: [dayjs.Dayjs, dayjs.Dayjs];
+    },
+  ) => {
     if (!fileList.length) {
       toast.error("Please upload at least one product image.");
       return;
@@ -96,7 +102,10 @@ const AddProductPage: React.FC = () => {
       const images = fileList.map((f) => f.url || (f.preview as string));
 
       const { discountRange, ...restValues } = values;
-      const productData: Partial<Product> = { ...restValues, imageUrl: images[0] };
+      const productData: Partial<Product> = {
+        ...restValues,
+        imageUrl: images[0],
+      };
 
       if (productData.hasDiscount && discountRange) {
         productData.discountStartDate = discountRange[0].toISOString();
@@ -429,7 +438,6 @@ const AddProductPage: React.FC = () => {
                   {fileList.length < 8 && <PlusOutlined />}
                 </Upload>
 
-
                 <AppModal
                   open={previewOpen}
                   onCancel={() => setPreviewOpen(false)}
@@ -460,11 +468,7 @@ const AddProductPage: React.FC = () => {
 
               {/* ================= ACTIONS ================= */}
               <Space>
-                <AppButton
-                  type="primary"
-                  htmlType="submit"
-                  size="large"
-                >
+                <AppButton type="primary" htmlType="submit" size="large">
                   {isEditMode ? "Save Changes" : "Add Product"}
                 </AppButton>
                 <AppButton

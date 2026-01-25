@@ -21,7 +21,7 @@ interface Notification {
 }
 
 const dummyNotifications: Notification[] = [
-    {
+  {
     id: "1",
     title: "New Order #ABC457 Received",
     description: "New order #ABC457 has been received and is being processed.",
@@ -32,7 +32,8 @@ const dummyNotifications: Notification[] = [
   {
     id: "2",
     title: "New Product Added!",
-    description: "A new product 'Wireless Earbuds Pro' has been added to the electronics category.",
+    description:
+      "A new product 'Wireless Earbuds Pro' has been added to the electronics category.",
     timestamp: dayjs().subtract(1, "hour").toISOString(),
     read: false,
     type: "new_product",
@@ -48,7 +49,8 @@ const dummyNotifications: Notification[] = [
   {
     id: "4",
     title: "System Maintenance Alert",
-    description: "Scheduled system maintenance will occur on Friday at 2:00 AM UTC.",
+    description:
+      "Scheduled system maintenance will occur on Friday at 2:00 AM UTC.",
     timestamp: dayjs().subtract(1, "day").toISOString(),
     read: true,
     type: "system_alert",
@@ -61,11 +63,11 @@ const dummyNotifications: Notification[] = [
     read: false,
     type: "order_update",
   },
-
 ];
 
 const NotificationPage: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>(dummyNotifications);
+  const [notifications, setNotifications] =
+    useState<Notification[]>(dummyNotifications);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -77,7 +79,7 @@ const NotificationPage: React.FC = () => {
 
   const markAsRead = (id: string) => {
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
   };
 
@@ -111,7 +113,8 @@ const NotificationPage: React.FC = () => {
                 Notifications
               </Title>
               <Text type="secondary">
-                You have {unreadCount} unread notification{unreadCount !== 1 && "s"}
+                You have {unreadCount} unread notification
+                {unreadCount !== 1 && "s"}
               </Text>
             </div>
 
@@ -123,7 +126,7 @@ const NotificationPage: React.FC = () => {
                   { key: "all", label: "All" },
                   { key: "unread", label: "Unread" },
                 ]}
-                className="mb-[-16px]!" // Visual alignment hack for AntD tabs
+                className="-mb-4!"
               />
               <AppButton
                 type="text"
@@ -143,12 +146,18 @@ const NotificationPage: React.FC = () => {
               itemLayout="horizontal"
               dataSource={filteredData}
               locale={{
-                emptyText: <Empty description="No notifications found" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                emptyText: (
+                  <Empty
+                    description="No notifications found"
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  />
+                ),
               }}
               renderItem={(item) => (
                 <List.Item
-                  className={`transition-colors duration-200 hover:bg-gray-50 px-4 py-4 rounded-xl mb-1 ${!item.read ? "bg-violet-50/40" : ""
-                    }`}
+                  className={`transition-colors duration-200 hover:bg-gray-50 px-4 py-4 rounded-xl mb-1 ${
+                    !item.read ? "bg-violet-50/40" : ""
+                  }`}
                   actions={[
                     !item.read && (
                       <AppButton
@@ -160,14 +169,19 @@ const NotificationPage: React.FC = () => {
                         Mark as read
                       </AppButton>
                     ),
-                    <Text type="secondary" className="text-xs min-w-[60px] text-right block">
+                    <Text
+                      type="secondary"
+                      className="text-xs min-w-15 text-right block"
+                    >
                       {dayjs(item.timestamp).fromNow()}
                     </Text>,
                   ]}
                 >
                   <List.Item.Meta
                     avatar={
-                      <div className={`p-3 rounded-full ${!item.read ? "bg-white shadow-sm" : "bg-gray-100"}`}>
+                      <div
+                        className={`p-3 rounded-full ${!item.read ? "bg-white shadow-sm" : "bg-gray-100"}`}
+                      >
                         {getIcon(item.type)}
                       </div>
                     }
@@ -176,7 +190,14 @@ const NotificationPage: React.FC = () => {
                         <Text strong={!item.read} className="text-gray-800">
                           {item.title}
                         </Text>
-                        {!item.read && <Tag color="red" className="rounded-full px-2 scale-75">NEW</Tag>}
+                        {!item.read && (
+                          <Tag
+                            color="red"
+                            className="rounded-full px-2 scale-75"
+                          >
+                            NEW
+                          </Tag>
+                        )}
                       </Space>
                     }
                     description={

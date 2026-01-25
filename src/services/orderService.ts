@@ -20,7 +20,7 @@ let _orders: Order[] = [
       {
         productId: "PROD001",
         productName: "Stylish Casual Full Sleeve Shirt for Men",
-        size: ["L","XL"],
+        size: ["L", "XL"],
         color: ["Black", "white"],
         quantity: 2,
         price: 25,

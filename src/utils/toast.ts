@@ -1,12 +1,14 @@
 import { message } from "antd";
 
-
 interface ToastProps {
   success: (content: string, duration?: number) => void;
   error: (content: string, duration?: number) => void;
   warning: (content: string, duration?: number) => void;
   info: (content: string, duration?: number) => void;
-  loading: (content: string, duration?: number) => ReturnType<typeof message.loading>;
+  loading: (
+    content: string,
+    duration?: number,
+  ) => ReturnType<typeof message.loading>;
 }
 
 const toast: ToastProps = {

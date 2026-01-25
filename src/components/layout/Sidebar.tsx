@@ -33,16 +33,19 @@ const SETTINGS_ITEMS = [
 
 const Sidebar: React.FC = () => {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
-      ? "bg-violet-500 text-white shadow-md shadow-violet-200"
-      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+    `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+      isActive
+        ? "bg-violet-500 text-white shadow-md shadow-violet-200"
+        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
     }`;
 
   return (
     <aside className="w-64 bg-white flex flex-col border-r border-gray-100 h-screen sticky top-0">
       {/* Brand */}
       <div className="px-6 py-5 border-b border-gray-100">
-        <h1 className="text-xl font-bold tracking-wide text-gray-800">ShowCase</h1>
+        <h1 className="text-xl font-bold tracking-wide text-gray-800">
+          ShowCase
+        </h1>
         <p className="text-xs text-gray-500 mt-1">Admin Dashboard</p>
       </div>
 

@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({ onLogout, notificationCount }) => {
 
   return (
     <header className="flex justify-between items-center p-4 bg-white shadow-lg">
-       <h2 className="text-sm! text-violet-600">Name Here</h2>
+      <h2 className="text-sm! text-violet-600">Name Here</h2>
       <div className="flex justify-between items-center gap-2">
         <Badge
           className="cursor-pointer"
@@ -29,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({ onLogout, notificationCount }) => {
             <BellOutlined style={{ fontSize: "24px", marginRight: "20px" }} />
           </span>
         </Badge>
-       
+
         <Popconfirm
           placement="bottomRight"
           title="Are you sure you want logout?"
