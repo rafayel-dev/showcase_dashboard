@@ -45,11 +45,13 @@ export interface OrderItem {
   price: number;
   size?: string[];
   color?: string[];
+  sku?: string;
 }
 
 export interface Order {
   key: string;
   id: string;
+  orderId?: string; // Display ID
   customerName: string;
   customerEmail: string;
   customerDistrict: string;

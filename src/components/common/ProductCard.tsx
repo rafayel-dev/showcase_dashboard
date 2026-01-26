@@ -1,11 +1,12 @@
 // src/components/common/ProductCard.tsx
 
 import React from "react";
+import AppButton from "./AppButton";
 
 interface ProductCardProps {
   product: {
     id: string;
-    productName: string; // Changed from name to title
+    productName: string;
     description?: string;
     price: number;
     imageUrls?: string[];
@@ -13,9 +14,10 @@ interface ProductCardProps {
       description?: string;
     };
   };
+  onView: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onView }) => {
   const imageSrc = (product as any).imageUrl
     ? ((product as any).imageUrl.startsWith('/') ? `http://localhost:5000${(product as any).imageUrl}` : (product as any).imageUrl)
     : "https://placehold.co/600x400?text=No+Image";
@@ -33,9 +35,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <p className="text-gray-600 mb-4">{displayDescription}</p>
         <div className="flex justify-between items-center">
           <span className="text-lg font-bold">৳{product.price}</span>
-          <button className="bg-violet-500 text-white! px-4 py-2 rounded hover:bg-violet-600 cursor-pointer">
+          <AppButton type="primary" onClick={onView}>
             View Details
-          </button>
+          </AppButton>
         </div>
       </div>
     </div>

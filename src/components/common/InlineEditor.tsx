@@ -20,7 +20,7 @@ const InlineEditor: React.FC<InlineEditorProps> = ({
     onChange,
     onSave,
     onCancel,
-    widthClass = "w-20",
+    widthClass = "w-16",
     options = [],
 }) => (
     <Space>
@@ -30,15 +30,15 @@ const InlineEditor: React.FC<InlineEditorProps> = ({
                     value={value}
                     onChange={onChange}
                     options={options}
-                    className={`${widthClass}! min-w-[120px]`}
+                    className={`${widthClass}! min-w-[100px]`}
                 />
             ) : (
-                <AppInput
+                <AppInput   
                     type={type}
                     min={type === "number" ? 0 : undefined}
                     value={value}
                     onChange={(e) => onChange(type === "number" ? Number(e.target.value) : e.target.value)}
-                    className={`${widthClass}!`}
+                    className={`${widthClass}! min-w-[100px]`}
                 />
             )}
 

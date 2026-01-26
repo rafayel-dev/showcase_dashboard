@@ -176,7 +176,7 @@ const ProductPage: React.FC = () => {
             onChange={(v) => setEditValue(Number(v))}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            widthClass="w-18"
+            widthClass="w-10!"
           />
         ) : (
           <Space>
@@ -201,7 +201,7 @@ const ProductPage: React.FC = () => {
             onChange={(v) => setEditValue(Number(v))}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            widthClass="w-16"
+            widthClass="w-10!"
           />
         ) : (
           <Space>
@@ -285,7 +285,7 @@ const ProductPage: React.FC = () => {
               }
             }}
           >
-            <AppButton danger icon={<FiTrash2 />} loading={isDeleting} />
+            <AppButton danger title="Delete" icon={<FiTrash2 />} loading={isDeleting} />
           </AppPopconfirm>
         </Space>
       ),
@@ -356,7 +356,7 @@ const ProductPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p.id} product={p} onView={() => setViewing(p)} />
               ))}
             </div>
           )}

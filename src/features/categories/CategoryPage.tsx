@@ -108,7 +108,7 @@ const CategoryPage: React.FC = () => {
             okText="Delete"
             onConfirm={() => handleDelete(record.id)}
           >
-            <AppButton danger icon={<FiTrash2 />} loading={isDeleting}>
+            <AppButton danger title="Delete" icon={<FiTrash2 />} loading={isDeleting}>
               Delete
             </AppButton>
           </AppPopconfirm>

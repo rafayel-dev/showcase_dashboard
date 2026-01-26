@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Table,
   Space,
@@ -28,7 +28,7 @@ import {
 import { FiEdit } from "react-icons/fi";
 import AppButton from "../../components/common/AppButton";
 import type { Order } from "../../types";
-import { fetchOrders, updateOrder } from "../../services/orderService";
+import { useGetOrdersQuery, useUpdateOrderMutation } from "../../RTK/order/orderApi";
 import toast from "../../utils/toast";
 import InlineEditor from "../../components/common/InlineEditor";
 import StatsCard from "../../components/common/StatsCard";
@@ -36,8 +36,12 @@ import StatsCard from "../../components/common/StatsCard";
 const { Title, Text } = Typography;
 
 const OrderPage: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { data: orders = [], isLoading: loading } = useGetOrdersQuery(undefined, {
+    pollingInterval: 30000,
+    refetchOnMountOrArgChange: true
+  });
+  const [updateOrder] = useUpdateOrderMutation();
+
   const [activeTab, setActiveTab] = useState<string>("All");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
@@ -50,21 +54,6 @@ const OrderPage: React.FC = () => {
   // Inline editing state
   const [editingId, setEditingId] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState<any>(null);
-
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
-  const loadOrders = async () => {
-    setLoading(true);
-    try {
-      setOrders(await fetchOrders());
-    } catch {
-      toast.error("Failed to load orders");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   /* === Inline Edit Handlers === */
   const startEdit = (order: Order, field: string) => {
@@ -82,10 +71,9 @@ const OrderPage: React.FC = () => {
     try {
       const order = orders.find(o => o.id === editingId.id);
       if (order) {
-        await updateOrder({ ...order, [editingId.field]: editValue });
+        await updateOrder({ id: order.id, [editingId.field]: editValue }).unwrap();
         toast.success(`${editingId.field} updated!`);
         setEditingId(null);
-        loadOrders();
       }
     } catch (error) {
       toast.error("Update failed.");
@@ -97,17 +85,14 @@ const OrderPage: React.FC = () => {
       toast.error("Please select at least one field to update.");
       return;
     }
-    setLoading(true);
+
     try {
-      const updates = selectedRowKeys.map(async (id) => {
-        const orderToUpdate = orders.find((o) => o.id === id);
-        if (orderToUpdate) {
-          const payload = { ...orderToUpdate };
-          if (bulkUpdateStatus) payload.status = bulkUpdateStatus;
-          if (bulkUpdateCourier) payload.courier = bulkUpdateCourier;
-          if (bulkUpdatePaymentStatus) payload.paymentStatus = bulkUpdatePaymentStatus;
-          await updateOrder(payload);
-        }
+      const updates = selectedRowKeys.map((id) => {
+        const payload: any = { id: id.toString() };
+        if (bulkUpdateStatus) payload.status = bulkUpdateStatus;
+        if (bulkUpdateCourier) payload.courier = bulkUpdateCourier;
+        if (bulkUpdatePaymentStatus) payload.paymentStatus = bulkUpdatePaymentStatus;
+        return updateOrder(payload).unwrap();
       });
       await Promise.all(updates);
       toast.success("Bulk update successful!");
@@ -115,11 +100,8 @@ const OrderPage: React.FC = () => {
       setBulkUpdateStatus(null);
       setBulkUpdateCourier(null);
       setBulkUpdatePaymentStatus(null);
-      loadOrders();
     } catch {
       toast.error("Bulk update failed.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -146,7 +128,7 @@ const OrderPage: React.FC = () => {
   };
 
   const columns: TableProps<Order>["columns"] = [
-    { title: "Order ID", dataIndex: "id", width: 88 },
+    { title: "Order ID", dataIndex: "orderId", width: 120, render: (v, r) => v || r.id },
     { title: "Customer", dataIndex: "customerName" },
     { title: "Mobile", dataIndex: "customerMobile", render: (m) => <Text>{m}</Text> },
     {
@@ -235,7 +217,10 @@ const OrderPage: React.FC = () => {
         <div className="flex gap-0!">
           <AppButton type="link" className="font-semibold! text-violet-500! pr-1!" icon={<EyeOutlined />} onClick={() => setViewOrder(record)}>View</AppButton>
           <Tooltip title="Download Invoice">
-            <AppButton type="link" icon={<DownloadOutlined className="text-xl!" />} className="text-gray-500! hover:text-violet-500!" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/orders/${record.id}/invoice`, "_blank")} />
+            <AppButton type="link" icon={<DownloadOutlined className="text-xl!" />} className="text-gray-500! hover:text-violet-500!" onClick={() => {
+              const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+              window.open(`${API_URL}/orders/${record.id}/invoice`, "_blank");
+            }} />
           </Tooltip>
         </div>
       ),
@@ -286,7 +271,7 @@ const OrderPage: React.FC = () => {
             rowClassName={(r) => r.status === "Pending" && isSLABreached(r.orderDate) ? "bg-red-50" : ""}
             columns={columns}
             dataSource={filteredOrders}
-            pagination={{ pageSize: 8 }}
+            pagination={{ pageSize: 10 }}
           />
         </Spin>
       </AppCard>
@@ -309,7 +294,7 @@ const OrderPage: React.FC = () => {
               <Col span={12}>
                 <AppCard title="Order & Payment">
                   <Descriptions column={1} size="small">
-                    <Descriptions.Item label="Order ID">{viewOrder.id}</Descriptions.Item>
+                    <Descriptions.Item label="Order ID">{viewOrder.orderId}</Descriptions.Item>
                     <Descriptions.Item label="Order Status"><Tag color={statusColor(viewOrder.status)}>{viewOrder.status}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Payment Method">{viewOrder.paymentMethod}</Descriptions.Item>
                     <Descriptions.Item label="Payment Status"><Tag color={paymentStatusColor(viewOrder.paymentStatus)}>{viewOrder.paymentStatus}</Tag></Descriptions.Item>

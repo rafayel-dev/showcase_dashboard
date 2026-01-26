@@ -118,40 +118,16 @@ const AddProductPage: React.FC = () => {
     }
 
     try {
-      const uploadedUrls: string[] = [];
-
-      // Process all files
-      for (const file of fileList) {
-        if (file.url) {
-          // Existing image
-          uploadedUrls.push(file.url);
-        } else if (file.originFileObj) {
-          // New file to upload
-          const formData = new FormData();
-          formData.append("image", file.originFileObj);
-
-          const res = await uploadImage({
-            formData,
-            productId: isEditMode && productId ? productId : undefined
-          }).unwrap();
-
-          uploadedUrls.push(res.filePath);
-        }
-      }
-
+      // Prepare base payload from form values
       const { discountRange, ...restValues } = values;
-      // Use the first image as 'imageUrl' (main thumb) and save all in 'imageUrls'
-      const productPayload: any = {
-        ...restValues,
-        imageUrl: uploadedUrls[0],
-        imageUrls: uploadedUrls
-      };
+      const productPayload: any = { ...restValues };
 
-      // Map 'title' back to 'productName' if it comes from form as title
+      // Transform title -> productName
       if ((values as any).title) {
         productPayload.productName = (values as any).title;
       }
 
+      // Handle Discount Fields
       if (productPayload.hasDiscount && discountRange) {
         productPayload.discountStartDate = discountRange[0].toISOString();
         productPayload.discountEndDate = discountRange[1].toISOString();
@@ -163,20 +139,62 @@ const AddProductPage: React.FC = () => {
         productPayload.discountEndDate = undefined;
       }
 
+      let targetId: string;
+      let isNewProduct = false;
+
+      // STEP 1: Determine ID (Create if new, use existing if edit)
       if (isEditMode && productId) {
-        await updateProduct({
-          id: productId,
-          ...productPayload,
-        }).unwrap();
-        toast.success("Product updated successfully✅");
+        targetId = productId;
+        // For Edit Mode, we need to update basic info *now* if we want to be safe, 
+        // or just accumulate it for the final update. 
+        // We'll accumulate for final update to keep logic unified.
       } else {
-        await addProduct({
+        // [NEW] Create initial product record to Generating ID
+        // Pass empty imageUrls initially
+        const res = await addProduct({
           ...productPayload,
-          status: "In Stock",
+          imageUrl: "",
+          imageUrls: [],
+          status: "In Stock" // Default status
         }).unwrap();
-        toast.success("Product added successfully✅");
+        targetId = res.id;
+        isNewProduct = true;
       }
+
+      // STEP 2: Upload Images using Valid ID
+      const uploadedUrls: string[] = [];
+      for (const file of fileList) {
+        if (file.url) {
+          // Existing image - Strip domain if present to keep relative path
+          const cleanUrl = file.url.replace(/^http:\/\/localhost:5000/, "");
+          uploadedUrls.push(cleanUrl);
+        } else if (file.originFileObj) {
+          // New file -> Upload with targetId
+          const formData = new FormData();
+          formData.append("image", file.originFileObj);
+
+          const res = await uploadImage({
+            formData,
+            productId: targetId
+          }).unwrap();
+          uploadedUrls.push(res.filePath);
+        }
+      }
+
+      // STEP 3: Final Update (Link images to product)
+      // This works for both New (updates the placeholder) and Edit (updates existing)
+      const finalPayload = {
+        id: targetId,
+        ...productPayload,
+        imageUrl: uploadedUrls[0],
+        imageUrls: uploadedUrls
+      };
+
+      await updateProduct(finalPayload).unwrap();
+
+      toast.success(isNewProduct ? "Product added successfully✅" : "Product updated successfully✅");
       navigate("/products");
+
     } catch (err) {
       console.error(err);
       toast.error("❌ Operation failed");

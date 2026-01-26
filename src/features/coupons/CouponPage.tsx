@@ -151,7 +151,7 @@ const CouponPage: React.FC = () => {
                 <Space>
                     <AppButton icon={<FiEdit />} onClick={() => handleEdit(r)} />
                     <AppPopconfirm title="You want to delete this coupon?" onConfirm={() => handleDelete(r.id)}>
-                        <AppButton danger icon={<FiTrash2 />} loading={isDeleting} />
+                        <AppButton danger title="Delete" icon={<FiTrash2 />} loading={isDeleting} />
                     </AppPopconfirm>
                 </Space>
             ),
