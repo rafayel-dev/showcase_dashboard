@@ -10,6 +10,7 @@ export interface Product {
   status: "In Stock" | "Out of Stock" | "Discontinued";
   description?: string; // Short description, if still used
   imageUrl?: string;
+  imageUrls?: string[];
   sku?: string;
   isPublished?: boolean;
   tags?: string[];
@@ -51,6 +52,7 @@ export interface Order {
   id: string;
   customerName: string;
   customerEmail: string;
+  customerDistrict: string;
   orderDate: string;
   status: "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
   totalAmount: number;
@@ -64,11 +66,11 @@ export interface Order {
 }
 
 export interface Admin {
-  key: string;
+  key?: string;
   id: string;
   name: string;
   email: string;
-  role: "Super Admin" | "Admin" | "Editor";
+  role: "super_admin" | "admin";
 }
 
 export interface Category {

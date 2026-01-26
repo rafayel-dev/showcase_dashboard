@@ -1,7 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Badge, Popconfirm } from "antd";
+import { Badge } from "antd";
 import { BellOutlined } from "@ant-design/icons";
+import AppButton from "../common/AppButton";
+import AppPopconfirm from "../common/AppPopconfirm";
 
 interface HeaderProps {
   onLogout: () => void;
@@ -30,17 +32,17 @@ const Header: React.FC<HeaderProps> = ({ onLogout, notificationCount }) => {
           </span>
         </Badge>
 
-        <Popconfirm
+        <AppPopconfirm
           placement="bottomRight"
           title="Are you sure you want logout?"
           okText="Confirm"
           cancelText="Cancel"
           onConfirm={handleLogoutClick}
         >
-          <button className="px-4 py-2 bg-violet-500 text-white! rounded hover:bg-violet-600 cursor-pointer">
+          <AppButton type="primary" className="bg-violet-500 text-white! rounded hover:bg-violet-600 cursor-pointer">
             Logout
-          </button>
-        </Popconfirm>
+          </AppButton>
+        </AppPopconfirm>
       </div>
     </header>
   );

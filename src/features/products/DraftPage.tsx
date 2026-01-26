@@ -1,41 +1,37 @@
-import React, { useEffect, useState } from "react";
-import { Table, Tag, Space, Typography, Row, Col, Tooltip, Empty } from "antd";
+import React from "react";
+import {
+  Table,
+  Tag,
+  Space,
+  Typography,
+  Row,
+  Col,
+  Tooltip,
+  Empty,
+} from "antd";
 import AppCard from "../../components/common/AppCard";
 import AppButton from "../../components/common/AppButton";
 import { useNavigate } from "react-router-dom";
 import { FiEdit2, FiUploadCloud } from "react-icons/fi";
-import { fetchProducts, updateProduct } from "../../services/productService";
+import { useGetProductsQuery, useUpdateProductMutation } from "../../RTK/product/productApi";
 import type { Product } from "../../types";
 import toast from "../../utils/toast";
 
 const { Title, Text } = Typography;
 
 const DraftPage: React.FC = () => {
-  const [data, setData] = useState<Product[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
+  // Use RTK Query
+  const { data: products = [], isLoading: loading } = useGetProductsQuery(undefined);
+  const [updateProduct] = useUpdateProductMutation();
 
-  useEffect(() => {
-    loadDraftProducts();
-  }, []);
-
-  const loadDraftProducts = async () => {
-    setLoading(true);
-    try {
-      const allProducts = await fetchProducts();
-      const draftProducts = allProducts.filter((p) => p.isPublished === false);
-      setData(draftProducts);
-    } catch {
-      toast.error("Failed to load draft products");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Local state for table data not strictly needed unless filtering, 
+  // but we can just derive it.
+  const draftProducts = products.filter((p) => p.isPublished === false);
 
   const publishProduct = async (product: Product) => {
     try {
-      await updateProduct({ ...product, isPublished: true });
-      setData((prev) => prev.filter((p) => p.id !== product.id));
+      await updateProduct({ id: product.id, isPublished: true }).unwrap();
       toast.success(`"${product.productName}" published successfully`);
     } catch {
       toast.error("Failed to publish product");
@@ -51,18 +47,24 @@ const DraftPage: React.FC = () => {
             <Title level={3} className="mb-0">
               Draft Products
             </Title>
-            <Text type="secondary">Products saved but not yet published</Text>
+            <Text type="secondary">
+              Products saved but not yet published
+            </Text>
           </Col>
         </Row>
 
         {/* Table */}
         <Table
           rowKey="id"
-          dataSource={data}
+          dataSource={draftProducts}
           loading={loading}
           pagination={false}
           locale={{
-            emptyText: <Empty description="No draft products found" />,
+            emptyText: (
+              <Empty
+                description="No draft products found"
+              />
+            ),
           }}
           columns={[
             {
@@ -84,7 +86,7 @@ const DraftPage: React.FC = () => {
                     <AppButton
                       icon={<FiEdit2 />}
                       onClick={() =>
-                        navigate(`/dashboard/products/edit/${record.id}`)
+                        navigate(`/edit-product/${record.id}`)
                       }
                     >
                       Edit

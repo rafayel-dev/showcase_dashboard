@@ -8,9 +8,7 @@ import toast from "../../utils/toast";
 const { Title } = Typography;
 
 const PrivacyPage: React.FC = () => {
-  const [content, setContent] = useState(
-    "<p>Initial privacy policy content.</p>",
-  );
+  const [content, setContent] = useState("<p>Initial privacy policy content.</p>");
 
   const handleSave = () => {
     // Here you would typically save the content to your backend
@@ -23,11 +21,7 @@ const PrivacyPage: React.FC = () => {
       <AppCard>
         <Title level={3}>Privacy Policy</Title>
         <JoditEditor initialContent={content} onChange={setContent} />
-        <AppButton
-          type="primary"
-          onClick={handleSave}
-          style={{ marginTop: 16 }}
-        >
+        <AppButton type="primary" onClick={handleSave} style={{ marginTop: 16 }}>
           Save Changes
         </AppButton>
       </AppCard>

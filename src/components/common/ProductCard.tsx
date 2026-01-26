@@ -16,17 +16,16 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const imageUrl =
-    product.imageUrls && product.imageUrls.length > 0
-      ? product.imageUrls[0]
-      : "https://placehold.net/default.png";
+  const imageSrc = (product as any).imageUrl
+    ? ((product as any).imageUrl.startsWith('/') ? `http://localhost:5000${(product as any).imageUrl}` : (product as any).imageUrl)
+    : "https://placehold.co/600x400?text=No+Image";
   const displayDescription =
     product.description || product.productDetails?.description;
   return (
     <div className="min-h-screen">
       <div className="rounded-lg p-4 shadow-lg">
         <img
-          src={imageUrl}
+          src={imageSrc}
           alt={product.productName}
           className="w-full h-48 object-cover rounded-t-lg mb-4"
         />

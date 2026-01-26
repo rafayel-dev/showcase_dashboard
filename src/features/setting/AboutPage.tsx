@@ -30,11 +30,7 @@ const AboutPage: React.FC = () => {
     toast.success("About Us page updated successfully!");
   };
 
-  const handleTeamChange = (
-    index: number,
-    field: keyof TeamMember,
-    value: any,
-  ) => {
+  const handleTeamChange = (index: number, field: keyof TeamMember, value: any) => {
     const newTeam = [...team];
     (newTeam[index] as any)[field] = value;
     setTeam(newTeam);
@@ -64,24 +60,18 @@ const AboutPage: React.FC = () => {
               <Col span={6} key={index}>
                 <AppCard>
                   <Upload maxCount={1} style={{ marginBottom: 8 }}>
-                    <AppButton icon={<UploadOutlined />}>
-                      Upload Image
-                    </AppButton>
+                    <AppButton icon={<UploadOutlined />}>Upload Image</AppButton>
                   </Upload>
                   <AppInput
                     placeholder="Name"
                     value={member.name}
-                    onChange={(e) =>
-                      handleTeamChange(index, "name", e.target.value)
-                    }
+                    onChange={(e) => handleTeamChange(index, "name", e.target.value)}
                     style={{ marginBottom: 8 }}
                   />
                   <AppInput
                     placeholder="Title"
                     value={member.title}
-                    onChange={(e) =>
-                      handleTeamChange(index, "title", e.target.value)
-                    }
+                    onChange={(e) => handleTeamChange(index, "title", e.target.value)}
                   />
                 </AppCard>
               </Col>
@@ -89,11 +79,7 @@ const AboutPage: React.FC = () => {
           </Row>
         </div>
 
-        <AppButton
-          type="primary"
-          onClick={handleSave}
-          style={{ marginTop: 16 }}
-        >
+        <AppButton type="primary" onClick={handleSave} style={{ marginTop: 16 }}>
           Save Changes
         </AppButton>
       </AppCard>

@@ -6,6 +6,10 @@ import ErrorFallbackPage from "./components/common/ErrorFallbackPage";
 
 // Lazy Load Pages
 const LoginPage = React.lazy(() => import("./features/auth/LoginPage"));
+const ForgotPasswordPage = React.lazy(() => import("./features/auth/ForgotPasswordPage"));
+const OtpVerifyPage = React.lazy(() => import("./features/auth/OtpVerifyPage"));
+const ResetPasswordPage = React.lazy(() => import("./features/auth/ResetPasswordPage"));
+
 const DashboardOverview = React.lazy(() => import("./features/dashboard/DashboardOverview"));
 const ProductPage = React.lazy(() => import("./features/products/ProductPage"));
 const AddProductPage = React.lazy(() => import("./features/products/AddProductPage"));
@@ -31,8 +35,12 @@ const App: React.FC = () => {
   );
 
   React.useEffect(() => {
-    if (isAuthenticated) localStorage.setItem("isAuthenticated", "true");
-    else localStorage.removeItem("isAuthenticated");
+    if (isAuthenticated) {
+      localStorage.setItem("isAuthenticated", "true");
+    } else {
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("token");
+    }
   }, [isAuthenticated]);
 
   const handleLogin = () => setIsAuthenticated(true);
@@ -48,10 +56,28 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={isAuthenticated ? <Navigate to="/overview" replace /> : <Navigate to="/login" replace />} />
 
-        {/* Auth Route */}
+        {/* Public Auth Routes */}
         <Route path="/login" element={
           <Suspense fallback={<Loading />}>
             <LoginPage onLogin={handleLogin} />
+          </Suspense>
+        } />
+
+        <Route path="/forgot-password" element={
+          <Suspense fallback={<Loading />}>
+            <ForgotPasswordPage />
+          </Suspense>
+        } />
+
+        <Route path="/otp-verify" element={
+          <Suspense fallback={<Loading />}>
+            <OtpVerifyPage />
+          </Suspense>
+        } />
+
+        <Route path="/reset-password" element={
+          <Suspense fallback={<Loading />}>
+            <ResetPasswordPage />
           </Suspense>
         } />
 

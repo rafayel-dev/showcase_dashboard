@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Form,
-  InputNumber,
   Typography,
-  Select,
   Space,
   Upload,
   Switch,
@@ -12,14 +10,17 @@ import {
   Col,
   DatePicker,
 } from "antd";
+import AppSelect from "../../components/common/AppSelect";
 import { PlusOutlined } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Product } from "../../types";
 import {
-  addProduct,
-  getProductById,
-  updateProduct,
-} from "../../services/productService";
+  useGetProductByIdQuery,
+  useAddProductMutation,
+  useUpdateProductMutation,
+  useUploadImageMutation,
+} from "../../RTK/product/productApi";
+import { useGetCategoriesQuery } from "../../RTK/category/categoryApi";
 import type { UploadFile, RcFile } from "antd/es/upload/interface";
 import CustomJoditEditor from "../../components/common/JoditEditor";
 import toast from "../../utils/toast";
@@ -31,7 +32,7 @@ import AppSpin from "../../components/common/AppSpin";
 import AppModal from "../../components/common/AppModal";
 
 const { Title, Text } = Typography;
-const { Option } = Select;
+const { Option } = AppSelect;
 const { RangePicker } = DatePicker;
 
 /* ================= IMAGE HELPER ================= */
@@ -48,94 +49,137 @@ const AddProductPage: React.FC = () => {
   const navigate = useNavigate();
   const { productId } = useParams<{ productId: string }>();
   const isEditMode = !!productId;
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  // RTK Query hooks
+  const { data: productData, isLoading: isFetching } = useGetProductByIdQuery(
+    productId || "",
+    { skip: !isEditMode }
+  );
+  const { data: categories = [] } = useGetCategoriesQuery({});
+  const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
+  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
 
-  useEffect(() => {
-    if (isEditMode && productId) {
-      setLoading(true);
-      getProductById(productId)
-        .then((product) => {
-          if (product) {
-            setEditingProduct(product);
-            const formValues: Partial<Product> & {
-              discountRange?: [dayjs.Dayjs, dayjs.Dayjs];
-            } = { ...product };
-            if (formValues.discountStartDate && formValues.discountEndDate) {
-              formValues.discountRange = [
-                dayjs(formValues.discountStartDate),
-                dayjs(formValues.discountEndDate),
-              ];
-            }
-            form.setFieldsValue(formValues);
-            if (product.imageUrl) {
-              setFileList([
-                {
-                  uid: "-1",
-                  name: "image.png",
-                  status: "done",
-                  url: product.imageUrl,
-                },
-              ]);
-            }
-          }
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [productId, isEditMode, form]);
+  const loading = isFetching || isAdding || isUpdating;
 
-  const onFinish = async (
-    values: Omit<Product, "id" | "key"> & {
-      discountRange?: [dayjs.Dayjs, dayjs.Dayjs];
-    },
-  ) => {
+  useEffect(() => {
+    if (isEditMode && productData) {
+      const formValues: Partial<Product> & { discountRange?: [dayjs.Dayjs, dayjs.Dayjs] } = { ...productData };
+
+      // Map productName to title for form if needed, though form uses 'title'
+      if (productData.productName) {
+        form.setFieldsValue({ title: productData.productName });
+      }
+
+      // Explicitly set isPublished to ensure switch reflects state
+      if (productData.isPublished !== undefined) {
+        form.setFieldsValue({ isPublished: productData.isPublished });
+      }
+
+      if (formValues.discountStartDate && formValues.discountEndDate) {
+        formValues.discountRange = [
+          dayjs(formValues.discountStartDate),
+          dayjs(formValues.discountEndDate),
+        ];
+      }
+      form.setFieldsValue(formValues);
+
+      if (productData.imageUrls && productData.imageUrls.length > 0) {
+        setFileList(
+          productData.imageUrls.map((url, index) => ({
+            uid: String(index),
+            name: `image-${index}.png`,
+            status: "done",
+            url: url.startsWith('/') ? `http://localhost:5000${url}` : url,
+          }))
+        );
+      } else if (productData.imageUrl) {
+        setFileList([
+          {
+            uid: "-1",
+            name: "image.png",
+            status: "done",
+            url: productData.imageUrl.startsWith('/') ? `http://localhost:5000${productData.imageUrl}` : productData.imageUrl,
+          },
+        ]);
+      }
+    }
+  }, [productData, isEditMode, form]);
+
+  const [uploadImage] = useUploadImageMutation();
+
+  const onFinish = async (values: Omit<Product, "id" | "key"> & { discountRange?: [dayjs.Dayjs, dayjs.Dayjs] }) => {
     if (!fileList.length) {
       toast.error("Please upload at least one product image.");
       return;
     }
 
-    setLoading(true);
     try {
-      const images = fileList.map((f) => f.url || (f.preview as string));
+      const uploadedUrls: string[] = [];
 
-      const { discountRange, ...restValues } = values;
-      const productData: Partial<Product> = {
-        ...restValues,
-        imageUrl: images[0],
-      };
+      // Process all files
+      for (const file of fileList) {
+        if (file.url) {
+          // Existing image
+          uploadedUrls.push(file.url);
+        } else if (file.originFileObj) {
+          // New file to upload
+          const formData = new FormData();
+          formData.append("image", file.originFileObj);
 
-      if (productData.hasDiscount && discountRange) {
-        productData.discountStartDate = discountRange[0].toISOString();
-        productData.discountEndDate = discountRange[1].toISOString();
-      } else if (!productData.hasDiscount) {
-        delete productData.hasDiscount;
-        delete productData.discountType;
-        delete productData.discountValue;
-        delete productData.discountStartDate;
-        delete productData.discountEndDate;
+          const res = await uploadImage({
+            formData,
+            productId: isEditMode && productId ? productId : undefined
+          }).unwrap();
+
+          uploadedUrls.push(res.filePath);
+        }
       }
 
-      if (isEditMode && editingProduct) {
+      const { discountRange, ...restValues } = values;
+      // Use the first image as 'imageUrl' (main thumb) and save all in 'imageUrls'
+      const productPayload: any = {
+        ...restValues,
+        imageUrl: uploadedUrls[0],
+        imageUrls: uploadedUrls
+      };
+
+      // Map 'title' back to 'productName' if it comes from form as title
+      if ((values as any).title) {
+        productPayload.productName = (values as any).title;
+      }
+
+      if (productPayload.hasDiscount && discountRange) {
+        productPayload.discountStartDate = discountRange[0].toISOString();
+        productPayload.discountEndDate = discountRange[1].toISOString();
+      } else if (!productPayload.hasDiscount) {
+        productPayload.hasDiscount = false;
+        productPayload.discountType = undefined;
+        productPayload.discountValue = undefined;
+        productPayload.discountStartDate = undefined;
+        productPayload.discountEndDate = undefined;
+      }
+
+      if (isEditMode && productId) {
         await updateProduct({
-          ...editingProduct,
-          ...(productData as Product),
-        });
+          id: productId,
+          ...productPayload,
+        }).unwrap();
         toast.success("Product updated successfully✅");
       } else {
         await addProduct({
-          ...(productData as Product),
+          ...productPayload,
           status: "In Stock",
-        });
+        }).unwrap();
         toast.success("Product added successfully✅");
       }
       navigate("/products");
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error("❌ Operation failed");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -178,11 +222,11 @@ const AddProductPage: React.FC = () => {
                       label="Category"
                       rules={[{ required: true }]}
                     >
-                      <Select placeholder="Select category">
-                        <Option value="Apparel">Apparel</Option>
-                        <Option value="Electronics">Electronics</Option>
-                        <Option value="Home">Home</Option>
-                      </Select>
+                      <AppSelect placeholder="Select category">
+                        {categories.map((cat: any) => (
+                          <Option key={cat.id} value={cat.name}>{cat.name}</Option>
+                        ))}
+                      </AppSelect>
                     </Form.Item>
                   </Col>
                 </Row>
@@ -206,10 +250,11 @@ const AddProductPage: React.FC = () => {
                       label="Price (৳)"
                       rules={[{ required: true }]}
                     >
-                      <InputNumber
-                        className="w-full"
+                      <AppInput
                         placeholder="1200"
                         min={0}
+                        type="number"
+                        className="w-1/3!"
                       />
                     </Form.Item>
                   </Col>
@@ -248,7 +293,7 @@ const AddProductPage: React.FC = () => {
                                     },
                                   ]}
                                 >
-                                  <Select
+                                  <AppSelect
                                     placeholder="Discount Type"
                                     options={[
                                       { value: "flat", label: "Flat" },
@@ -271,8 +316,8 @@ const AddProductPage: React.FC = () => {
                                     },
                                   ]}
                                 >
-                                  <InputNumber
-                                    className="w-full!"
+                                  <AppInput
+                                    className="w-1/3!"
                                     placeholder="Discount Value"
                                     min={0}
                                     max={
@@ -290,9 +335,7 @@ const AddProductPage: React.FC = () => {
                                   rules={[
                                     {
                                       required: true,
-                                      message:
-                                        "Discount start date is required",
-                                      type: "object",
+                                      message: "Discount start/end date is required",
                                     },
                                   ]}
                                 >
@@ -312,10 +355,11 @@ const AddProductPage: React.FC = () => {
                       label="Stock Quantity"
                       rules={[{ required: true }]}
                     >
-                      <InputNumber
-                        className="w-full"
+                      <AppInput
+                        className="w-1/3!"
                         placeholder="15"
                         min={0}
+                        type="number"
                       />
                     </Form.Item>
                   </Col>
@@ -355,11 +399,11 @@ const AddProductPage: React.FC = () => {
                       name={["specifications", "availableSizes"]}
                       label="Available Sizes"
                     >
-                      <Select mode="tags">
+                      <AppSelect mode="tags">
                         {["M", "L", "XL", "30", "31", "32"].map((s) => (
                           <Option key={s}>{s}</Option>
                         ))}
-                      </Select>
+                      </AppSelect>
                     </Form.Item>
                   </Col>
 
@@ -368,7 +412,7 @@ const AddProductPage: React.FC = () => {
                       name={["specifications", "availableColors"]}
                       label="Available Colors"
                     >
-                      <Select mode="tags">
+                      <AppSelect mode="tags">
                         {[
                           "Ash",
                           "Black",
@@ -379,7 +423,7 @@ const AddProductPage: React.FC = () => {
                         ].map((c) => (
                           <Option key={c}>{c}</Option>
                         ))}
-                      </Select>
+                      </AppSelect>
                     </Form.Item>
                   </Col>
                 </Row>
@@ -423,6 +467,7 @@ const AddProductPage: React.FC = () => {
                 <Upload
                   listType="picture-card"
                   beforeUpload={() => false}
+                  multiple
                   fileList={fileList}
                   onChange={({ fileList }) => setFileList(fileList)}
                   onPreview={async (file) => {
@@ -431,12 +476,14 @@ const AddProductPage: React.FC = () => {
                         file.originFileObj as RcFile,
                       );
                     }
-                    setPreviewImage(file.url || (file.preview as string));
+                    const url = file.url || (file.preview as string);
+                    setPreviewImage(url?.startsWith('/') ? `http://localhost:5000${url}` : url || "");
                     setPreviewOpen(true);
                   }}
                 >
                   {fileList.length < 8 && <PlusOutlined />}
                 </Upload>
+
 
                 <AppModal
                   open={previewOpen}
@@ -451,24 +498,29 @@ const AddProductPage: React.FC = () => {
               {/* ================= STATUS ================= */}
               <AppCard className="mb-6 bg-gray-50" bordered={false}>
                 <Title level={5}>Product Status</Title>
-                <Form.Item
-                  name="isPublished"
-                  valuePropName="checked"
-                  initialValue={true}
-                >
-                  <Space>
-                    <Text>Draft</Text>
+                <Space>
+                  <Text>Draft</Text>
+                  <Form.Item
+                    name="isPublished"
+                    valuePropName="checked"
+                    initialValue={false}
+                    noStyle
+                  >
                     <Switch className="bg-violet-500!" />
-                    <Text>Publish</Text>
-                  </Space>
-                </Form.Item>
+                  </Form.Item>
+                  <Text>Publish</Text>
+                </Space>
               </AppCard>
 
               <Divider />
 
               {/* ================= ACTIONS ================= */}
               <Space>
-                <AppButton type="primary" htmlType="submit" size="large">
+                <AppButton
+                  type="primary"
+                  htmlType="submit"
+                  size="large"
+                >
                   {isEditMode ? "Save Changes" : "Add Product"}
                 </AppButton>
                 <AppButton

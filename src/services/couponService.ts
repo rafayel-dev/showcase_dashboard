@@ -36,10 +36,7 @@ export const fetchCoupons = async (): Promise<Coupon[]> => {
 export const addCoupon = async (coupon: Coupon): Promise<Coupon> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const newCoupon = {
-        ...coupon,
-        id: Math.random().toString(36).substr(2, 9),
-      };
+      const newCoupon = { ...coupon, id: Math.random().toString(36).substr(2, 9) };
       MOCK_COUPONS.push(newCoupon);
       resolve(newCoupon);
     }, 500);

@@ -9,9 +9,9 @@ import {
   Row,
   Col,
   Tabs,
-  Select,
   Tooltip,
 } from "antd";
+import AppSelect from "../../components/common/AppSelect";
 import AppModal from "../../components/common/AppModal";
 import AppCard from "../../components/common/AppCard";
 import type { TableProps } from "antd";
@@ -43,21 +43,12 @@ const OrderPage: React.FC = () => {
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
 
   // Bulk update states
-  const [bulkUpdateStatus, setBulkUpdateStatus] = useState<
-    Order["status"] | null
-  >(null);
-  const [bulkUpdateCourier, setBulkUpdateCourier] = useState<
-    Order["courier"] | null
-  >(null);
-  const [bulkUpdatePaymentStatus, setBulkUpdatePaymentStatus] = useState<
-    Order["paymentStatus"] | null
-  >(null);
+  const [bulkUpdateStatus, setBulkUpdateStatus] = useState<Order["status"] | null>(null);
+  const [bulkUpdateCourier, setBulkUpdateCourier] = useState<Order["courier"] | null>(null);
+  const [bulkUpdatePaymentStatus, setBulkUpdatePaymentStatus] = useState<Order["paymentStatus"] | null>(null);
 
   // Inline editing state
-  const [editingId, setEditingId] = useState<{
-    id: string;
-    field: string;
-  } | null>(null);
+  const [editingId, setEditingId] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState<any>(null);
 
   useEffect(() => {
@@ -89,7 +80,7 @@ const OrderPage: React.FC = () => {
   const saveEdit = async () => {
     if (!editingId) return;
     try {
-      const order = orders.find((o) => o.id === editingId.id);
+      const order = orders.find(o => o.id === editingId.id);
       if (order) {
         await updateOrder({ ...order, [editingId.field]: editValue });
         toast.success(`${editingId.field} updated!`);
@@ -114,8 +105,7 @@ const OrderPage: React.FC = () => {
           const payload = { ...orderToUpdate };
           if (bulkUpdateStatus) payload.status = bulkUpdateStatus;
           if (bulkUpdateCourier) payload.courier = bulkUpdateCourier;
-          if (bulkUpdatePaymentStatus)
-            payload.paymentStatus = bulkUpdatePaymentStatus;
+          if (bulkUpdatePaymentStatus) payload.paymentStatus = bulkUpdatePaymentStatus;
           await updateOrder(payload);
         }
       });
@@ -158,11 +148,7 @@ const OrderPage: React.FC = () => {
   const columns: TableProps<Order>["columns"] = [
     { title: "Order ID", dataIndex: "id", width: 88 },
     { title: "Customer", dataIndex: "customerName" },
-    {
-      title: "Mobile",
-      dataIndex: "customerMobile",
-      render: (m) => <Text>{m}</Text>,
-    },
+    { title: "Mobile", dataIndex: "customerMobile", render: (m) => <Text>{m}</Text> },
     {
       title: "Product Name",
       dataIndex: "items",
@@ -184,24 +170,13 @@ const OrderPage: React.FC = () => {
             onChange={setEditValue}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            options={[
-              "Pending",
-              "Processing",
-              "Shipped",
-              "Delivered",
-              "Cancelled",
-            ].map((v) => ({ value: v, label: v }))}
+            options={["Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map(v => ({ value: v, label: v }))}
             widthClass="w-26"
           />
         ) : (
           <Space>
             <Tag color={statusColor(status)}>{status}</Tag>
-            <AppButton
-              size="small"
-              type="text"
-              icon={<FiEdit />}
-              onClick={() => startEdit(record, "status")}
-            />
+            <AppButton size="small" type="text" icon={<FiEdit />} onClick={() => startEdit(record, "status")} />
           </Space>
         ),
     },
@@ -216,21 +191,13 @@ const OrderPage: React.FC = () => {
             onChange={setEditValue}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            options={["Pathao", "Steadfast", "RedX"].map((v) => ({
-              value: v,
-              label: v,
-            }))}
+            options={["Pathao", "Steadfast", "RedX"].map(v => ({ value: v, label: v }))}
             widthClass="w-24"
           />
         ) : (
           <Space>
             {courier}
-            <AppButton
-              size="small"
-              type="text"
-              icon={<FiEdit />}
-              onClick={() => startEdit(record, "courier")}
-            />
+            <AppButton size="small" type="text" icon={<FiEdit />} onClick={() => startEdit(record, "courier")} />
           </Space>
         ),
     },
@@ -246,18 +213,13 @@ const OrderPage: React.FC = () => {
             onChange={setEditValue}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            options={["Paid", "Unpaid"].map((v) => ({ value: v, label: v }))}
+            options={["Paid", "Unpaid"].map(v => ({ value: v, label: v }))}
             widthClass="w-20"
           />
         ) : (
           <Space>
             <Tag color={paymentStatusColor(pStatus)}>{pStatus}</Tag>
-            <AppButton
-              size="small"
-              type="text"
-              icon={<FiEdit />}
-              onClick={() => startEdit(record, "paymentStatus")}
-            />
+            <AppButton size="small" type="text" icon={<FiEdit />} onClick={() => startEdit(record, "paymentStatus")} />
           </Space>
         ),
     },
@@ -271,26 +233,9 @@ const OrderPage: React.FC = () => {
       align: "right",
       render: (_, record) => (
         <div className="flex gap-0!">
-          <AppButton
-            type="link"
-            className="font-semibold! text-violet-500! pr-1!"
-            icon={<EyeOutlined />}
-            onClick={() => setViewOrder(record)}
-          >
-            View
-          </AppButton>
+          <AppButton type="link" className="font-semibold! text-violet-500! pr-1!" icon={<EyeOutlined />} onClick={() => setViewOrder(record)}>View</AppButton>
           <Tooltip title="Download Invoice">
-            <AppButton
-              type="link"
-              icon={<DownloadOutlined className="text-xl!" />}
-              className="text-gray-500! hover:text-violet-500! pl-0!"
-              onClick={() =>
-                window.open(
-                  `${import.meta.env.VITE_API_URL}/orders/${record.id}/invoice`,
-                  "_blank",
-                )
-              }
-            />
+            <AppButton type="link" icon={<DownloadOutlined className="text-xl!" />} className="text-gray-500! hover:text-violet-500!" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/orders/${record.id}/invoice`, "_blank")} />
           </Tooltip>
         </div>
       ),
@@ -302,43 +247,15 @@ const OrderPage: React.FC = () => {
       <Title level={3}>📦 Order Management</Title>
       <Row gutter={16} className="mt-4">
         {[
-          {
-            title: "Total Orders",
-            value: orders.length,
-            icon: <ShoppingCartOutlined className="text-violet-500! mr-2!" />,
-          },
-          {
-            title: "Pending",
-            value: orders.filter((o) => o.status === "Pending").length,
-            icon: <HistoryOutlined className="text-[#f59e0b]! mr-2!" />,
-          },
-          {
-            title: "Processing",
-            value: orders.filter((o) => o.status === "Processing").length,
-            icon: <FieldTimeOutlined className="text-[#3b82f6]! mr-2!" />,
-          },
-          {
-            title: "Shipped",
-            value: orders.filter((o) => o.status === "Shipped").length,
-            icon: <TruckOutlined className="text-[#6366f1]! mr-2!" />,
-          },
-          {
-            title: "Delivered",
-            value: orders.filter((o) => o.status === "Delivered").length,
-            icon: <CheckCircleOutlined className="text-[#22c55e]! mr-2!" />,
-          },
-          {
-            title: "Cancelled",
-            value: orders.filter((o) => o.status === "Cancelled").length,
-            icon: <CloseCircleOutlined className="text-[#ef4444]! mr-2!" />,
-          },
+          { title: "Total Orders", value: orders.length, icon: <ShoppingCartOutlined className="text-violet-500! mr-2!" /> },
+          { title: "Pending", value: orders.filter(o => o.status === "Pending").length, icon: <HistoryOutlined className="text-[#f59e0b]! mr-2!" /> },
+          { title: "Processing", value: orders.filter(o => o.status === "Processing").length, icon: <FieldTimeOutlined className="text-[#3b82f6]! mr-2!" /> },
+          { title: "Shipped", value: orders.filter(o => o.status === "Shipped").length, icon: <TruckOutlined className="text-[#6366f1]! mr-2!" /> },
+          { title: "Delivered", value: orders.filter(o => o.status === "Delivered").length, icon: <CheckCircleOutlined className="text-[#22c55e]! mr-2!" /> },
+          { title: "Cancelled", value: orders.filter(o => o.status === "Cancelled").length, icon: <CloseCircleOutlined className="text-[#ef4444]! mr-2!" /> }
         ].map((stat, i) => (
           <Col md={4} key={i}>
-            <StatsCard
-              title={stat.title}
-              value={stat.value}
-              prefix={stat.icon}
-            />
+            <StatsCard title={stat.title} value={stat.value} prefix={stat.icon} />
           </Col>
         ))}
       </Row>
@@ -347,14 +264,7 @@ const OrderPage: React.FC = () => {
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
-          items={[
-            "All",
-            "Pending",
-            "Processing",
-            "Shipped",
-            "Delivered",
-            "Cancelled",
-          ].map((k) => ({
+          items={["All", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map((k) => ({
             key: k,
             label: `${k} (${k === "All" ? orders.length : orders.filter((o) => o.status === k).length})`,
           }))}
@@ -364,55 +274,16 @@ const OrderPage: React.FC = () => {
           {selectedRowKeys.length > 0 && (
             <div className="mb-4 flex items-center space-x-2!">
               <Text strong>Update:</Text>
-              <Select
-                placeholder="Status"
-                style={{ width: 120 }}
-                onChange={setBulkUpdateStatus}
-                value={bulkUpdateStatus}
-                allowClear
-                options={[
-                  "Pending",
-                  "Processing",
-                  "Shipped",
-                  "Delivered",
-                  "Cancelled",
-                ].map((v) => ({ value: v, label: v }))}
-              />
-              <Select
-                placeholder="Courier"
-                style={{ width: 120 }}
-                onChange={setBulkUpdateCourier}
-                value={bulkUpdateCourier}
-                allowClear
-                options={["Pathao", "Steadfast", "RedX"].map((v) => ({
-                  value: v,
-                  label: v,
-                }))}
-              />
-              <Select
-                placeholder="Payment"
-                style={{ width: 140 }}
-                onChange={setBulkUpdatePaymentStatus}
-                value={bulkUpdatePaymentStatus}
-                allowClear
-                options={["Paid", "Unpaid"].map((v) => ({
-                  value: v,
-                  label: v,
-                }))}
-              />
-              <AppButton type="primary" onClick={handleBulkUpdate}>
-                Apply
-              </AppButton>
+              <AppSelect placeholder="Status" className="w-[120px]" onChange={setBulkUpdateStatus} value={bulkUpdateStatus} allowClear options={["Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map(v => ({ value: v, label: v }))} />
+              <AppSelect placeholder="Courier" className="w-[120px]" onChange={setBulkUpdateCourier} value={bulkUpdateCourier} allowClear options={["Pathao", "Steadfast", "RedX"].map(v => ({ value: v, label: v }))} />
+              <AppSelect placeholder="Payment" className="w-[140px]" onChange={setBulkUpdatePaymentStatus} value={bulkUpdatePaymentStatus} allowClear options={["Paid", "Unpaid"].map(v => ({ value: v, label: v }))} />
+              <AppButton type="primary" onClick={handleBulkUpdate}>Apply</AppButton>
             </div>
           )}
           <Table
             rowKey="id"
             rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
-            rowClassName={(r) =>
-              r.status === "Pending" && isSLABreached(r.orderDate)
-                ? "bg-red-50"
-                : ""
-            }
+            rowClassName={(r) => r.status === "Pending" && isSLABreached(r.orderDate) ? "bg-red-50" : ""}
             columns={columns}
             dataSource={filteredOrders}
             pagination={{ pageSize: 8 }}
@@ -420,55 +291,30 @@ const OrderPage: React.FC = () => {
         </Spin>
       </AppCard>
 
-      <AppModal
-        open={!!viewOrder}
-        onCancel={() => setViewOrder(null)}
-        width={900}
-        title="Order Details"
-      >
+      <AppModal open={!!viewOrder} footer={null} onCancel={() => setViewOrder(null)} width={900} title="Order Details">
         {viewOrder && (
           <>
             <Row gutter={16}>
               <Col span={12}>
                 <AppCard title="Customer & Delivery">
                   <Descriptions column={1} size="small">
-                    <Descriptions.Item label="Name">
-                      {viewOrder.customerName}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Mobile">
-                      {viewOrder.customerMobile}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Address">
-                      {viewOrder.shippingAddress}
-                    </Descriptions.Item>
+                    <Descriptions.Item label="Name">{viewOrder.customerName}</Descriptions.Item>
+                    <Descriptions.Item label="Mobile">{viewOrder.customerMobile}</Descriptions.Item>
+                    <Descriptions.Item label="Email">{viewOrder.customerEmail}</Descriptions.Item>
+                    <Descriptions.Item label="District">{viewOrder.customerDistrict}</Descriptions.Item>
+                    <Descriptions.Item label="Address">{viewOrder.shippingAddress}</Descriptions.Item>
                   </Descriptions>
                 </AppCard>
               </Col>
               <Col span={12}>
                 <AppCard title="Order & Payment">
                   <Descriptions column={1} size="small">
-                    <Descriptions.Item label="Order ID">
-                      {viewOrder.id}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Order Status">
-                      <Tag color={statusColor(viewOrder.status)}>
-                        {viewOrder.status}
-                      </Tag>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Payment Method">
-                      {viewOrder.paymentMethod}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Payment Status">
-                      <Tag color={paymentStatusColor(viewOrder.paymentStatus)}>
-                        {viewOrder.paymentStatus}
-                      </Tag>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Courier">
-                      {viewOrder.courier}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Total">
-                      ৳ {viewOrder.totalAmount}
-                    </Descriptions.Item>
+                    <Descriptions.Item label="Order ID">{viewOrder.id}</Descriptions.Item>
+                    <Descriptions.Item label="Order Status"><Tag color={statusColor(viewOrder.status)}>{viewOrder.status}</Tag></Descriptions.Item>
+                    <Descriptions.Item label="Payment Method">{viewOrder.paymentMethod}</Descriptions.Item>
+                    <Descriptions.Item label="Payment Status"><Tag color={paymentStatusColor(viewOrder.paymentStatus)}>{viewOrder.paymentStatus}</Tag></Descriptions.Item>
+                    <Descriptions.Item label="Courier">{viewOrder.courier}</Descriptions.Item>
+                    <Descriptions.Item label="Total">৳ {viewOrder.totalAmount}</Descriptions.Item>
                   </Descriptions>
                 </AppCard>
               </Col>
@@ -480,40 +326,13 @@ const OrderPage: React.FC = () => {
                     size="small"
                     pagination={false}
                     columns={[
-                      {
-                        title: "Product Name",
-                        dataIndex: "productName",
-                        render: (v) => <Text strong>{v}</Text>,
-                      },
-                      {
-                        title: "SKU",
-                        dataIndex: "sku",
-                        render: (v) => <Text type="secondary">{v || "—"}</Text>,
-                      },
-                      {
-                        title: "Size",
-                        dataIndex: "size",
-                        align: "center",
-                        render: (s) => (s?.length ? s.join(", ") : "—"),
-                      },
-                      {
-                        title: "Color",
-                        dataIndex: "color",
-                        align: "center",
-                        render: (c) => (c?.length ? c.join(", ") : "—"),
-                      },
-                      {
-                        title: "Price",
-                        dataIndex: "price",
-                        align: "right",
-                        render: (v) => `৳ ${v}`,
-                      },
+                      { title: "Product Name", dataIndex: "productName", render: v => <Text strong>{v}</Text> },
+                      { title: "SKU", dataIndex: "sku", render: v => <Text type="secondary">{v || "—"}</Text> },
+                      { title: "Size", dataIndex: "size", align: "center", render: s => s?.length ? s.join(", ") : "—" },
+                      { title: "Color", dataIndex: "color", align: "center", render: c => c?.length ? c.join(", ") : "—" },
+                      { title: "Price", dataIndex: "price", align: "right", render: v => `৳ ${v}` },
                       { title: "Qty", dataIndex: "quantity", align: "center" },
-                      {
-                        title: "Subtotal",
-                        align: "right",
-                        render: (_, r) => `৳ ${r.price * r.quantity}`,
-                      },
+                      { title: "Subtotal", align: "right", render: (_, r) => `৳ ${r.price * r.quantity}` },
                     ]}
                     dataSource={viewOrder.items}
                     rowKey={(r) => r.productId}

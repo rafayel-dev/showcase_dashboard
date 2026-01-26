@@ -80,12 +80,8 @@ const DashboardOverview: React.FC = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* ===== HEADER ===== */}
       <div className="mb-8">
-        <Title level={3} className="mb-1!">
-          📊 ShowCase Dashboard
-        </Title>
-        <Text type="secondary">
-          Real-time overview of your store’s performance
-        </Text>
+        <Title level={3} className="mb-1!">📊 ShowCase Dashboard</Title>
+        <Text type="secondary">Real-time overview of your store’s performance</Text>
       </div>
 
       {/* ===== KPI CARDS ===== */}
@@ -102,21 +98,14 @@ const DashboardOverview: React.FC = () => {
         <Col xs={24} lg={15}>
           <Card className="rounded-2xl shadow-sm" bordered={false}>
             <div className="mb-6">
-              <Title level={5} className="mb-0!">
-                Monthly Sales
-              </Title>
-              <Text type="secondary" className="text-xs">
-                Revenue trend in Bangladeshi Taka
-              </Text>
+              <Title level={5} className="mb-0!">Monthly Sales</Title>
+              <Text type="secondary" className="text-xs">Revenue trend in Bangladeshi Taka</Text>
             </div>
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={salesData} barSize={40}>
                 <XAxis dataKey="name" tickLine={true} axisLine={true} />
                 <YAxis tickLine={true} axisLine={true} />
-                <Tooltip
-                  formatter={(v) => `৳ ${v}`}
-                  cursor={{ fill: "transparent" }}
-                />
+                <Tooltip formatter={(v) => `৳ ${v}`} cursor={{ fill: 'transparent' }} />
                 <Legend iconType="circle" />
                 <Bar dataKey="sales" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
               </BarChart>
@@ -127,12 +116,8 @@ const DashboardOverview: React.FC = () => {
         <Col xs={24} lg={9}>
           <Card className="rounded-2xl shadow-sm" bordered={false}>
             <div className="mb-6">
-              <Title level={5} className="mb-0!">
-                Order Status
-              </Title>
-              <Text type="secondary" className="text-xs">
-                Distribution of order lifecycle
-              </Text>
+              <Title level={5} className="mb-0!">Order Status</Title>
+              <Text type="secondary" className="text-xs">Distribution of order lifecycle</Text>
             </div>
             <ResponsiveContainer width="100%" height={320}>
               <PieChart>
@@ -145,10 +130,7 @@ const DashboardOverview: React.FC = () => {
                   strokeWidth={0}
                 >
                   {orderStatusData.map((_, index) => (
-                    <Cell
-                      key={index}
-                      fill={PIE_COLORS[index % PIE_COLORS.length]}
-                    />
+                    <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />

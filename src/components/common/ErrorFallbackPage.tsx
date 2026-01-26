@@ -1,6 +1,7 @@
 import React from "react";
-import { Result, Button, Typography } from "antd";
+import { Result, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
+import AppButton from "./AppButton";
 
 const { Text } = Typography;
 
@@ -28,17 +29,17 @@ const ErrorFallbackPage: React.FC<ErrorFallbackPageProps> = ({
           </>
         }
         extra={[
-          <Button
+          <AppButton
             type="primary"
             className="bg-violet-500!"
             key="home"
             onClick={() => navigate("/")}
           >
             Go to Dashboard
-          </Button>,
-          <Button key="back" onClick={() => navigate(-1)}>
+          </AppButton>,
+          <AppButton key="back" onClick={() => navigate(-1)}>
             Go Back
-          </Button>,
+          </AppButton>,
         ]}
       />
     </div>

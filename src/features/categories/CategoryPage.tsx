@@ -1,15 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { Table, Space, Typography, Form, Tooltip, Empty } from "antd";
+import React, { useState } from "react";
+import {
+  Table,
+  Space,
+  Typography,
+  Form,
+  Tooltip,
+  Empty,
+} from "antd";
 import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
 import type { TableProps } from "antd";
 import type { Category } from "../../types";
-import {
-  fetchCategories,
-  addCategory,
-  updateCategory,
-  deleteCategory,
-} from "../../services/categoryService";
 import toast from "../../utils/toast";
+
+import {
+  useGetCategoriesQuery,
+  useAddCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation
+} from "../../RTK/category/categoryApi";
 
 import AppCard from "../../components/common/AppCard";
 import AppButton from "../../components/common/AppButton";
@@ -22,28 +30,16 @@ import PageHeader from "../../components/common/PageHeader";
 const { Text } = Typography;
 
 const CategoryPage: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { data: categories = [], isLoading: tableLoading } = useGetCategoriesQuery({});
+  const [addCategory, { isLoading: isAdding }] = useAddCategoryMutation();
+  const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
+  const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [tableLoading, setTableLoading] = useState(false);
-  const [formLoading, setFormLoading] = useState(false);
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  const loadCategories = async () => {
-    setTableLoading(true);
-    try {
-      const data = await fetchCategories();
-      setCategories(data);
-    } catch {
-      toast.error("Failed to load categories");
-    } finally {
-      setTableLoading(false);
-    }
-  };
+  const formLoading = isAdding || isUpdating;
 
   const openAddModal = () => {
     setEditingCategory(null);
@@ -58,35 +54,26 @@ const CategoryPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    setTableLoading(true);
     try {
-      await deleteCategory(id);
-      setCategories((prev) => prev.filter((c) => c.id !== id));
+      await deleteCategory(id).unwrap();
       toast.success("Category deleted successfully");
     } catch {
       toast.error("Failed to delete category");
-    } finally {
-      setTableLoading(false);
     }
   };
 
   const handleSave = async () => {
     try {
-      setFormLoading(true);
       const values = await form.validateFields();
 
       if (editingCategory) {
-        const updated = await updateCategory({
-          ...editingCategory,
+        await updateCategory({
+          id: editingCategory.id,
           ...values,
-        });
-        setCategories((prev) =>
-          prev.map((c) => (c.id === updated.id ? updated : c)),
-        );
+        }).unwrap();
         toast.success("Category updated successfully");
       } else {
-        const created = await addCategory(values);
-        setCategories((prev) => [...prev, created]);
+        await addCategory(values).unwrap();
         toast.success("Category added successfully");
       }
 
@@ -95,8 +82,6 @@ const CategoryPage: React.FC = () => {
       form.resetFields();
     } catch {
       toast.error("Failed to save category");
-    } finally {
-      setFormLoading(false);
     }
   };
 
@@ -123,7 +108,7 @@ const CategoryPage: React.FC = () => {
             okText="Delete"
             onConfirm={() => handleDelete(record.id)}
           >
-            <AppButton danger icon={<FiTrash2 />}>
+            <AppButton danger icon={<FiTrash2 />} loading={isDeleting}>
               Delete
             </AppButton>
           </AppPopconfirm>
@@ -149,7 +134,7 @@ const CategoryPage: React.FC = () => {
             rowKey="id"
             dataSource={categories}
             columns={columns}
-            pagination={{ pageSize: 6 }}
+            pagination={{ pageSize: 10 }}
             locale={{
               emptyText: <Empty description="No categories found" />,
             }}
@@ -157,7 +142,6 @@ const CategoryPage: React.FC = () => {
         </AppSpin>
       </AppCard>
 
-      {/* Modal */}
       {/* Modal */}
       <AppModal
         title={editingCategory ? "Edit Category" : "Add New Category"}

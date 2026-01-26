@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Table,
   Button,
-  Popconfirm,
   Card,
   Typography,
   Modal,
   Form,
-  Input,
   Spin,
   Row,
   Col,
@@ -18,20 +16,22 @@ import { FiPlus, FiTrash2, FiShield } from "react-icons/fi";
 import type { TableProps } from "antd";
 import type { Admin } from "../../types";
 import {
-  fetchAdmins,
-  addAdmin,
-  deleteAdmin,
-} from "../../services/adminService";
+  useGetAdminsQuery,
+  useAddAdminMutation,
+  useDeleteAdminMutation,
+} from "../../RTK/admin/adminApi";
 import toast from "../../utils/toast";
+import AppPopconfirm from "@/components/common/AppPopconfirm";
+import AppInput from "@/components/common/AppInput";
 
 const { Title, Text } = Typography;
 
 /* ================= ROLE COLOR ================= */
 const roleColor = (role: string) => {
   switch (role) {
-    case "Super Admin":
+    case "super_admin":
       return "violet";
-    case "Admin":
+    case "admin":
       return "blue";
     default:
       return "default";
@@ -39,28 +39,13 @@ const roleColor = (role: string) => {
 };
 
 const AdminPage: React.FC = () => {
-  const [admins, setAdmins] = useState<Admin[]>([]);
+  const { data: admins = [], isLoading: tableLoading } = useGetAdminsQuery();
+  const [addAdmin, { isLoading: formLoading }] = useAddAdminMutation();
+  const [deleteAdmin] = useDeleteAdminMutation();
   const [modalOpen, setModalOpen] = useState(false);
-  const [tableLoading, setTableLoading] = useState(false);
-  const [formLoading, setFormLoading] = useState(false);
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    loadAdmins();
-  }, []);
-
-  /* ================= LOAD ================= */
-  const loadAdmins = async () => {
-    setTableLoading(true);
-    try {
-      const data = await fetchAdmins();
-      setAdmins(data);
-    } catch {
-      toast.error("Failed to load administrators");
-    } finally {
-      setTableLoading(false);
-    }
-  };
+  // LoadAdmins useEffect is no longer needed as useGetAdminsQuery handles fetching
 
   /* ================= ADD MODAL ================= */
   const openAddModal = () => {
@@ -70,34 +55,26 @@ const AdminPage: React.FC = () => {
 
   /* ================= DELETE ================= */
   const handleDelete = async (id: string) => {
-    setTableLoading(true);
     try {
-      await deleteAdmin(id);
-      setAdmins((prev) => prev.filter((a) => a.id !== id));
+      await deleteAdmin(id).unwrap();
       toast.success("Administrator deleted successfully");
-    } catch {
-      toast.error("Failed to delete administrator");
-    } finally {
-      setTableLoading(false);
+    } catch (error: any) {
+      toast.error(error?.data?.message || error.message || "Failed to delete administrator");
     }
   };
 
   /* ================= SAVE (ADD ONLY) ================= */
   const handleSave = async () => {
     try {
-      setFormLoading(true);
       const values = await form.validateFields();
 
-      const created = await addAdmin(values);
-      setAdmins((prev) => [...prev, created]);
+      await addAdmin(values).unwrap();
 
       toast.success("Administrator added successfully");
       setModalOpen(false);
       form.resetFields();
-    } catch {
-      toast.error("Failed to add administrator");
-    } finally {
-      setFormLoading(false);
+    } catch (error: any) {
+      toast.error(error?.data?.message || error.message || "Failed to add administrator");
     }
   };
 
@@ -128,7 +105,7 @@ const AdminPage: React.FC = () => {
       title: "Actions",
       align: "right",
       render: (_, record) => (
-        <Popconfirm
+        <AppPopconfirm
           placement="topRight"
           title="Delete this admin?"
           description="This action cannot be undone"
@@ -139,7 +116,7 @@ const AdminPage: React.FC = () => {
           <Button title="Delete Admin" danger icon={<FiTrash2 />}>
             Delete
           </Button>
-        </Popconfirm>
+        </AppPopconfirm>
       ),
     },
   ];
@@ -174,7 +151,7 @@ const AdminPage: React.FC = () => {
             rowKey="id"
             dataSource={admins}
             columns={columns}
-            pagination={{ pageSize: 6 }}
+            pagination={{ pageSize: 10 }}
             locale={{
               emptyText: <Empty description="No admins found" />,
             }}
@@ -195,7 +172,7 @@ const AdminPage: React.FC = () => {
       >
         <Form form={form} layout="vertical">
           <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>
-            <Input />
+            <AppInput placeholder="Enter name"/>
           </Form.Item>
 
           <Form.Item
@@ -206,7 +183,7 @@ const AdminPage: React.FC = () => {
               { type: "email", message: "Invalid email" },
             ]}
           >
-            <Input />
+            <AppInput placeholder="Enter email"/>
           </Form.Item>
 
           <Form.Item
@@ -214,7 +191,7 @@ const AdminPage: React.FC = () => {
             label="Password"
             rules={[{ required: true, min: 6 }]}
           >
-            <Input.Password />
+            <AppInput.Password placeholder="Enter password"/>
           </Form.Item>
         </Form>
       </Modal>
