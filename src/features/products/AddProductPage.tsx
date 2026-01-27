@@ -117,6 +117,11 @@ const AddProductPage: React.FC = () => {
       return;
     }
 
+    if (fileList.length > 6) {
+      toast.error("You can upload a maximum of 6 images.");
+      return;
+    }
+
     try {
       // Prepare base payload from form values
       const { discountRange, ...restValues } = values;
@@ -523,7 +528,7 @@ const AddProductPage: React.FC = () => {
                     setPreviewOpen(true);
                   }}
                 >
-                  {fileList.length < 8 && <PlusOutlined />}
+                  {fileList.length < 6 && <PlusOutlined />}
                 </Upload>
 
 

@@ -39,7 +39,7 @@ import AppSpin from "../../components/common/AppSpin";
 import AppCard from "../../components/common/AppCard";
 import AppModal from "../../components/common/AppModal";
 import AppPopconfirm from "../../components/common/AppPopconfirm";
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { Option } = AppSelect;
 
 const ProductPage: React.FC = () => {
@@ -356,7 +356,12 @@ const ProductPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredProducts.map((p) => (
-                <ProductCard key={p.id} product={p} onView={() => setViewing(p)} />
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onView={() => setViewing(p)}
+                  onEdit={() => navigate(`/edit-product/${p.id}`)}
+                />
               ))}
             </div>
           )}
@@ -366,41 +371,130 @@ const ProductPage: React.FC = () => {
       {/* View Modal */}
       <AppModal
         title="Product Details"
-        width={700}
+        width={900}
         open={!!viewing}
         footer={null}
         onCancel={() => setViewing(null)}
       >
         {viewing && (
-          <>
-            <Space direction="vertical" className="w-full">
-              <Text><b>Name:</b> {viewing.productName}</Text>
-              <Text><b>Category:</b> {viewing.category}</Text>
-              <Text><b>Price:</b> ৳ {viewing.price}</Text>
-              <Text><b>Stock:</b> {viewing.stock}</Text>
-              <Text><b>Status:</b> <Tag color={statusColor(viewing.status)}>{viewing.status}</Tag></Text>
-            </Space>
-            <div className="mt-4">
+          <Row gutter={24}>
+            {/* Left Col: Images */}
+            <Col xs={24} md={10}>
+              <div className="mb-4">
+                <Image
+                  src={viewing.imageUrl?.startsWith('/') ? `http://localhost:5000${viewing.imageUrl}` : viewing.imageUrl || "https://placehold.co/600x600?text=No+Image"}
+                  className="rounded-lg shadow-sm w-full! h-auto object-cover border border-gray-100"
+                />
+              </div>
               <Image.PreviewGroup>
-                <div className="flex flex-wrap gap-2">
-                  {viewing.imageUrls && viewing.imageUrls.length > 0 ? (
-                    viewing.imageUrls.map((url, idx) => (
-                      <Image
-                        key={`${idx}-${url}`}
-                        src={url.startsWith('/') ? `http://localhost:5000${url}` : url}
-                        className="w-22! h-22! object-cover rounded shadow-sm"
-                      />
-                    ))
-                  ) : (
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {viewing.imageUrls?.map((url, idx) => (
                     <Image
-                      src={viewing.imageUrl?.startsWith('/') ? `http://localhost:5000${viewing.imageUrl}` : viewing.imageUrl || ""}
-                      className="w-22! h-22! object-cover rounded shadow-sm"
+                      key={idx}
+                      src={url.startsWith('/') ? `http://localhost:5000${url}` : url}
+                      className="w-20! h-20! object-cover rounded shadow-xs cursor-pointer border border-gray-100"
                     />
-                  )}
+                  ))}
                 </div>
               </Image.PreviewGroup>
-            </div>
-          </>
+            </Col>
+
+            {/* Right Col: Details */}
+            <Col xs={24} md={14}>
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <Title level={4} className="mb-1!">{viewing.productName}</Title>
+                  <Space>
+                    <Tag color="blue">{viewing.category}</Tag>
+                    <Tag color={viewing.isPublished ? "green" : "default"}>{viewing.isPublished ? "Published" : "Draft"}</Tag>
+                  </Space>
+                </div>
+                <div className="text-right">
+                  <Title level={3} className="mb-0! text-violet-600!">৳ {viewing.price}</Title>
+                  {viewing.hasDiscount && (
+                    <Text delete type="secondary">৳ {Math.round(viewing.price + (viewing.discountType === 'flat' ? viewing.discountValue || 0 : (viewing.price * (viewing.discountValue || 0) / 100)))}</Text>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mb-4 flow-root">
+                <Space size="large" className="w-full justify-between">
+                  <div className="text-center">
+                    <Text type="secondary" className="block text-xs uppercase">Stock</Text>
+                    <Text strong className={viewing.stock < 5 ? "text-red-500" : ""}>{viewing.stock}</Text>
+                  </div>
+                  <div className="text-center">
+                    <Text type="secondary" className="block text-xs uppercase">SKU</Text>
+                    <Text strong>{viewing.sku || "N/A"}</Text>
+                  </div>
+                  <div className="text-center">
+                    <Text type="secondary" className="block text-xs uppercase">Status</Text>
+                    <Tag color={statusColor(viewing.status)} className="mr-0!">{viewing.status}</Tag>
+                  </div>
+                </Space>
+              </div>
+
+              {/* Descriptions */}
+              <div className="mb-4">
+                <Text strong className="block mb-1">Description</Text>
+                <Paragraph type="secondary" ellipsis={{ rows: 3, expandable: true, symbol: 'more' }} className="text-sm">
+                  {viewing.description || viewing.productDetails?.description?.replace(/<[^>]*>/g, '') || "No description available."}
+                </Paragraph>
+              </div>
+
+              {/* Specifications Grid */}
+              {(viewing.specifications || viewing.productDetails?.features) && (
+                <div className="mb-4">
+                  <Text strong className="block mb-2">Specifications</Text>
+                  <div className="grid grid-cols-2 gap-y-2 text-sm">
+                    {viewing.specifications?.brand && (
+                      <>
+                        <Text type="secondary">Brand:</Text>
+                        <Text>{viewing.specifications.brand}</Text>
+                      </>
+                    )}
+                    {viewing.specifications?.material && (
+                      <>
+                        <Text type="secondary">Material:</Text>
+                        <Text>{viewing.specifications.material}</Text>
+                      </>
+                    )}
+                    {viewing.specifications?.countryOfOrigin && (
+                      <>
+                        <Text type="secondary">Origin:</Text>
+                        <Text>{viewing.specifications.countryOfOrigin}</Text>
+                      </>
+                    )}
+                    {viewing.specifications?.availableColors?.length ? (
+                      <>
+                        <Text type="secondary">Colors:</Text>
+                        <Space size={4}>
+                          {viewing.specifications.availableColors.map(c => <Tag key={c} color="default" className="text-xs!">{c}</Tag>)}
+                        </Space>
+                      </>
+                    ) : null}
+                    {viewing.specifications?.availableSizes?.length ? (
+                      <>
+                        <Text type="secondary">Sizes:</Text>
+                        <Space size={4}>
+                          {viewing.specifications.availableSizes.map(s => <Tag key={s} className="text-xs!">{s}</Tag>)}
+                        </Space>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+              )}
+
+              {viewing.tags && viewing.tags.length > 0 && (
+                <div>
+                  <Text strong className="block mb-2 text-xs uppercase text-gray-400">Tags</Text>
+                  <div className="flex flex-wrap gap-1">
+                    {viewing.tags.map(tag => <Tag key={tag} className="mr-0 rounded-full px-2 text-xs">{tag}</Tag>)}
+                  </div>
+                </div>
+              )}
+            </Col>
+          </Row>
         )}
       </AppModal>
     </div>
