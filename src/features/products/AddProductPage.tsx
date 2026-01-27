@@ -247,9 +247,15 @@ const AddProductPage: React.FC = () => {
                       </AppSelect>
                     </Form.Item>
                   </Col>
+
+                  <Col xs={24} md={12} lg={8}>
+                    <Form.Item name="tags" label="Tags">
+                      <AppSelect mode="tags" placeholder="Enter tags (e.g. summer, new)" />
+                    </Form.Item>
+                  </Col>
                 </Row>
 
-                <Form.Item name="description" label="Short Description">
+                <Form.Item name={["specifications", "shortDescription"]} label="Short Description">
                   <AppInput.TextArea
                     rows={3}
                     placeholder="Short summary for product list"
@@ -461,21 +467,39 @@ const AddProductPage: React.FC = () => {
                 <Title level={4}>Product Details</Title>
 
                 <Form.Item
-                  name={["productDetails", "description"]}
+                  name={["productDetails", "longDescription"]}
                   rules={[{ required: true }]}
                 >
                   <CustomJoditEditor
                     initialContent={form.getFieldValue([
                       "productDetails",
-                      "description",
+                      "longDescription",
                     ])}
                     onChange={(content: string) =>
                       form.setFieldsValue({
-                        productDetails: { description: content },
+                        productDetails: { longDescription: content },
                       })
                     }
                   />
                 </Form.Item>
+
+                <Form.Item name={["productDetails", "features"]} label="Key Features">
+                  <AppSelect mode="tags" placeholder="Enter key features (e.g. Waterproof, 1 Year Warranty)" />
+                </Form.Item>
+
+                <Row gutter={24}>
+                  <Col xs={24} md={12}>
+                    <Form.Item name={["productDetails", "deliveryInfo"]} label="Delivery Information">
+                      <AppInput.TextArea rows={2} placeholder="Delivery within 2-3 days..." />
+                    </Form.Item>
+                  </Col>
+
+                  <Col xs={24} md={12}>
+                    <Form.Item name={["productDetails", "returnPolicy"]} label="Return Policy">
+                      <AppInput.TextArea rows={2} placeholder="7 days return policy..." />
+                    </Form.Item>
+                  </Col>
+                </Row>
               </AppCard>
 
               {/* ================= IMAGES ================= */}
@@ -516,6 +540,18 @@ const AddProductPage: React.FC = () => {
               {/* ================= STATUS ================= */}
               <AppCard className="mb-6 bg-gray-50" bordered={false}>
                 <Title level={5}>Product Status</Title>
+
+                <Form.Item name="status" label="Availability Status" initialValue="In Stock" className="mb-4">
+                  <AppSelect
+                    placeholder="Select Status"
+                    options={[
+                      { value: 'In Stock', label: 'In Stock' },
+                      { value: 'Out of Stock', label: 'Out of Stock' },
+                      { value: 'Discontinued', label: 'Discontinued' }
+                    ]}
+                  />
+                </Form.Item>
+
                 <Space>
                   <Text>Draft</Text>
                   <Form.Item
@@ -553,7 +589,7 @@ const AddProductPage: React.FC = () => {
           </AppSpin>
         </AppCard>
       </div>
-    </div>
+    </div >
   );
 };
 
