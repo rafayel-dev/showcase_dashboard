@@ -19,62 +19,51 @@ import {
   Cell,
 } from "recharts";
 import StatsCard from "../../components/common/StatsCard";
+import { useGetDashboardStatsQuery } from "../../RTK/dashboard/dashboardApi";
 
 const { Title, Text } = Typography;
 
 const DashboardOverview: React.FC = () => {
-  // Mock Data (Ideally comes from API)
-  const salesData = [
-    { name: "Jan", sales: 420000 },
-    { name: "Feb", sales: 380000 },
-    { name: "Mar", sales: 520000 },
-    { name: "Apr", sales: 490000 },
-    { name: "May", sales: 650000 },
-    { name: "Jun", sales: 610000 },
-  ];
+  const { data: statsData, isLoading } = useGetDashboardStatsQuery();
 
-  const orderStatusData = [
-    { name: "Pending", value: 45 },
-    { name: "Processing", value: 80 },
-    { name: "Shipped", value: 120 },
-    { name: "Delivered", value: 260 },
-    { name: "Cancelled", value: 20 },
-  ];
-
-  const PIE_COLORS = ["#9ca3af", "#3b82f6", "#f59e0b", "#8B5CF6", "#ef4444"];
+  const salesData = statsData?.salesData || [];
+  const orderStatusData = statsData?.orderStatusData || [];
+  const PIE_COLORS = ["#8B5CF6", "#3b82f6", "#f59e0b", "#9ca3af", "#ef4444"];
 
   const stats = [
     {
       title: "Total Revenue",
-      value: 3050000,
+      value: statsData?.totalRevenue || 0,
       suffix: "৳",
       icon: <DollarOutlined className="text-2xl!" />,
       color: "bg-green-100 text-green-600",
-      note: "↑ 18% from last month",
+      note: "Lifetime",
     },
     {
       title: "Total Orders",
-      value: 940,
+      value: statsData?.totalOrders || 0,
       icon: <ShoppingCartOutlined className="text-2xl!" />,
       color: "bg-blue-100 text-blue-600",
-      note: "This month",
+      note: "Lifetime",
     },
     {
-      title: "Total Delivery",
-      value: 20,
+      title: "Total Delivered",
+      value: statsData?.totalDelivered || 0,
       icon: <UserOutlined className="text-2xl!" />,
       color: "bg-purple-100 text-purple-600",
-      note: "Last 7 days",
+      note: "Successful Orders",
     },
     {
-      title: "Conversion Rate",
-      value: 3.6,
-      suffix: "%",
+      title: "Avg Order Value",
+      value: statsData?.totalOrders ? Math.round(statsData.totalRevenue / statsData.totalOrders) : 0,
+      suffix: "৳",
       icon: <RiseOutlined className="text-2xl!" />,
       color: "bg-emerald-100 text-emerald-600",
-      note: "Industry avg 2.8%",
+      note: "Revenue / Orders",
     },
   ];
+
+  if (isLoading) return <div>Loading dashboard...</div>;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -105,7 +94,7 @@ const DashboardOverview: React.FC = () => {
               <BarChart data={salesData} barSize={40}>
                 <XAxis dataKey="name" tickLine={true} axisLine={true} />
                 <YAxis tickLine={true} axisLine={true} />
-                <Tooltip formatter={(v) => `৳ ${v}`} cursor={{ fill: 'transparent' }} />
+                <Tooltip formatter={(v: any) => `৳ ${v}`} cursor={{ fill: 'transparent' }} />
                 <Legend iconType="circle" />
                 <Bar dataKey="sales" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
               </BarChart>
@@ -129,7 +118,7 @@ const DashboardOverview: React.FC = () => {
                   dataKey="value"
                   strokeWidth={0}
                 >
-                  {orderStatusData.map((_, index) => (
+                  {orderStatusData.map((_: any, index: number) => (
                     <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>

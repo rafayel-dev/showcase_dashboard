@@ -1,17 +1,20 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "antd";
-import { BellOutlined } from "@ant-design/icons";
+import { FiBell } from "react-icons/fi";
 import AppButton from "../common/AppButton";
 import AppPopconfirm from "../common/AppPopconfirm";
+import { useGetNotificationsQuery } from "../../RTK/notification/notificationApi";
 
 interface HeaderProps {
   onLogout: () => void;
-  notificationCount: number;
 }
 
-const Header: React.FC<HeaderProps> = ({ onLogout, notificationCount }) => {
+const Header: React.FC<HeaderProps> = ({ onLogout }) => {
   const navigate = useNavigate();
+  const { data: notifications = [] } = useGetNotificationsQuery();
+
+  const notificationCount = notifications.filter(n => !n.read).length;
 
   const handleLogoutClick = () => {
     onLogout();
@@ -25,10 +28,14 @@ const Header: React.FC<HeaderProps> = ({ onLogout, notificationCount }) => {
         <Badge
           className="cursor-pointer"
           count={notificationCount}
-          offset={[-20, 5]}
+          offset={[-8, 8]}
+          size="small"
         >
-          <span onClick={() => navigate("/notifications")}>
-            <BellOutlined style={{ fontSize: "24px", marginRight: "20px" }} />
+          <span
+            onClick={() => navigate("/notifications")}
+            className="p-2 cursor-pointer rounded-full hover:bg-gray-100 transition-colors block"
+          >
+            <FiBell className="text-xl text-gray-600" />
           </span>
         </Badge>
 

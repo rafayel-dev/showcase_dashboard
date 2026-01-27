@@ -1,90 +1,65 @@
 import React, { useState } from "react";
-import { List, Typography, Tabs, Space, Tag, Empty } from "antd";
-import { FiBell, FiCheckCircle, FiInfo, FiBox, FiTruck } from "react-icons/fi";
+import { List, Typography, Tabs, Space, Tag, Empty, Spin } from "antd";
+import { FiBell, FiCheckCircle, FiInfo, FiBox, FiTruck, FiTrash2, FiShoppingBag } from "react-icons/fi";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import AppCard from "../../components/common/AppCard";
 import AppButton from "../../components/common/AppButton";
 import toast from "../../utils/toast";
+import {
+  useGetNotificationsQuery,
+  useMarkAllAsReadMutation,
+  useMarkAsReadMutation,
+  useDeleteNotificationMutation,
+} from "../../RTK/notification/notificationApi";
+import type { Notification } from "../../RTK/notification/notificationApi";
 
 dayjs.extend(relativeTime);
 
 const { Text, Title } = Typography;
 
-interface Notification {
-  id: string;
-  title: string;
-  description: string;
-  timestamp: string;
-  read: boolean;
-  type: "new_product" | "order_update" | "system_alert";
-}
-
-const dummyNotifications: Notification[] = [
-    {
-    id: "1",
-    title: "New Order #ABC457 Received",
-    description: "New order #ABC457 has been received and is being processed.",
-    timestamp: dayjs().subtract(2, "minutes").toISOString(),
-    read: false,
-    type: "order_update",
-  },
-  {
-    id: "2",
-    title: "New Product Added!",
-    description: "A new product 'Wireless Earbuds Pro' has been added to the electronics category.",
-    timestamp: dayjs().subtract(1, "hour").toISOString(),
-    read: false,
-    type: "new_product",
-  },
-  {
-    id: "3",
-    title: "Order #XYZ123 Status Update",
-    description: "Your order #XYZ123 has been shipped and is on its way!",
-    timestamp: dayjs().subtract(3, "hours").toISOString(),
-    read: false,
-    type: "order_update",
-  },
-  {
-    id: "4",
-    title: "System Maintenance Alert",
-    description: "Scheduled system maintenance will occur on Friday at 2:00 AM UTC.",
-    timestamp: dayjs().subtract(1, "day").toISOString(),
-    read: true,
-    type: "system_alert",
-  },
-  {
-    id: "5",
-    title: "Order #ABC456 Payment Confirmed",
-    description: "Payment for order #ABC456 has been successfully processed.",
-    timestamp: dayjs().subtract(2, "days").toISOString(),
-    read: false,
-    type: "order_update",
-  },
-
-];
-
 const NotificationPage: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>(dummyNotifications);
+  const { data: notifications = [], isLoading } = useGetNotificationsQuery();
+  const [markAsRead] = useMarkAsReadMutation();
+  const [markAllAsReadApi] = useMarkAllAsReadMutation();
+  const [deleteNotification] = useDeleteNotificationMutation();
+
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    toast.success("All notifications marked as read!");
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsReadApi().unwrap();
+      toast.success("All notifications marked as read!");
+    } catch (err) {
+      toast.error("Failed to mark all as read");
+    }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markAsRead(id).unwrap();
+    } catch (err) {
+      toast.error("Failed to mark as read");
+    }
   };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteNotification(id).unwrap();
+      toast.success("Notification deleted");
+    } catch (err) {
+      toast.error("Failed to delete notification");
+    }
+  }
 
   const getIcon = (type: Notification["type"]) => {
     switch (type) {
       case "new_product":
         return <FiBox className="text-blue-500 text-xl" />;
+      case "new_order":
+        return <FiShoppingBag className="text-purple-500 text-xl" />;
       case "order_update":
         return <FiTruck className="text-green-500 text-xl" />;
       case "system_alert":
@@ -96,6 +71,14 @@ const NotificationPage: React.FC = () => {
 
   const filteredData =
     filter === "unread" ? notifications.filter((n) => !n.read) : notifications;
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <Spin size="large" />
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -128,7 +111,7 @@ const NotificationPage: React.FC = () => {
               <AppButton
                 type="text"
                 disabled={unreadCount === 0}
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 icon={<FiCheckCircle />}
                 className="text-violet-600 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 border-none"
               >
@@ -154,12 +137,19 @@ const NotificationPage: React.FC = () => {
                       <AppButton
                         type="link"
                         size="small"
-                        onClick={() => markAsRead(item.id)}
+                        onClick={() => handleMarkAsRead(item._id)}
                         className="text-xs"
                       >
                         Mark as read
                       </AppButton>
                     ),
+                    <AppButton
+                      type="text"
+                      danger
+                      size="small"
+                      onClick={() => handleDelete(item._id)}
+                      icon={<FiTrash2 />}
+                    />,
                     <Text type="secondary" className="text-xs min-w-[60px] text-right block">
                       {dayjs(item.timestamp).fromNow()}
                     </Text>,
