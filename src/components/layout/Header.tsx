@@ -13,6 +13,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onLogout }) => {
   const navigate = useNavigate();
   const { data: notifications = [] } = useGetNotificationsQuery();
+  const name = localStorage.getItem("userName") || "Admin";
 
   const notificationCount = notifications.filter(n => !n.read).length;
 
@@ -23,13 +24,12 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
 
   return (
     <header className="flex justify-between items-center p-4 bg-white shadow-lg">
-      <h2 className="text-sm! text-violet-600">Name Here</h2>
+      <h2 className="text-sm! text-violet-600">{name}</h2>
       <div className="flex justify-between items-center gap-2">
         <Badge
-          className="cursor-pointer"
+          className="cursor-pointer mr-2!"
           count={notificationCount}
-          offset={[-8, 8]}
-          size="small"
+          offset={[-10, 6]}
         >
           <span
             onClick={() => navigate("/notifications")}

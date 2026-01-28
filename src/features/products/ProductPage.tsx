@@ -196,7 +196,7 @@ const ProductPage: React.FC = () => {
             onChange={(v) => setEditValue(Number(v))}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            widthClass="w-10!"
+            widthClass="w-16"
           />
         ) : (
           <Space>
@@ -221,7 +221,7 @@ const ProductPage: React.FC = () => {
             onChange={(v) => setEditValue(Number(v))}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            widthClass="w-10!"
+            widthClass="w-14"
           />
         ) : (
           <Space>
@@ -239,31 +239,28 @@ const ProductPage: React.FC = () => {
       title: "Discount",
       dataIndex: "discountValue",
       align: "center",
-      render: (_, record) =>
-        editingId?.id === record.id && editingId.field === "discount" ? (
-          <div className="relative">
-            <DiscountInlineEditor
-              initialValue={{
-                hasDiscount: !!record.hasDiscount,
-                discountType: record.discountType || "percentage",
-                discountValue: record.discountValue || 0,
-                discountRange: (record.discountStartDate && record.discountEndDate)
-                  ? [dayjs(record.discountStartDate), dayjs(record.discountEndDate)]
-                  : undefined
-              }}
-              onSave={(val) => {
-                // Immediate save trigger because the component passes full obj
-                saveDiscount(record.id, val);
-              }}
-              onCancel={cancelEdit}
-            />
-          </div>
-        ) : (
-          <Space>
-            <div className="flex flex-col items-center">
+      render: (_, record) => (
+        <DiscountInlineEditor
+          initialValue={{
+            hasDiscount: Boolean(record.hasDiscount),
+            discountType: record.discountType ?? "percentage",
+            discountValue: record.discountValue ?? 0,
+            discountRange:
+              record.discountStartDate && record.discountEndDate
+                ? [
+                  dayjs(record.discountStartDate),
+                  dayjs(record.discountEndDate),
+                ]
+                : undefined,
+          }}
+          onSave={(val) => saveDiscount(record.id, val)}
+        >
+          <Space align="center" className="w-full justify-center">
+            <div className="flex flex-col items-center leading-tight">
               <Text>
                 {record.hasDiscount
-                  ? `${record.discountValue}${record.discountType === "percentage" ? "%" : "৳"}`
+                  ? `${record.discountValue}${record.discountType === "percentage" ? "%" : "৳"
+                  }`
                   : "-"}
               </Text>
               {record.hasDiscount && record.discountEndDate && (
@@ -279,7 +276,8 @@ const ProductPage: React.FC = () => {
               onClick={() => startEdit(record, "discount")}
             />
           </Space>
-        ),
+        </DiscountInlineEditor>
+      ),
     },
     {
       title: "Status",
@@ -412,7 +410,7 @@ const ProductPage: React.FC = () => {
                     <Image
                       key={idx}
                       src={url.startsWith('/') ? `http://localhost:5000${url}` : url}
-                      className="w-20! h-20! object-cover rounded shadow-xs cursor-pointer border border-gray-100"
+                      className="w-14! h-14! object-cover rounded shadow-xs cursor-pointer border border-gray-100"
                     />
                   ))}
                 </div>

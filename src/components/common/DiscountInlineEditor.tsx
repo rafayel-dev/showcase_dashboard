@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { DatePicker, Switch, ConfigProvider } from "antd";
+import React, { useState, useEffect } from "react";
+import { DatePicker, Switch, ConfigProvider, Popover } from "antd";
 import AppSelect from "./AppSelect";
 import type { Dayjs } from "dayjs";
 import AppButton from "./AppButton";
@@ -24,21 +24,37 @@ export interface DiscountData {
 interface DiscountInlineEditorProps {
     initialValue: DiscountData;
     onSave: (values: DiscountData) => void;
-    onCancel: () => void;
+    children?: React.ReactNode; // The trigger element (e.g. Edit icon)
 }
 
 const DiscountInlineEditor: React.FC<DiscountInlineEditorProps> = ({
     initialValue,
     onSave,
-    onCancel,
+    children,
 }) => {
+    const [open, setOpen] = useState(false);
     const [hasDiscount, setHasDiscount] = useState(initialValue.hasDiscount);
     const [type, setType] = useState<"flat" | "percentage">(initialValue.discountType || "percentage");
     const [val, setVal] = useState<number>(initialValue.discountValue || 0);
     const [range, setRange] = useState<[Dayjs, Dayjs] | undefined>(initialValue.discountRange);
 
-    return (
-        <div className="flex flex-col gap-2 p-2 bg-white border border-gray-200 shadow-lg rounded-lg z-50 absolute right-0 min-w-[280px]">
+    // Reset state when popover opens
+    useEffect(() => {
+        if (open) {
+            setHasDiscount(initialValue.hasDiscount);
+            setType(initialValue.discountType || "percentage");
+            setVal(initialValue.discountValue || 0);
+            setRange(initialValue.discountRange);
+        }
+    }, [open, initialValue]);
+
+    const handleSave = () => {
+        onSave({ hasDiscount, discountType: type, discountValue: val, discountRange: range });
+        setOpen(false);
+    };
+
+    const content = (
+        <div className="flex flex-col gap-2 min-w-[280px]">
             <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500">Active?</span>
                 <Switch
@@ -83,19 +99,32 @@ const DiscountInlineEditor: React.FC<DiscountInlineEditorProps> = ({
                 </>
             )}
 
-            <div className="flex justify-end gap-2 mt-1 border-t border-gray-200 pt-2">
-                <AppButton size="small" onClick={onCancel}>
+            <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-gray-100">
+                <AppButton size="small" onClick={() => setOpen(false)}>
                     Cancel
                 </AppButton>
                 <AppButton
                     type="primary"
                     size="small"
-                    onClick={() => onSave({ hasDiscount, discountType: type, discountValue: val, discountRange: range })}
+                    onClick={handleSave}
                 >
                     Save
                 </AppButton>
             </div>
         </div>
+    );
+
+    return (
+        <Popover
+            content={content}
+            title="Edit Discount"
+            trigger="click"
+            open={open}
+            onOpenChange={setOpen}
+            placement="bottom"
+        >
+            {children || <span className="cursor-pointer text-blue-500">Edit</span>}
+        </Popover>
     );
 };
 

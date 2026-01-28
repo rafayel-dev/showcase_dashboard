@@ -9,7 +9,9 @@ export const orderApi = api.injectEndpoints({
         return response.map((order: any) => ({
           key: order._id,
           id: order._id,
-          orderId: order.orderId || `#${order._id.substring(order._id.length - 6).toUpperCase()}`,
+          orderId:
+            order.orderId ||
+            `#${order._id.substring(order._id.length - 6).toUpperCase()}`,
           customerName: order.customerInfo?.name || order.user?.name || "Guest",
           customerEmail: order.customerInfo?.email || order.user?.email || "",
           customerDistrict: order.shippingAddress?.city || "",
@@ -21,16 +23,17 @@ export const orderApi = api.injectEndpoints({
           paymentStatus: order.isPaid ? "Paid" : "Unpaid",
           customerMobile: order.customerInfo?.phone || "",
           courier: order.courier,
-          deliveryCharge: 60, // Default for now
-          items: order.orderItems?.map((item: any) => ({
-            productId: item.product?._id || item.product,
-            productName: item.name,
-            sku: item.product?.sku || "—",
-            quantity: item.qty,
-            price: item.price,
-            size: item.size ? [item.size] : [],
-            color: item.color ? [item.color] : [],
-          })) || [],
+          deliveryCharge: order.shippingPrice || 60,
+          items:
+            order.orderItems?.map((item: any) => ({
+              productId: item.product?._id || item.product,
+              productName: item.name,
+              sku: item.product?.sku || "—",
+              quantity: item.qty,
+              price: item.price,
+              size: item.size ? [item.size] : [],
+              color: item.color ? [item.color] : [],
+            })) || [],
         }));
       },
       providesTags: ["Order"],
@@ -40,12 +43,12 @@ export const orderApi = api.injectEndpoints({
         const body: any = { ...patch };
         // Map frontend paymentStatus to backend isPaid
         if (patch.paymentStatus) {
-            body.isPaid = patch.paymentStatus === "Paid";
+          body.isPaid = patch.paymentStatus === "Paid";
         }
         return {
-            url: `/api/orders/${id}`,
-            method: "PUT",
-            body: body,
+          url: `/api/orders/${id}`,
+          method: "PUT",
+          body: body,
         };
       },
       invalidatesTags: ["Order"],

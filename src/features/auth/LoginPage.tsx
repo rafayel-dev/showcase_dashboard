@@ -24,8 +24,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       const response = await login({ email, password }).unwrap();
       if (response.token) {
         localStorage.setItem("token", response.token);
+        localStorage.setItem("userName", response.name); // Store name
       }
-      onLogin(); // Update global auth state (if any)
+      onLogin();
       navigate("/");
       toast.success("Welcome back! 👋");
     } catch (err: any) {

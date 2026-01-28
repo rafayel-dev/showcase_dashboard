@@ -153,7 +153,7 @@ const OrderPage: React.FC = () => {
             onSave={saveEdit}
             onCancel={cancelEdit}
             options={["Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map(v => ({ value: v, label: v }))}
-            widthClass="w-26"
+            widthClass="w-28"
           />
         ) : (
           <Space>
@@ -296,10 +296,9 @@ const OrderPage: React.FC = () => {
                   <Descriptions column={1} size="small">
                     <Descriptions.Item label="Order ID">{viewOrder.orderId}</Descriptions.Item>
                     <Descriptions.Item label="Order Status"><Tag color={statusColor(viewOrder.status)}>{viewOrder.status}</Tag></Descriptions.Item>
-                    <Descriptions.Item label="Payment Method">{viewOrder.paymentMethod}</Descriptions.Item>
+                    <Descriptions.Item label="Payment Method">{viewOrder.paymentMethod.toUpperCase()}</Descriptions.Item>
                     <Descriptions.Item label="Payment Status"><Tag color={paymentStatusColor(viewOrder.paymentStatus)}>{viewOrder.paymentStatus}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Courier">{viewOrder.courier}</Descriptions.Item>
-                    <Descriptions.Item label="Total">৳ {viewOrder.totalAmount}</Descriptions.Item>
                   </Descriptions>
                 </AppCard>
               </Col>
@@ -312,7 +311,7 @@ const OrderPage: React.FC = () => {
                     pagination={false}
                     columns={[
                       { title: "Product Name", dataIndex: "productName", render: v => <Text strong>{v}</Text> },
-                      { title: "SKU", dataIndex: "sku", render: v => <Text type="secondary">{v || "—"}</Text> },
+                      { title: "SKU", dataIndex: "sku", render: v => <Text>{v || "—"}</Text> },
                       { title: "Size", dataIndex: "size", align: "center", render: s => s?.length ? s.join(", ") : "—" },
                       { title: "Color", dataIndex: "color", align: "center", render: c => c?.length ? c.join(", ") : "—" },
                       { title: "Price", dataIndex: "price", align: "right", render: v => `৳ ${v}` },
@@ -322,6 +321,18 @@ const OrderPage: React.FC = () => {
                     dataSource={viewOrder.items}
                     rowKey={(r) => r.productId}
                   />
+                </AppCard>
+              </Col>
+            </Row>
+            <Row className="mt-4" justify="end">
+              <Col span={6}>
+                <AppCard>
+                  <Space>
+                    <Text>Delivery Charge: ৳ {viewOrder.deliveryCharge}</Text>
+                  </Space>
+                  <Space>
+                    <Text strong style={{ fontSize: "16px" }}>Grand Total: ৳ {viewOrder.totalAmount}</Text>
+                  </Space>
                 </AppCard>
               </Col>
             </Row>
