@@ -25,7 +25,24 @@ export const settingApi = api.injectEndpoints({
         { type: "Setting" as const, id: key },
       ],
     }),
+    getAbout: builder.query<any, void>({
+      query: () => "/api/settings/about",
+      providesTags: ["Setting"],
+    }),
+    updateAbout: builder.mutation<any, any>({
+      query: (data) => ({
+        url: "/api/settings/about",
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Setting"],
+    }),
   }),
 });
 
-export const { useGetSettingQuery, useUpdateSettingMutation } = settingApi;
+export const {
+  useGetSettingQuery,
+  useUpdateSettingMutation,
+  useGetAboutQuery,
+  useUpdateAboutMutation,
+} = settingApi;

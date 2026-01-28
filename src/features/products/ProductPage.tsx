@@ -150,17 +150,37 @@ const ProductPage: React.FC = () => {
   // ✅ Filter logic
   const filteredProducts = products.filter((p) => {
     const isPublished = p.isPublished !== false; // Show only published products
-    const matchSearch = p.productName?.toLowerCase().includes(searchText.toLowerCase()); // Added optional chaining
+    const lowerSearch = searchText.toLowerCase();
+    const matchSearch =
+      p.productName?.toLowerCase().includes(lowerSearch) ||
+      p.sku?.toLowerCase().includes(lowerSearch);
     const matchCategory = categoryFilter ? p.category === categoryFilter : true;
     return isPublished && matchSearch && matchCategory;
   });
 
   const columns: TableProps<Product>["columns"] = [
     {
+      title: "Image",
+      dataIndex: "imageUrl",
+      render: (url) => (
+        <img
+          src={
+            url?.startsWith("/")
+              ? `http://localhost:5000${url}`
+              : url || "https://placehold.co/40x40"
+          }
+          alt="Product"
+          className="w-10 h-10 object-cover rounded border border-gray-200"
+        />
+      ),
+    },
+    {
       title: "Product",
       dataIndex: "productName",
       render: (text, record) => (
-        <Text strong className={record.stock < 5 ? "text-red-600" : ""}>{text}</Text>
+        <Text strong className={record.stock < 5 ? "text-red-600" : ""}>
+          {text}
+        </Text>
       ),
     },
     { title: "Category", dataIndex: "category" },

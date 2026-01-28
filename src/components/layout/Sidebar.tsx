@@ -12,6 +12,7 @@ import {
   FiArchive,
   FiInfo,
   FiShield,
+  FiImage,
 } from "react-icons/fi";
 
 const MENU_ITEMS = [
@@ -21,6 +22,7 @@ const MENU_ITEMS = [
   { path: "/add-product", label: "Add Product", icon: FiPlusSquare },
   { path: "/drafts-product", label: "Draft Products", icon: FiArchive },
   { path: "/categories", label: "Categories", icon: FiLayers },
+  { path: "/sliders", label: "Sliders", icon: FiImage },
   { path: "/coupons", label: "Coupons", icon: FiGift },
   { path: "/admins", label: "Admins", icon: FiUsers },
 ];

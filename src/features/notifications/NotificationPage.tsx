@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { List, Typography, Tabs, Space, Tag, Empty, Spin } from "antd";
-import { FiBell, FiCheckCircle, FiInfo, FiBox, FiTruck, FiTrash2, FiShoppingBag } from "react-icons/fi";
+import { FiBell, FiCheckCircle, FiInfo, FiBox, FiTruck, FiTrash2, FiShoppingBag, FiRefreshCw } from "react-icons/fi";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import AppCard from "../../components/common/AppCard";
@@ -19,7 +19,7 @@ dayjs.extend(relativeTime);
 const { Text, Title } = Typography;
 
 const NotificationPage: React.FC = () => {
-  const { data: notifications = [], isLoading } = useGetNotificationsQuery();
+  const { data: notifications = [], isLoading, refetch } = useGetNotificationsQuery();
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsReadApi] = useMarkAllAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
@@ -99,6 +99,13 @@ const NotificationPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              <AppButton
+                type="text"
+                icon={<FiRefreshCw />}
+                onClick={() => refetch()}
+                className="text-gray-500 hover:text-violet-600"
+                title="Reload"
+              />
               <Tabs
                 activeKey={filter}
                 onChange={(k) => setFilter(k as "all" | "unread")}
@@ -125,6 +132,10 @@ const NotificationPage: React.FC = () => {
             <List
               itemLayout="horizontal"
               dataSource={filteredData}
+              pagination={{
+                pageSize: 8,
+                align: "center",
+              }}
               locale={{
                 emptyText: <Empty description="No notifications found" image={Empty.PRESENTED_IMAGE_SIMPLE} />
               }}
@@ -157,7 +168,7 @@ const NotificationPage: React.FC = () => {
                 >
                   <List.Item.Meta
                     avatar={
-                      <div className={`p-3 rounded-full ${!item.read ? "bg-white shadow-sm" : "bg-gray-100"}`}>
+                      <div className={`p-3 ml-2! rounded-full ${!item.read ? "bg-white shadow-sm" : "bg-gray-100"}`}>
                         {getIcon(item.type)}
                       </div>
                     }

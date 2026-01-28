@@ -512,6 +512,7 @@ const AddProductPage: React.FC = () => {
                 <Title level={4}>Product Images</Title>
 
                 <Upload
+                  accept="image/*"
                   listType="picture-card"
                   beforeUpload={() => false}
                   multiple

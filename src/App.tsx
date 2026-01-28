@@ -22,6 +22,7 @@ const TermsPage = React.lazy(() => import("./features/setting/TermsPage"));
 const AboutPage = React.lazy(() => import("./features/setting/AboutPage"));
 const NotificationPage = React.lazy(() => import("./features/notifications/NotificationPage"));
 const CouponPage = React.lazy(() => import("./features/coupons/CouponPage"));
+const SliderPage = React.lazy(() => import("./features/slider/SliderPage"));
 
 const Loading: React.FC = () => (
   <div className="flex justify-center items-center h-screen bg-gray-50">
@@ -96,6 +97,7 @@ const App: React.FC = () => {
           <Route path="terms" element={<Suspense fallback={<Loading />}><TermsPage /></Suspense>} />
           <Route path="about" element={<Suspense fallback={<Loading />}><AboutPage /></Suspense>} />
           <Route path="notifications" element={<Suspense fallback={<Loading />}><NotificationPage /></Suspense>} />
+          <Route path="sliders" element={<Suspense fallback={<Loading />}><SliderPage /></Suspense>} />
         </Route>
 
         <Route path="*" element={<ErrorFallbackPage />} />
