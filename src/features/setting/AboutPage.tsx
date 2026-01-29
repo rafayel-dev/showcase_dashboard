@@ -7,6 +7,7 @@ import AppInput from "../../components/common/AppInput";
 import toast from "../../utils/toast";
 import { useGetAboutQuery, useUpdateAboutMutation } from "../../RTK/setting/settingApi";
 import AppSpin from "../../components/common/AppSpin";
+import { BASE_URL } from "@/RTK/api";
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -46,7 +47,7 @@ const AboutPage: React.FC = () => {
           uid: '-1',
           name: 'cover.png',
           status: 'done',
-          url: aboutData.coverImage.startsWith('http') ? aboutData.coverImage : `http://localhost:5000${aboutData.coverImage}`
+          url: aboutData.coverImage.startsWith('http') ? aboutData.coverImage : `${BASE_URL}${aboutData.coverImage}`
         }]);
       }
 
@@ -71,7 +72,7 @@ const AboutPage: React.FC = () => {
     const formData = new FormData();
     formData.append('image', file);
     try {
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${BASE_URL}/api/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -79,7 +80,7 @@ const AboutPage: React.FC = () => {
       if (data.filePath || data.image) {
         const url = data.filePath || data.image;
         setCoverImage(url);
-        setFileList([{ uid: file.uid, name: file.name, status: 'done', url: url.startsWith('http') ? url : `http://localhost:5000${url}` }]);
+        setFileList([{ uid: file.uid, name: file.name, status: 'done', url: url.startsWith('http') ? url : `${BASE_URL}${url}` }]);
         onSuccess("Ok");
       }
     } catch {
@@ -91,7 +92,7 @@ const AboutPage: React.FC = () => {
     const formData = new FormData();
     formData.append('image', file);
     try {
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${BASE_URL}/api/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -189,7 +190,7 @@ const AboutPage: React.FC = () => {
                       >
                         {member.image ? (
                           <img
-                            src={member.image.startsWith('http') ? member.image : `http://localhost:5000${member.image}`}
+                            src={member.image.startsWith('http') ? member.image : `${BASE_URL}${member.image}`}
                             alt="Team"
                             className="w-24 h-24 rounded-full object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-all duration-300"
                           />

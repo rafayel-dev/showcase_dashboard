@@ -24,6 +24,7 @@ import {
   FieldTimeOutlined,
   CloseCircleOutlined,
   DownloadOutlined,
+  RollbackOutlined,
 } from "@ant-design/icons";
 import { FiEdit } from "react-icons/fi";
 import AppButton from "../../components/common/AppButton";
@@ -36,10 +37,23 @@ import StatsCard from "../../components/common/StatsCard";
 const { Title, Text } = Typography;
 
 const OrderPage: React.FC = () => {
-  const { data: orders = [], isLoading: loading } = useGetOrdersQuery(undefined, {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const { data: ordersData, isLoading: loading } = useGetOrdersQuery({ page, limit: pageSize }, {
     pollingInterval: 30000,
     refetchOnMountOrArgChange: true
   });
+
+  const orders = ordersData?.orders || [];
+  const totalOrders = ordersData?.total || 0;
+  const pendingOrders = ordersData?.pending || 0;
+  const processingOrders = ordersData?.processing || 0;
+  const shippedOrders = ordersData?.shipped || 0;
+  const deliveredOrders = ordersData?.delivered || 0;
+  const cancelledOrders = ordersData?.cancelled || 0;
+  const returnedOrders = ordersData?.returned || 0;
+
   const [updateOrder] = useUpdateOrderMutation();
 
   const [activeTab, setActiveTab] = useState<string>("All");
@@ -112,11 +126,14 @@ const OrderPage: React.FC = () => {
       Shipped: "geekblue",
       Delivered: "success",
       Cancelled: "error",
+      Returned: "purple",
     })[status] || "default";
 
   const paymentStatusColor = (status: Order["paymentStatus"]) =>
-    ({ Paid: "success", Unpaid: "error" })[status] || "default";
+    ({ Paid: "success", Unpaid: "error", Refunded: "purple" })[status] || "default";
 
+  // Note: Client-side filtering is limited to current page. 
+  // For full support, backend filtering parameters should be added.
   const filteredOrders = useMemo(() => {
     if (activeTab === "All") return orders;
     return orders.filter((o) => o.status === activeTab);
@@ -152,8 +169,8 @@ const OrderPage: React.FC = () => {
             onChange={setEditValue}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            options={["Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map(v => ({ value: v, label: v }))}
-            widthClass="w-28"
+            options={["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Returned"].map(v => ({ value: v, label: v }))}
+            widthClass="w-26"
           />
         ) : (
           <Space>
@@ -195,7 +212,7 @@ const OrderPage: React.FC = () => {
             onChange={setEditValue}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            options={["Paid", "Unpaid"].map(v => ({ value: v, label: v }))}
+            options={["Paid", "Unpaid", "Refunded"].map(v => ({ value: v, label: v }))}
             widthClass="w-20"
           />
         ) : (
@@ -230,28 +247,48 @@ const OrderPage: React.FC = () => {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <Title level={3}>📦 Order Management</Title>
-      <Row gutter={16} className="mt-4">
+      <Row
+        gutter={10}
+        className="mt-4! overflow-x-hidden!"
+        style={{
+          flexWrap: "nowrap",
+          overflowX: "auto",
+        }}
+      >
         {[
-          { title: "Total Orders", value: orders.length, icon: <ShoppingCartOutlined className="text-violet-500! mr-2!" /> },
-          { title: "Pending", value: orders.filter(o => o.status === "Pending").length, icon: <HistoryOutlined className="text-[#f59e0b]! mr-2!" /> },
-          { title: "Processing", value: orders.filter(o => o.status === "Processing").length, icon: <FieldTimeOutlined className="text-[#3b82f6]! mr-2!" /> },
-          { title: "Shipped", value: orders.filter(o => o.status === "Shipped").length, icon: <TruckOutlined className="text-[#6366f1]! mr-2!" /> },
-          { title: "Delivered", value: orders.filter(o => o.status === "Delivered").length, icon: <CheckCircleOutlined className="text-[#22c55e]! mr-2!" /> },
-          { title: "Cancelled", value: orders.filter(o => o.status === "Cancelled").length, icon: <CloseCircleOutlined className="text-[#ef4444]! mr-2!" /> }
-        ].map((stat, i) => (
-          <Col md={4} key={i}>
-            <StatsCard title={stat.title} value={stat.value} prefix={stat.icon} />
+          { title: "Total Orders", value: totalOrders, icon: <ShoppingCartOutlined className="text-violet-500! mr-2!" /> },
+          { title: "Pending", value: pendingOrders, icon: <HistoryOutlined className="text-amber-500! mr-2!" /> },
+          { title: "Processing", value: processingOrders, icon: <FieldTimeOutlined className="text-blue-500! mr-2!" /> },
+          { title: "Shipped", value: shippedOrders, icon: <TruckOutlined className="text-indigo-500! mr-2!" /> },
+          { title: "Delivered", value: deliveredOrders, icon: <CheckCircleOutlined className="text-green-500! mr-2!" /> },
+          { title: "Cancelled", value: cancelledOrders, icon: <CloseCircleOutlined className="text-red-500! mr-2!" /> },
+          { title: "Returned", value: returnedOrders, icon: <RollbackOutlined className="text-purple-500! mr-2!" /> },
+        ].map((stat) => (
+          <Col
+            key={stat.title}
+            flex="0 0 14.2857%"
+            style={{
+              minWidth: 160,
+              maxWidth: 220,
+            }}
+          >
+            <StatsCard
+              title={stat.title}
+              value={stat.value}
+              prefix={stat.icon}
+            />
           </Col>
         ))}
       </Row>
+
 
       <AppCard className="mt-6!">
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
-          items={["All", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map((k) => ({
+          items={["All", "Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Returned"].map((k) => ({
             key: k,
-            label: `${k} (${k === "All" ? orders.length : orders.filter((o) => o.status === k).length})`,
+            label: k,
           }))}
         />
 
@@ -259,9 +296,9 @@ const OrderPage: React.FC = () => {
           {selectedRowKeys.length > 0 && (
             <div className="mb-4 flex items-center space-x-2!">
               <Text strong>Update:</Text>
-              <AppSelect placeholder="Status" className="w-[120px]" onChange={setBulkUpdateStatus} value={bulkUpdateStatus} allowClear options={["Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map(v => ({ value: v, label: v }))} />
+              <AppSelect placeholder="Status" className="w-[120px]" onChange={setBulkUpdateStatus} value={bulkUpdateStatus} allowClear options={["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Returned"].map(v => ({ value: v, label: v }))} />
               <AppSelect placeholder="Courier" className="w-[120px]" onChange={setBulkUpdateCourier} value={bulkUpdateCourier} allowClear options={["Pathao", "Steadfast", "RedX"].map(v => ({ value: v, label: v }))} />
-              <AppSelect placeholder="Payment" className="w-[140px]" onChange={setBulkUpdatePaymentStatus} value={bulkUpdatePaymentStatus} allowClear options={["Paid", "Unpaid"].map(v => ({ value: v, label: v }))} />
+              <AppSelect placeholder="Payment" className="w-[140px]" onChange={setBulkUpdatePaymentStatus} value={bulkUpdatePaymentStatus} allowClear options={["Paid", "Unpaid", "Refunded"].map(v => ({ value: v, label: v }))} />
               <AppButton type="primary" onClick={handleBulkUpdate}>Apply</AppButton>
             </div>
           )}
@@ -271,7 +308,19 @@ const OrderPage: React.FC = () => {
             rowClassName={(r) => r.status === "Pending" && isSLABreached(r.orderDate) ? "bg-red-50" : ""}
             columns={columns}
             dataSource={filteredOrders}
-            pagination={{ pageSize: 10 }}
+            pagination={{
+              current: page,
+              pageSize: pageSize,
+              total: totalOrders,
+              showSizeChanger: true,
+              pageSizeOptions: ["10", "20", "50", "100"],
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} orders`,
+              position: ["bottomRight"],
+              onChange: (p, ps) => {
+                setPage(p);
+                setPageSize(ps);
+              }
+            }}
           />
         </Spin>
       </AppCard>
@@ -296,9 +345,10 @@ const OrderPage: React.FC = () => {
                   <Descriptions column={1} size="small">
                     <Descriptions.Item label="Order ID">{viewOrder.orderId}</Descriptions.Item>
                     <Descriptions.Item label="Order Status"><Tag color={statusColor(viewOrder.status)}>{viewOrder.status}</Tag></Descriptions.Item>
-                    <Descriptions.Item label="Payment Method">{viewOrder.paymentMethod.toUpperCase()}</Descriptions.Item>
+                    <Descriptions.Item label="Payment Method">{viewOrder.paymentMethod}</Descriptions.Item>
                     <Descriptions.Item label="Payment Status"><Tag color={paymentStatusColor(viewOrder.paymentStatus)}>{viewOrder.paymentStatus}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Courier">{viewOrder.courier}</Descriptions.Item>
+                    <Descriptions.Item label="Total">৳ {viewOrder.totalAmount}</Descriptions.Item>
                   </Descriptions>
                 </AppCard>
               </Col>
@@ -311,7 +361,7 @@ const OrderPage: React.FC = () => {
                     pagination={false}
                     columns={[
                       { title: "Product Name", dataIndex: "productName", render: v => <Text strong>{v}</Text> },
-                      { title: "SKU", dataIndex: "sku", render: v => <Text>{v || "—"}</Text> },
+                      { title: "SKU", dataIndex: "sku", render: v => <Text type="secondary">{v || "—"}</Text> },
                       { title: "Size", dataIndex: "size", align: "center", render: s => s?.length ? s.join(", ") : "—" },
                       { title: "Color", dataIndex: "color", align: "center", render: c => c?.length ? c.join(", ") : "—" },
                       { title: "Price", dataIndex: "price", align: "right", render: v => `৳ ${v}` },
@@ -321,18 +371,6 @@ const OrderPage: React.FC = () => {
                     dataSource={viewOrder.items}
                     rowKey={(r) => r.productId}
                   />
-                </AppCard>
-              </Col>
-            </Row>
-            <Row className="mt-4" justify="end">
-              <Col span={6}>
-                <AppCard>
-                  <Space>
-                    <Text>Delivery Charge: ৳ {viewOrder.deliveryCharge}</Text>
-                  </Space>
-                  <Space>
-                    <Text strong style={{ fontSize: "16px" }}>Grand Total: ৳ {viewOrder.totalAmount}</Text>
-                  </Space>
                 </AppCard>
               </Col>
             </Row>

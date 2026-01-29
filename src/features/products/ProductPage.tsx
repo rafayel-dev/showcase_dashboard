@@ -19,6 +19,7 @@ import {
   FiGrid,
   FiList,
 } from "react-icons/fi";
+import { BASE_URL } from "../../RTK/api";
 import type { TableProps } from "antd";
 import { useNavigate } from "react-router-dom";
 import type { Product } from "../../types";
@@ -45,8 +46,18 @@ const { Option } = AppSelect;
 const ProductPage: React.FC = () => {
   const navigate = useNavigate();
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   // RTK Query Hooks
-  const { data: products = [], isLoading: loading } = useGetProductsQuery();
+  const { data: productsData, isLoading: loading } = useGetProductsQuery({ page, limit: pageSize }, {
+    refetchOnMountOrArgChange: true
+  });
+
+  const products = productsData?.products || [];
+  const totalProducts = productsData?.total || 0;
+
   const [updateProduct] = useUpdateProductMutation();
   const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
@@ -147,7 +158,7 @@ const ProductPage: React.FC = () => {
     return colors[status] || "default";
   };
 
-  // ✅ Filter logic
+  // ✅ Filter logic (Client-side, on current page only)
   const filteredProducts = products.filter((p) => {
     const isPublished = p.isPublished !== false; // Show only published products
     const lowerSearch = searchText.toLowerCase();
@@ -165,9 +176,9 @@ const ProductPage: React.FC = () => {
       render: (url) => (
         <img
           src={
-            url?.startsWith("/")
-              ? `http://localhost:5000${url}`
-              : url || "https://placehold.co/40x40"
+            url?.startsWith("http")
+              ? url
+              : url ? `${BASE_URL}${url}` : "https://placehold.co/40x40"
           }
           alt="Product"
           className="w-10 h-10 object-cover rounded border border-gray-200"
@@ -310,7 +321,7 @@ const ProductPage: React.FC = () => {
     },
   ];
 
-  // Derive simple unique categories for filter
+  // Derive simple unique categories for filter (CURRENT PAGE ONLY)
   const uniqueCategories = products.length
     ? [...new Set(products.map((p) => p.category))].filter(Boolean)
     : [];
@@ -344,7 +355,7 @@ const ProductPage: React.FC = () => {
         {/* 🔍 Filters */}
         <Space className="mb-4">
           <Input.Search
-            placeholder="Search product"
+            placeholder="Search product (this page)"
             allowClear
             style={{ width: 220 }}
             onChange={(e) => setSearchText(e.target.value)}
@@ -368,20 +379,49 @@ const ProductPage: React.FC = () => {
               columns={columns}
               dataSource={filteredProducts}
               rowKey="id"
-              pagination={{ pageSize: 10 }}
+              pagination={{
+                current: page,
+                pageSize: pageSize,
+                total: totalProducts,
+                showSizeChanger: true,
+                pageSizeOptions: ["10", "20", "50", "100"],
+                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} products`,
+                onChange: (p, ps) => {
+                  setPage(p);
+                  setPageSize(ps);
+                },
+                position: ["bottomRight"]
+              }}
               rowClassName={(record) => (record.stock < 5 ? "bg-red-50" : "")}
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredProducts.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  onView={() => setViewing(p)}
-                  onEdit={() => navigate(`/edit-product/${p.id}`)}
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredProducts.map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    onView={() => setViewing(p)}
+                    onEdit={() => navigate(`/edit-product/${p.id}`)}
+                  />
+                ))}
+              </div>
+              <Row justify="center" className="mt-6">
+                <Table
+                  // Hidden table just for pagination controls when in card view - or we can use AntD Pagination directly
+                  // Using AntD Pagination component is cleaner for Grid view
+                  className="hidden"
                 />
-              ))}
-            </div>
+                <div className="flex justify-center w-full mt-4">
+                  {/* Simplified Pagination for Card View */}
+                  <Space>
+                    <AppButton disabled={page === 1} onClick={() => setPage(p => p - 1)}>&lt; Prev</AppButton>
+                    <Text>Page {page} of {Math.ceil(totalProducts / pageSize)}</Text>
+                    <AppButton disabled={page >= Math.ceil(totalProducts / pageSize)} onClick={() => setPage(p => p + 1)}>Next &gt;</AppButton>
+                  </Space>
+                </div>
+              </Row>
+            </>
           )}
         </AppSpin>
       </AppCard>
@@ -400,7 +440,7 @@ const ProductPage: React.FC = () => {
             <Col xs={24} md={10}>
               <div className="mb-4">
                 <Image
-                  src={viewing.imageUrl?.startsWith('/') ? `http://localhost:5000${viewing.imageUrl}` : viewing.imageUrl || "https://placehold.co/600x600?text=No+Image"}
+                  src={viewing.imageUrl?.startsWith("http") ? viewing.imageUrl : viewing.imageUrl ? `${BASE_URL}${viewing.imageUrl}` : "https://placehold.co/600x600?text=No+Image"}
                   className="rounded-lg shadow-sm w-full! h-auto object-cover border border-gray-100"
                 />
               </div>
@@ -409,7 +449,7 @@ const ProductPage: React.FC = () => {
                   {viewing.imageUrls?.map((url, idx) => (
                     <Image
                       key={idx}
-                      src={url.startsWith('/') ? `http://localhost:5000${url}` : url}
+                      src={url.startsWith('/') ? `${BASE_URL}${url}` : url}
                       className="w-14! h-14! object-cover rounded shadow-xs cursor-pointer border border-gray-100"
                     />
                   ))}

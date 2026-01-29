@@ -21,8 +21,11 @@ const { Title, Text } = Typography;
 
 const DraftPage: React.FC = () => {
   const navigate = useNavigate();
-  // Use RTK Query
-  const { data: products = [], isLoading: loading } = useGetProductsQuery(undefined);
+  // Use RTK Query - fetching a reasonably large batch to find drafts, 
+  // though backend filtering would be ideal later.
+  const { data: productsData, isLoading: loading } = useGetProductsQuery({ page: 1, limit: 100 });
+
+  const products = productsData?.products || [];
   const [updateProduct] = useUpdateProductMutation();
 
   // Local state for table data not strictly needed unless filtering, 

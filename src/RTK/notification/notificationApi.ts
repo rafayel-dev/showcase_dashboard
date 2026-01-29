@@ -18,7 +18,7 @@ export const notificationApi = api.injectEndpoints({
       transformResponse: (response: any[]) => {
         return response.map((n) => ({
           ...n,
-          timestamp: n.createdAt, // Map backend createdAt to timestamp expected by UI component (or I update UI component)
+          timestamp: n.createdAt,
         }));
       },
     }),

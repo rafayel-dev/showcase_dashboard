@@ -3,10 +3,24 @@ import type { Order } from "../../types";
 
 export const orderApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getOrders: builder.query<Order[], void>({
-      query: () => "/api/orders",
-      transformResponse: (response: any[]) => {
-        return response.map((order: any) => ({
+    getOrders: builder.query<
+      {
+        orders: Order[];
+        page: number;
+        pages: number;
+        total: number;
+        pending: number;
+        processing: number;
+        shipped: number;
+        delivered: number;
+        returned: number;
+        cancelled: number;
+      },
+      { page: number; limit: number }
+    >({
+      query: ({ page, limit }) => `/api/orders?page=${page}&limit=${limit}`,
+      transformResponse: (response: any) => {
+        const mappedOrders = response.orders.map((order: any) => ({
           key: order._id,
           id: order._id,
           orderId:
@@ -20,7 +34,8 @@ export const orderApi = api.injectEndpoints({
           totalAmount: order.totalPrice,
           shippingAddress: order.shippingAddress?.address || "",
           paymentMethod: order.paymentMethod,
-          paymentStatus: order.isPaid ? "Paid" : "Unpaid",
+          paymentStatus:
+            order.paymentStatus || (order.isPaid ? "Paid" : "Unpaid"),
           customerMobile: order.customerInfo?.phone || "",
           courier: order.courier,
           deliveryCharge: order.shippingPrice || 60,
@@ -35,6 +50,18 @@ export const orderApi = api.injectEndpoints({
               color: item.color ? [item.color] : [],
             })) || [],
         }));
+        return {
+          orders: mappedOrders,
+          page: response.page,
+          pages: response.pages,
+          total: response.total,
+          pending: response.pending,
+          processing: response.processing,
+          shipped: response.shipped,
+          delivered: response.delivered,
+          returned: response.returned,
+          cancelled: response.cancelled,
+        };
       },
       providesTags: ["Order"],
     }),

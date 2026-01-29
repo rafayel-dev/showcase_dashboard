@@ -30,10 +30,12 @@ const DashboardOverview: React.FC = () => {
   const orderStatusData = statsData?.orderStatusData || [];
   const PIE_COLORS = [
     "#8B5CF6",
+    "#ef23d3",
     "#3b82f6",
     "#f59e0b",
     "#ef4444",
     "#9ca3af",
+    
 
   ];
 

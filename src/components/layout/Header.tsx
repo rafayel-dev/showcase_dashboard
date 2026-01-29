@@ -12,7 +12,9 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onLogout }) => {
   const navigate = useNavigate();
-  const { data: notifications = [] } = useGetNotificationsQuery();
+  const { data: notifications = [] } = useGetNotificationsQuery(undefined, {
+    pollingInterval: 30000,
+  });
   const name = localStorage.getItem("userName") || "Admin";
 
   const notificationCount = notifications.filter(n => !n.read).length;

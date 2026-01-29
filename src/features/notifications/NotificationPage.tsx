@@ -19,7 +19,10 @@ dayjs.extend(relativeTime);
 const { Text, Title } = Typography;
 
 const NotificationPage: React.FC = () => {
-  const { data: notifications = [], isLoading, refetch } = useGetNotificationsQuery();
+  const { data: notifications = [], isLoading, refetch } = useGetNotificationsQuery(undefined, {
+    pollingInterval: 30000,
+    refetchOnMountOrArgChange: true
+  });
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsReadApi] = useMarkAllAsReadMutation();
   const [deleteNotification] = useDeleteNotificationMutation();
@@ -133,8 +136,12 @@ const NotificationPage: React.FC = () => {
               itemLayout="horizontal"
               dataSource={filteredData}
               pagination={{
-                pageSize: 8,
+                pageSize: 10,
                 align: "center",
+                showSizeChanger: false,
+                pageSizeOptions: ["10", "20", "50", "100"],
+                showQuickJumper: false,
+                showTotal: (total) => `Total ${total} notifications`,
               }}
               locale={{
                 emptyText: <Empty description="No notifications found" image={Empty.PRESENTED_IMAGE_SIMPLE} />

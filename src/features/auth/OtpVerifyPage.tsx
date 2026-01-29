@@ -33,11 +33,22 @@ const OtpVerifyPage: React.FC = () => {
         }
     };
 
+    const [timer, setTimer] = useState(30);
+
+    React.useEffect(() => {
+        let interval: any;
+        if (timer > 0) {
+            interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+        }
+        return () => clearInterval(interval);
+    }, [timer]);
+
     const handleResend = async () => {
         if (!email) return;
         try {
             await forgotPassword({ email }).unwrap();
             toast.success("Code resent successfully!");
+            setTimer(30);
         } catch (err) {
             toast.error("Failed to resend code.");
         }
@@ -139,10 +150,10 @@ const OtpVerifyPage: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={handleResend}
-                                        disabled={isResending}
+                                        disabled={isResending || timer > 0}
                                         className="text-violet-600 font-semibold hover:underline bg-transparent border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {isResending ? "Resending..." : "Click to resend"}
+                                        {isResending ? "Resending..." : timer > 0 ? `Resend in ${timer}s` : "Click to resend"}
                                     </button>
                                 </Text>
                             </div>

@@ -12,6 +12,7 @@ import AppPopconfirm from "../../components/common/AppPopconfirm";
 import AppSpin from "../../components/common/AppSpin";
 import PageHeader from "../../components/common/PageHeader";
 import toast from "../../utils/toast";
+import { BASE_URL } from '@/RTK/api';
 
 const { Text } = Typography;
 
@@ -44,7 +45,7 @@ const SliderPage: React.FC = () => {
                     uid: '-1',
                     name: 'image.png',
                     status: 'done',
-                    url: record.image.startsWith('http') ? record.image : `http://localhost:5000${record.image}`,
+                    url: record.image.startsWith('http') ? record.image : `${BASE_URL}${record.image}`,
                 }
             ]);
         } else {
@@ -71,7 +72,7 @@ const SliderPage: React.FC = () => {
                 const formData = new FormData();
                 formData.append('image', fileList[0].originFileObj);
 
-                const res = await fetch('http://localhost:5000/api/upload', {
+                const res = await fetch(`${BASE_URL}/api/upload`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -111,7 +112,7 @@ const SliderPage: React.FC = () => {
             key: 'image',
             render: (image: string) => (
                 <img
-                    src={image?.startsWith('http') ? image : `http://localhost:5000${image}`}
+                    src={image?.startsWith('http') ? image : `${BASE_URL}${image}`}
                     alt="Slider"
                     style={{ width: 100, height: 60, objectFit: 'cover', borderRadius: 4 }}
                 />

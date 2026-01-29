@@ -30,6 +30,7 @@ import AppCard from "../../components/common/AppCard";
 import AppInput from "../../components/common/AppInput";
 import AppSpin from "../../components/common/AppSpin";
 import AppModal from "../../components/common/AppModal";
+import { BASE_URL } from "@/RTK/api";
 
 const { Title, Text } = Typography;
 const { Option } = AppSelect;
@@ -93,7 +94,7 @@ const AddProductPage: React.FC = () => {
             uid: String(index),
             name: `image-${index}.png`,
             status: "done",
-            url: url.startsWith('/') ? `http://localhost:5000${url}` : url,
+            url: url.startsWith('/') ? `${BASE_URL}${url}` : url,
           }))
         );
       } else if (productData.imageUrl) {
@@ -102,7 +103,7 @@ const AddProductPage: React.FC = () => {
             uid: "-1",
             name: "image.png",
             status: "done",
-            url: productData.imageUrl.startsWith('/') ? `http://localhost:5000${productData.imageUrl}` : productData.imageUrl,
+            url: productData.imageUrl.startsWith('/') ? `${BASE_URL}${productData.imageUrl}` : productData.imageUrl,
           },
         ]);
       }
@@ -171,7 +172,7 @@ const AddProductPage: React.FC = () => {
       for (const file of fileList) {
         if (file.url) {
           // Existing image - Strip domain if present to keep relative path
-          const cleanUrl = file.url.replace(/^http:\/\/localhost:5000/, "");
+          const cleanUrl = file.url.replace(BASE_URL, "");
           uploadedUrls.push(cleanUrl);
         } else if (file.originFileObj) {
           // New file -> Upload with targetId
@@ -525,7 +526,7 @@ const AddProductPage: React.FC = () => {
                       );
                     }
                     const url = file.url || (file.preview as string);
-                    setPreviewImage(url?.startsWith('/') ? `http://localhost:5000${url}` : url || "");
+                    setPreviewImage(url?.startsWith('/') ? `${BASE_URL}${url}` : url || "");
                     setPreviewOpen(true);
                   }}
                 >

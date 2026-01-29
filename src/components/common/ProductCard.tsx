@@ -2,6 +2,7 @@
 
 import React from "react";
 import AppButton from "./AppButton";
+import { BASE_URL } from "@/RTK/api";
 
 interface ProductCardProps {
   product: {
@@ -20,7 +21,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onView, onEdit }) => {
   const imageSrc = (product as any).imageUrl
-    ? ((product as any).imageUrl.startsWith('/') ? `http://localhost:5000${(product as any).imageUrl}` : (product as any).imageUrl)
+    ? ((product as any).imageUrl.startsWith('/') ? `${BASE_URL}${(product as any).imageUrl}` : (product as any).imageUrl)
     : "https://placehold.co/600x400?text=No+Image";
   const displayDescription =
     product.description || product.productDetails?.description;
