@@ -11,6 +11,7 @@ export const orderApi = api.injectEndpoints({
         total: number;
         pending: number;
         processing: number;
+        confirmed: number;
         shipped: number;
         delivered: number;
         returned: number;
@@ -57,6 +58,7 @@ export const orderApi = api.injectEndpoints({
           total: response.total,
           pending: response.pending,
           processing: response.processing,
+          confirmed: response.confirmed,
           shipped: response.shipped,
           delivered: response.delivered,
           returned: response.returned,

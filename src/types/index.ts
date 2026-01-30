@@ -56,15 +56,21 @@ export interface Order {
   customerEmail: string;
   customerDistrict: string;
   orderDate: string;
-  status: "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
+  status:
+    | "Pending"
+    | "Processing"
+    | "Confirmed"
+    | "Shipped"
+    | "Delivered"
+    | "Cancelled"
+    | "Returned";
   totalAmount: number;
   shippingAddress: string;
   paymentMethod: string;
   items: OrderItem[];
   customerMobile: string;
-  courier: "Pathao" | "Steadfast" | "RedX";
   deliveryCharge: number;
-  paymentStatus: "Paid" | "Unpaid";
+  paymentStatus: "Paid" | "Unpaid" | "Refunded";
 }
 
 export interface Admin {

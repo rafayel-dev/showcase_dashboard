@@ -10,6 +10,7 @@ import {
   Col,
   Tabs,
   Tooltip,
+  Switch,
 } from "antd";
 import AppSelect from "../../components/common/AppSelect";
 import AppModal from "../../components/common/AppModal";
@@ -49,6 +50,7 @@ const OrderPage: React.FC = () => {
   const totalOrders = ordersData?.total || 0;
   const pendingOrders = ordersData?.pending || 0;
   const processingOrders = ordersData?.processing || 0;
+  const confirmedOrders = ordersData?.confirmed || 0;
   const shippedOrders = ordersData?.shipped || 0;
   const deliveredOrders = ordersData?.delivered || 0;
   const cancelledOrders = ordersData?.cancelled || 0;
@@ -62,7 +64,6 @@ const OrderPage: React.FC = () => {
 
   // Bulk update states
   const [bulkUpdateStatus, setBulkUpdateStatus] = useState<Order["status"] | null>(null);
-  const [bulkUpdateCourier, setBulkUpdateCourier] = useState<Order["courier"] | null>(null);
   const [bulkUpdatePaymentStatus, setBulkUpdatePaymentStatus] = useState<Order["paymentStatus"] | null>(null);
 
   // Inline editing state
@@ -95,7 +96,7 @@ const OrderPage: React.FC = () => {
   };
 
   const handleBulkUpdate = async () => {
-    if (!bulkUpdateStatus && !bulkUpdateCourier && !bulkUpdatePaymentStatus) {
+    if (!bulkUpdateStatus && !bulkUpdatePaymentStatus) {
       toast.error("Please select at least one field to update.");
       return;
     }
@@ -104,7 +105,6 @@ const OrderPage: React.FC = () => {
       const updates = selectedRowKeys.map((id) => {
         const payload: any = { id: id.toString() };
         if (bulkUpdateStatus) payload.status = bulkUpdateStatus;
-        if (bulkUpdateCourier) payload.courier = bulkUpdateCourier;
         if (bulkUpdatePaymentStatus) payload.paymentStatus = bulkUpdatePaymentStatus;
         return updateOrder(payload).unwrap();
       });
@@ -112,7 +112,6 @@ const OrderPage: React.FC = () => {
       toast.success("Bulk update successful!");
       setSelectedRowKeys([]);
       setBulkUpdateStatus(null);
-      setBulkUpdateCourier(null);
       setBulkUpdatePaymentStatus(null);
     } catch {
       toast.error("Bulk update failed.");
@@ -123,6 +122,7 @@ const OrderPage: React.FC = () => {
     ({
       Pending: "orange",
       Processing: "processing",
+      Confirmed: "cyan",
       Shipped: "geekblue",
       Delivered: "success",
       Cancelled: "error",
@@ -169,7 +169,7 @@ const OrderPage: React.FC = () => {
             onChange={setEditValue}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            options={["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Returned"].map(v => ({ value: v, label: v }))}
+            options={["Processing", "Shipped", "Delivered", "Cancelled", "Returned"].map(v => ({ value: v, label: v }))}
             widthClass="w-26"
           />
         ) : (
@@ -180,25 +180,29 @@ const OrderPage: React.FC = () => {
         ),
     },
     {
-      title: "Courier",
-      dataIndex: "courier",
-      render: (courier, record) =>
-        editingId?.id === record.id && editingId.field === "courier" ? (
-          <InlineEditor
-            type="select"
-            value={editValue}
-            onChange={setEditValue}
-            onSave={saveEdit}
-            onCancel={cancelEdit}
-            options={["Pathao", "Steadfast", "RedX"].map(v => ({ value: v, label: v }))}
-            widthClass="w-24"
-          />
-        ) : (
-          <Space>
-            {courier}
-            <AppButton size="small" type="text" icon={<FiEdit />} onClick={() => startEdit(record, "courier")} />
-          </Space>
-        ),
+      title: "Confirmed",
+      dataIndex: "status",
+      align: "center",
+      render: (status, record) => (
+        <Switch
+          className="bg-violet-500!"
+          checked={["Confirmed", "Shipped", "Delivered", "Returned"].includes(status)}
+          disabled={["Shipped", "Delivered", "Returned", "Cancelled"].includes(status)}
+          onChange={(checked) => {
+            if (checked) {
+              updateOrder({ id: record.id, status: "Confirmed" }).unwrap()
+                .then(() => toast.success("Order Confirmed!"))
+                .catch(() => toast.error("Failed to confirm order"));
+            } else {
+              updateOrder({ id: record.id, status: "Pending" }).unwrap()
+                .then(() => toast.success("Order Unconfirmed"))
+                .catch(() => toast.error("Failed to unconfirm order"));
+            }
+          }}
+          checkedChildren="Yes"
+          unCheckedChildren="No"
+        />
+      ),
     },
     { title: "Payment", dataIndex: "paymentMethod" },
     {
@@ -249,7 +253,7 @@ const OrderPage: React.FC = () => {
       <Title level={3}>📦 Order Management</Title>
       <Row
         gutter={10}
-        className="mt-4! overflow-x-hidden!"
+        className="mt-4"
         style={{
           flexWrap: "nowrap",
           overflowX: "auto",
@@ -259,6 +263,7 @@ const OrderPage: React.FC = () => {
           { title: "Total Orders", value: totalOrders, icon: <ShoppingCartOutlined className="text-violet-500! mr-2!" /> },
           { title: "Pending", value: pendingOrders, icon: <HistoryOutlined className="text-amber-500! mr-2!" /> },
           { title: "Processing", value: processingOrders, icon: <FieldTimeOutlined className="text-blue-500! mr-2!" /> },
+          { title: "Confirmed", value: confirmedOrders, icon: <CheckCircleOutlined className="text-cyan-500! mr-2!" /> },
           { title: "Shipped", value: shippedOrders, icon: <TruckOutlined className="text-indigo-500! mr-2!" /> },
           { title: "Delivered", value: deliveredOrders, icon: <CheckCircleOutlined className="text-green-500! mr-2!" /> },
           { title: "Cancelled", value: cancelledOrders, icon: <CloseCircleOutlined className="text-red-500! mr-2!" /> },
@@ -266,10 +271,10 @@ const OrderPage: React.FC = () => {
         ].map((stat) => (
           <Col
             key={stat.title}
-            flex="0 0 14.2857%"
+            flex="1"
             style={{
-              minWidth: 160,
-              maxWidth: 220,
+              minWidth: 140,
+              maxWidth: 180,
             }}
           >
             <StatsCard
@@ -281,12 +286,11 @@ const OrderPage: React.FC = () => {
         ))}
       </Row>
 
-
       <AppCard className="mt-6!">
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
-          items={["All", "Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Returned"].map((k) => ({
+          items={["All", "Pending", "Processing", "Confirmed", "Shipped", "Delivered", "Cancelled", "Returned"].map((k) => ({
             key: k,
             label: k,
           }))}
@@ -296,8 +300,7 @@ const OrderPage: React.FC = () => {
           {selectedRowKeys.length > 0 && (
             <div className="mb-4 flex items-center space-x-2!">
               <Text strong>Update:</Text>
-              <AppSelect placeholder="Status" className="w-[120px]" onChange={setBulkUpdateStatus} value={bulkUpdateStatus} allowClear options={["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Returned"].map(v => ({ value: v, label: v }))} />
-              <AppSelect placeholder="Courier" className="w-[120px]" onChange={setBulkUpdateCourier} value={bulkUpdateCourier} allowClear options={["Pathao", "Steadfast", "RedX"].map(v => ({ value: v, label: v }))} />
+              <AppSelect placeholder="Status" className="w-[120px]" onChange={setBulkUpdateStatus} value={bulkUpdateStatus} allowClear options={["Processing", "Shipped", "Delivered", "Cancelled", "Returned"].map(v => ({ value: v, label: v }))} />
               <AppSelect placeholder="Payment" className="w-[140px]" onChange={setBulkUpdatePaymentStatus} value={bulkUpdatePaymentStatus} allowClear options={["Paid", "Unpaid", "Refunded"].map(v => ({ value: v, label: v }))} />
               <AppButton type="primary" onClick={handleBulkUpdate}>Apply</AppButton>
             </div>
@@ -347,7 +350,7 @@ const OrderPage: React.FC = () => {
                     <Descriptions.Item label="Order Status"><Tag color={statusColor(viewOrder.status)}>{viewOrder.status}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Payment Method">{viewOrder.paymentMethod}</Descriptions.Item>
                     <Descriptions.Item label="Payment Status"><Tag color={paymentStatusColor(viewOrder.paymentStatus)}>{viewOrder.paymentStatus}</Tag></Descriptions.Item>
-                    <Descriptions.Item label="Courier">{viewOrder.courier}</Descriptions.Item>
+
                     <Descriptions.Item label="Total">৳ {viewOrder.totalAmount}</Descriptions.Item>
                   </Descriptions>
                 </AppCard>
