@@ -1,8 +1,9 @@
 import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Spin } from "antd";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import ErrorFallbackPage from "./components/common/ErrorFallbackPage";
+
+import AppSpin from "./components/common/AppSpin";
 
 // Lazy Load Pages
 const LoginPage = React.lazy(() => import("./features/auth/LoginPage"));
@@ -24,11 +25,7 @@ const NotificationPage = React.lazy(() => import("./features/notifications/Notif
 const CouponPage = React.lazy(() => import("./features/coupons/CouponPage"));
 const SliderPage = React.lazy(() => import("./features/slider/SliderPage"));
 
-const Loading: React.FC = () => (
-  <div className="flex justify-center items-center h-screen bg-gray-50">
-    <Spin size="large" />
-  </div>
-);
+const Loading: React.FC = () => <AppSpin />;
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean>(

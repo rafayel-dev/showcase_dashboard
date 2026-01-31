@@ -6,7 +6,6 @@ import {
   Typography,
   Modal,
   Form,
-  Spin,
   Row,
   Col,
   Tag,
@@ -23,6 +22,7 @@ import {
 import toast from "../../utils/toast";
 import AppPopconfirm from "@/components/common/AppPopconfirm";
 import AppInput from "@/components/common/AppInput";
+import AppSpin from "@/components/common/AppSpin";
 
 const { Title, Text } = Typography;
 
@@ -146,7 +146,7 @@ const AdminPage: React.FC = () => {
         </Row>
 
         {/* Table */}
-        <Spin spinning={tableLoading}>
+        <AppSpin spinning={tableLoading}>
           <Table
             rowKey="id"
             dataSource={admins}
@@ -156,7 +156,7 @@ const AdminPage: React.FC = () => {
               emptyText: <Empty description="No admins found" />,
             }}
           />
-        </Spin>
+        </AppSpin>
       </Card>
 
       {/* ADD MODAL */}
@@ -172,7 +172,7 @@ const AdminPage: React.FC = () => {
       >
         <Form form={form} layout="vertical">
           <Form.Item name="name" label="Full Name" rules={[{ required: true }]}>
-            <AppInput placeholder="Enter name"/>
+            <AppInput placeholder="Enter name" />
           </Form.Item>
 
           <Form.Item
@@ -183,7 +183,7 @@ const AdminPage: React.FC = () => {
               { type: "email", message: "Invalid email" },
             ]}
           >
-            <AppInput placeholder="Enter email"/>
+            <AppInput placeholder="Enter email" />
           </Form.Item>
 
           <Form.Item
@@ -191,7 +191,7 @@ const AdminPage: React.FC = () => {
             label="Password"
             rules={[{ required: true, min: 6 }]}
           >
-            <AppInput.Password placeholder="Enter password"/>
+            <AppInput.Password placeholder="Enter password" />
           </Form.Item>
         </Form>
       </Modal>

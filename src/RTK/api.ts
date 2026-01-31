@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-// export const BASE_URL = "http://10.10.20.43:5000";
-export const BASE_URL = "https://living-utility-pro-restored.trycloudflare.com";
+export const BASE_URL = "http://10.10.20.43:5000";
+// export const BASE_URL = "https://living-utility-pro-restored.trycloudflare.com";
 
 export const api = createApi({
   reducerPath: "api",

@@ -16,6 +16,7 @@ import { FiEdit2, FiUploadCloud } from "react-icons/fi";
 import { useGetProductsQuery, useUpdateProductMutation } from "../../RTK/product/productApi";
 import type { Product } from "../../types";
 import toast from "../../utils/toast";
+import AppSpin from "@/components/common/AppSpin";
 
 const { Title, Text } = Typography;
 
@@ -57,59 +58,61 @@ const DraftPage: React.FC = () => {
         </Row>
 
         {/* Table */}
-        <Table
-          rowKey="id"
-          dataSource={draftProducts}
-          loading={loading}
-          pagination={false}
-          locale={{
-            emptyText: (
-              <Empty
-                description="No draft products found"
-              />
-            ),
-          }}
-          columns={[
-            {
-              title: "Product Name",
-              dataIndex: "productName",
-              render: (text) => <Text strong>{text}</Text>,
-            },
-            {
-              title: "Status",
-              align: "center",
-              render: () => <Tag color="orange">Draft</Tag>,
-            },
-            {
-              title: "Actions",
-              align: "right",
-              render: (_, record) => (
-                <Space>
-                  <Tooltip title="Edit Product">
-                    <AppButton
-                      icon={<FiEdit2 />}
-                      onClick={() =>
-                        navigate(`/edit-product/${record.id}`)
-                      }
-                    >
-                      Edit
-                    </AppButton>
-                  </Tooltip>
-
-                  <Tooltip title="Publish Product">
-                    <AppButton
-                      type="primary"
-                      icon={<FiUploadCloud />}
-                      onClick={() => publishProduct(record)}
-                    >
-                      Publish
-                    </AppButton>
-                  </Tooltip>
-                </Space>
+        <AppSpin spinning={loading}>
+          <Table
+            rowKey="id"
+            dataSource={draftProducts}
+            loading={loading}
+            pagination={false}
+            locale={{
+              emptyText: (
+                <Empty
+                  description="No draft products found"
+                />
               ),
-            },
-          ]}
-        />
+            }}
+            columns={[
+              {
+                title: "Product Name",
+                dataIndex: "productName",
+                render: (text) => <Text strong>{text}</Text>,
+              },
+              {
+                title: "Status",
+                align: "center",
+                render: () => <Tag color="orange">Draft</Tag>,
+              },
+              {
+                title: "Actions",
+                align: "right",
+                render: (_, record) => (
+                  <Space>
+                    <Tooltip title="Edit Product">
+                      <AppButton
+                        icon={<FiEdit2 />}
+                        onClick={() =>
+                          navigate(`/edit-product/${record.id}`)
+                        }
+                      >
+                        Edit
+                      </AppButton>
+                    </Tooltip>
+
+                    <Tooltip title="Publish Product">
+                      <AppButton
+                        type="primary"
+                        icon={<FiUploadCloud />}
+                        onClick={() => publishProduct(record)}
+                      >
+                        Publish
+                      </AppButton>
+                    </Tooltip>
+                  </Space>
+                ),
+              },
+            ]}
+          />
+        </AppSpin>
       </AppCard>
     </div>
   );

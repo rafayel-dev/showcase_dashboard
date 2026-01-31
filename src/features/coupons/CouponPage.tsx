@@ -28,6 +28,7 @@ import AppButton from "../../components/common/AppButton";
 import toast from "../../utils/toast";
 import AppInput from "@/components/common/AppInput";
 import AppPopconfirm from "@/components/common/AppPopconfirm";
+import AppSpin from "@/components/common/AppSpin";
 
 const { Title, Text } = Typography;
 const { Option } = AppSelect;
@@ -176,14 +177,15 @@ const CouponPage: React.FC = () => {
                         </AppButton>
                     </Col>
                 </Row>
-
-                <Table
-                    loading={tableLoading}
-                    columns={columns}
-                    dataSource={coupons}
-                    rowKey="id"
-                    pagination={{ pageSize: 10 }}
-                />
+                <AppSpin spinning={tableLoading}>
+                    <Table
+                        loading={tableLoading}
+                        columns={columns}
+                        dataSource={coupons}
+                        rowKey="id"
+                        pagination={{ pageSize: 10 }}
+                    />
+                </AppSpin>
             </Card>
 
             <Modal

@@ -4,7 +4,7 @@ import JoditEditor from "jodit-react";
 /* ================= JODIT CONFIG ================= */
 export const joditConfig = {
   readonly: false,
-  height: "400px",
+  height: "600px",
   buttons:
     "bold,italic,underline,|,align,|,link,|,fontsize,paragraph",
   buttonsMD:

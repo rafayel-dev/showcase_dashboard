@@ -5,7 +5,6 @@ import {
   Tag,
   Typography,
   Descriptions,
-  Spin,
   Row,
   Col,
   Tabs,
@@ -34,6 +33,7 @@ import { useGetOrdersQuery, useUpdateOrderMutation } from "../../RTK/order/order
 import toast from "../../utils/toast";
 import InlineEditor from "../../components/common/InlineEditor";
 import StatsCard from "../../components/common/StatsCard";
+import AppSpin from "@/components/common/AppSpin";
 
 const { Title, Text } = Typography;
 
@@ -253,9 +253,10 @@ const OrderPage: React.FC = () => {
       <Title level={3}>📦 Order Management</Title>
       <Row
         gutter={10}
-        className="mt-4"
+        className="mt-4 flex-wrap!"
+        justify="space-between"
         style={{
-          flexWrap: "nowrap",
+          flexWrap: "wrap",
           overflowX: "auto",
         }}
       >
@@ -273,8 +274,8 @@ const OrderPage: React.FC = () => {
             key={stat.title}
             flex="1"
             style={{
-              minWidth: 140,
-              maxWidth: 180,
+              minWidth: 120,
+              maxWidth: 200,
             }}
           >
             <StatsCard
@@ -296,7 +297,7 @@ const OrderPage: React.FC = () => {
           }))}
         />
 
-        <Spin spinning={loading}>
+        <AppSpin spinning={loading}>
           {selectedRowKeys.length > 0 && (
             <div className="mb-4 flex items-center space-x-2!">
               <Text strong>Update:</Text>
@@ -325,7 +326,7 @@ const OrderPage: React.FC = () => {
               }
             }}
           />
-        </Spin>
+        </AppSpin>
       </AppCard>
 
       <AppModal open={!!viewOrder} footer={null} onCancel={() => setViewOrder(null)} width={900} title="Order Details">
