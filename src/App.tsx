@@ -2,7 +2,6 @@ import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import ErrorFallbackPage from "./components/common/ErrorFallbackPage";
-
 import AppSpin from "./components/common/AppSpin";
 
 // Lazy Load Pages

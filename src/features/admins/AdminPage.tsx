@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import {
   Table,
-  Button,
-  Card,
   Typography,
-  Modal,
   Form,
   Row,
   Col,
@@ -23,6 +20,9 @@ import toast from "../../utils/toast";
 import AppPopconfirm from "@/components/common/AppPopconfirm";
 import AppInput from "@/components/common/AppInput";
 import AppSpin from "@/components/common/AppSpin";
+import AppButton from "@/components/common/AppButton";
+import AppCard from "@/components/common/AppCard";
+import AppModal from "@/components/common/AppModal";
 
 const { Title, Text } = Typography;
 
@@ -113,9 +113,9 @@ const AdminPage: React.FC = () => {
           cancelText="Cancel"
           onConfirm={() => handleDelete(record.id)}
         >
-          <Button title="Delete Admin" danger icon={<FiTrash2 />}>
+          <AppButton title="Delete Admin" danger icon={<FiTrash2 />}>
             Delete
-          </Button>
+          </AppButton>
         </AppPopconfirm>
       ),
     },
@@ -123,7 +123,7 @@ const AdminPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <Card className="rounded-2xl shadow-sm">
+      <AppCard className="rounded-2xl shadow-sm">
         {/* Header */}
         <Row justify="space-between" align="middle" className="mb-4">
           <Col>
@@ -134,14 +134,14 @@ const AdminPage: React.FC = () => {
           </Col>
 
           <Col>
-            <Button
+            <AppButton
               type="primary"
               className="bg-violet-500!"
               icon={<FiPlus />}
               onClick={openAddModal}
             >
               Add Admin
-            </Button>
+            </AppButton>
           </Col>
         </Row>
 
@@ -157,10 +157,10 @@ const AdminPage: React.FC = () => {
             }}
           />
         </AppSpin>
-      </Card>
+      </AppCard>
 
       {/* ADD MODAL */}
-      <Modal
+      <AppModal
         title="Add New Administrator"
         open={modalOpen}
         onOk={handleSave}
@@ -194,7 +194,7 @@ const AdminPage: React.FC = () => {
             <AppInput.Password placeholder="Enter password" />
           </Form.Item>
         </Form>
-      </Modal>
+      </AppModal>
     </div>
   );
 };

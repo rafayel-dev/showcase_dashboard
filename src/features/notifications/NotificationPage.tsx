@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { List, Typography, Tabs, Space, Tag, Empty, Spin } from "antd";
+import { List, Typography, Tabs, Space, Tag, Empty } from "antd";
 import { FiBell, FiCheckCircle, FiInfo, FiBox, FiTruck, FiTrash2, FiShoppingBag, FiRefreshCw } from "react-icons/fi";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -19,7 +19,7 @@ dayjs.extend(relativeTime);
 const { Text, Title } = Typography;
 
 const NotificationPage: React.FC = () => {
-  const { data: notifications = [], isLoading, refetch } = useGetNotificationsQuery(undefined, {
+  const { data: notifications = [], refetch } = useGetNotificationsQuery(undefined, {
     pollingInterval: 30000,
     refetchOnMountOrArgChange: true
   });
@@ -74,14 +74,6 @@ const NotificationPage: React.FC = () => {
 
   const filteredData =
     filter === "unread" ? notifications.filter((n) => !n.read) : notifications;
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <Spin size="large" />
-      </div>
-    )
-  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import {
     Table,
     Space,
-    Card,
     Typography,
-    Modal,
     Tag,
     Form,
     DatePicker,
@@ -29,6 +27,8 @@ import toast from "../../utils/toast";
 import AppInput from "@/components/common/AppInput";
 import AppPopconfirm from "@/components/common/AppPopconfirm";
 import AppSpin from "@/components/common/AppSpin";
+import AppCard from "@/components/common/AppCard";
+import AppModal from "@/components/common/AppModal";
 
 const { Title, Text } = Typography;
 const { Option } = AppSelect;
@@ -161,7 +161,7 @@ const CouponPage: React.FC = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            <Card className="rounded-2xl">
+            <AppCard className="rounded-2xl">
                 <Row justify="space-between" align="middle" className="mb-4">
                     <Col>
                         <Title level={3}>Coupon Management</Title>
@@ -186,9 +186,9 @@ const CouponPage: React.FC = () => {
                         pagination={{ pageSize: 10 }}
                     />
                 </AppSpin>
-            </Card>
+            </AppCard>
 
-            <Modal
+            <AppModal
                 title={editingCoupon ? "Edit Coupon" : "New Coupon"}
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
@@ -247,7 +247,7 @@ const CouponPage: React.FC = () => {
                         </Col>
                     </Row>
                 </Form>
-            </Modal>
+            </AppModal>
         </div>
     );
 };

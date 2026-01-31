@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Form, Button, Typography, Alert, ConfigProvider } from "antd";
+import { Form, Typography, Alert, ConfigProvider } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import toast from "../../utils/toast";
 import { useLoginMutation } from "../../RTK/auth/authApi";
 import AppInput from "@/components/common/AppInput";
+import AppButton from "@/components/common/AppButton";
 
 const { Title, Text } = Typography;
 
@@ -119,7 +120,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               </Form.Item>
 
               <Form.Item>
-                <Button
+                <AppButton
                   type="primary"
                   htmlType="submit"
                   loading={isLoading}
@@ -127,7 +128,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   className="bg-violet-600 hover:bg-violet-700 h-11 font-semibold text-lg shadow-lg shadow-violet-200"
                 >
                   Sign In
-                </Button>
+                </AppButton>
               </Form.Item>
             </Form>
 

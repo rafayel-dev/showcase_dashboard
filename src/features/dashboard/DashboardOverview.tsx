@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Row, Col, Typography } from "antd";
+import { Row, Col, Typography } from "antd";
 import {
   ShoppingCartOutlined,
   DollarOutlined,
@@ -20,6 +20,7 @@ import {
 } from "recharts";
 import StatsCard from "../../components/common/StatsCard";
 import { useGetDashboardStatsQuery } from "../../RTK/dashboard/dashboardApi";
+import AppCard from "@/components/common/AppCard";
 
 const { Title, Text } = Typography;
 
@@ -94,7 +95,7 @@ const DashboardOverview: React.FC = () => {
       {/* ===== CHARTS ===== */}
       <Row gutter={[20, 20]} className="mt-8">
         <Col xs={24} lg={15}>
-          <Card className="rounded-2xl shadow-sm" bordered={false}>
+          <AppCard className="rounded-2xl shadow-sm" bordered={false}>
             <div className="mb-6">
               <Title level={5} className="mb-0!">Monthly Sales</Title>
               <Text type="secondary" className="text-xs">Revenue trend in Bangladeshi Taka</Text>
@@ -108,11 +109,11 @@ const DashboardOverview: React.FC = () => {
                 <Bar dataKey="sales" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </Card>
+          </AppCard>
         </Col>
 
         <Col xs={24} lg={9}>
-          <Card className="rounded-2xl shadow-sm" bordered={false}>
+          <AppCard className="rounded-2xl shadow-sm" bordered={false}>
             <div className="mb-6">
               <Title level={5} className="mb-0!">Order Status</Title>
               <Text type="secondary" className="text-xs">Distribution of order lifecycle</Text>
@@ -135,7 +136,7 @@ const DashboardOverview: React.FC = () => {
                 <Legend verticalAlign="bottom" iconType="circle" />
               </PieChart>
             </ResponsiveContainer>
-          </Card>
+          </AppCard>
         </Col>
       </Row>
     </div>
