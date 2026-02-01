@@ -25,18 +25,25 @@ export interface IChat {
 export const chatApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getAllChats: builder.query<IChat[], void>({
-      query: () => "/chat/admin/all",
+      query: () => "/api/chat/admin/all",
       providesTags: ["Chat"],
     }),
     getChatById: builder.query<IChat, string>({
-      query: (id) => `/chat/${id}`,
+      query: (id) => `/api/chat/${id}`,
       providesTags: (_result, _error, id) => [{ type: "Chat", id }],
     }),
     sendReply: builder.mutation<IChat, { id: string; text: string }>({
       query: ({ id, text }) => ({
-        url: `/chat/admin/reply/${id}`,
+        url: `/api/chat/admin/reply/${id}`,
         method: "POST",
         body: { text },
+      }),
+      invalidatesTags: ["Chat"],
+    }),
+    markChatAsRead: builder.mutation<IChat, string>({
+      query: (id) => ({
+        url: `/api/chat/admin/read/${id}`,
+        method: "PUT",
       }),
       invalidatesTags: ["Chat"],
     }),
@@ -47,4 +54,5 @@ export const {
   useGetAllChatsQuery,
   useGetChatByIdQuery,
   useSendReplyMutation,
+  useMarkChatAsReadMutation,
 } = chatApi;

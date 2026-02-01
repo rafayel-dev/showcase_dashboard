@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { NavLink } from "react-router-dom";
+import { io } from "socket.io-client";
 import {
   FiHome,
   FiShoppingCart,
@@ -15,6 +16,8 @@ import {
   FiImage,
   FiMessageSquare,
 } from "react-icons/fi";
+import { useGetAllChatsQuery } from "@/RTK/chat/chatApi";
+import { BASE_URL } from "@/RTK/api";
 
 const MENU_ITEMS = [
   { path: "/overview", label: "Dashboard", icon: FiHome },
@@ -25,7 +28,7 @@ const MENU_ITEMS = [
   { path: "/categories", label: "Categories", icon: FiLayers },
   { path: "/sliders", label: "Sliders", icon: FiImage },
   { path: "/coupons", label: "Coupons", icon: FiGift },
-  { path: "/chats", label: "Messages", icon: FiMessageSquare },
+  { path: "/chats", label: "Messages", icon: FiMessageSquare, hasBadge: true },
   { path: "/admins", label: "Admins", icon: FiUsers },
 ];
 
@@ -36,11 +39,40 @@ const SETTINGS_ITEMS = [
 ];
 
 const Sidebar: React.FC = () => {
-  const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
-      ? "bg-violet-500 text-white shadow-md shadow-violet-200"
-      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-    }`;
+  const { data: chats, refetch } = useGetAllChatsQuery(undefined, {
+    pollingInterval: 30000, // Refresh every 30 seconds as fallback
+  });
+
+  // Listen for real-time updates
+  React.useEffect(() => {
+    const socket = io(BASE_URL);
+
+    socket.on("chat_list_updated", () => {
+      refetch();
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [refetch]);
+
+  // Count chats with unread user messages
+  const unreadCount = useMemo(() => {
+    if (!chats) return 0;
+    return chats.filter((chat) =>
+      chat.messages?.some((m) => m.sender === "user" && !m.isRead)
+    ).length;
+  }, [chats]);
+
+  // Memoized link class generator
+  const linkClass = useCallback(
+    ({ isActive }: { isActive: boolean }) =>
+      `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
+        ? "bg-violet-500 text-white shadow-md shadow-violet-200"
+        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+      }`,
+    []
+  );
 
   return (
     <aside className="w-64 bg-white flex flex-col border-r border-gray-100 h-screen sticky top-0">
@@ -54,7 +86,13 @@ const Sidebar: React.FC = () => {
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {MENU_ITEMS.map((item) => (
           <NavLink key={item.path} to={item.path} className={linkClass}>
-            <item.icon size={18} /> {item.label}
+            <item.icon size={18} />
+            <span className="flex-1">{item.label}</span>
+            {item.hasBadge && unreadCount > 0 && (
+              <span className="min-w-5 h-5 flex items-center justify-center text-xs font-bold text-white bg-violet-500 rounded-full px-1.5">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </NavLink>
         ))}
 
@@ -82,3 +120,4 @@ const Sidebar: React.FC = () => {
 };
 
 export default Sidebar;
+

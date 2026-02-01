@@ -34,6 +34,7 @@ import toast from "../../utils/toast";
 import InlineEditor from "../../components/common/InlineEditor";
 import StatsCard from "../../components/common/StatsCard";
 import AppSpin from "@/components/common/AppSpin";
+import { BASE_URL } from "@/RTK/api";
 
 const { Title, Text } = Typography;
 
@@ -239,7 +240,7 @@ const OrderPage: React.FC = () => {
           <AppButton type="link" className="font-semibold! text-violet-500! pr-1!" icon={<EyeOutlined />} onClick={() => setViewOrder(record)}>View</AppButton>
           <Tooltip title="Download Invoice">
             <AppButton type="link" icon={<DownloadOutlined className="text-xl!" />} className="text-gray-500! hover:text-violet-500!" onClick={() => {
-              const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+              const API_URL = import.meta.env.VITE_API_URL || BASE_URL;
               window.open(`${API_URL}/orders/${record.id}/invoice`, "_blank");
             }} />
           </Tooltip>

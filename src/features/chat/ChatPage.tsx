@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from "socket.io-client";
-import { Row, Col, List, Typography, Input, Avatar, Badge, Empty } from 'antd';
+import { Row, Col, List, Typography, Input, Avatar, Badge, Empty, Tag } from 'antd';
 import { UserOutlined, SendOutlined, RobotOutlined, SearchOutlined } from '@ant-design/icons';
 import AppCard from '../../components/common/AppCard';
 import AppButton from '../../components/common/AppButton';
 import AppSpin from '../../components/common/AppSpin';
-import { useGetAllChatsQuery, useSendReplyMutation } from '../../RTK/chat/chatApi';
+import { useGetAllChatsQuery, useSendReplyMutation, useMarkChatAsReadMutation } from '../../RTK/chat/chatApi';
 import { BASE_URL } from '../../RTK/api';
 
 const { Title, Text } = Typography;
@@ -13,6 +13,7 @@ const { Title, Text } = Typography;
 const ChatPage: React.FC = () => {
     const { data: initialChats, isLoading: isChatsLoading } = useGetAllChatsQuery();
     const [sendReply, { isLoading: isSending }] = useSendReplyMutation();
+    const [markAsRead] = useMarkChatAsReadMutation();
 
     const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
@@ -29,6 +30,18 @@ const ChatPage: React.FC = () => {
             setChats(initialChats);
         }
     }, [initialChats]);
+
+    const selectedChat = chats?.find(c => c._id === selectedChatId);
+
+    // Mark as read when selected
+    useEffect(() => {
+        if (selectedChatId && selectedChat) {
+            const hasUnread = selectedChat.messages?.some((m: any) => m.sender === 'user' && !m.isRead);
+            if (hasUnread) {
+                markAsRead(selectedChatId);
+            }
+        }
+    }, [selectedChatId, selectedChat, markAsRead]);
 
     // Socket connection
     useEffect(() => {
@@ -71,7 +84,7 @@ const ChatPage: React.FC = () => {
         };
     }, []);
 
-    const selectedChat = chats?.find(c => c._id === selectedChatId);
+
 
     // Auto-select first chat
     useEffect(() => {
@@ -96,10 +109,12 @@ const ChatPage: React.FC = () => {
     };
 
     // Filter chats
-    const filteredChats = chats.filter(chat =>
-        chat.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (chat.guestId && chat.guestId.includes(searchTerm))
-    );
+    const filteredChats = chats
+        .filter(chat =>
+            chat.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (chat.guestId && chat.guestId.includes(searchTerm))
+        )
+        .sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
 
     const isUserOnline = (chat: any) => {
         const id = chat.user?._id || chat.guestId;
@@ -111,17 +126,10 @@ const ChatPage: React.FC = () => {
 
     return (
         <div className="p-4 md:p-6 bg-gray-50 h-[calc(100vh-80px)] overflow-hidden flex flex-col">
-            <div className="mb-4 flex justify-between items-center px-1">
+            <div className="mb-4 items-center px-1">
                 <div>
                     <Title level={3} className="m-0!">💬 Support Center</Title>
                     <Text type="secondary">Manage customer inquiries and live chats</Text>
-                </div>
-                <div className="hidden md:block">
-                    <Badge count={chats.length} overflowCount={99} color="geekblue">
-                        <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 text-gray-600 font-medium">
-                            Total Conversations
-                        </div>
-                    </Badge>
                 </div>
             </div>
 
@@ -143,15 +151,15 @@ const ChatPage: React.FC = () => {
                         {/* List */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar">
                             <List
-                                className="p-2"
+                                className="p-2!"
                                 itemLayout="horizontal"
                                 dataSource={filteredChats}
                                 locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No chats found" /> }}
                                 renderItem={(chat) => (
                                     <List.Item
-                                        className={`cursor-pointer rounded-xl mb-1 p-3 transition-all duration-200 border-l-4 ${selectedChatId === chat._id
-                                            ? 'bg-violet-50 border-violet-500 shadow-sm'
-                                            : 'border-transparent hover:bg-gray-50 hover:pl-4'
+                                        className={`cursor-pointer rounded-xl! mb-1! p-2! transition-all duration-200 border-l-3! ${selectedChatId === chat._id
+                                            ? 'bg-violet-50! border-violet-500! shadow-sm!'
+                                            : 'border-transparent! hover:bg-gray-50!'
                                             }`}
                                         onClick={() => setSelectedChatId(chat._id)}
                                     >
@@ -166,13 +174,25 @@ const ChatPage: React.FC = () => {
                                                 </Badge>
                                             }
                                             title={
-                                                <div className="flex justify-between items-center mb-0.5">
-                                                    <Text strong className="truncate max-w-[120px] text-sm text-gray-800">
-                                                        {chat.user?.name || `Guest (${chat.guestId?.substring(0, 4)})`}
-                                                    </Text>
-                                                    <Text className="text-[10px] text-gray-400 font-normal">
-                                                        {new Date(chat.updatedAt || chat.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </Text>
+                                                <div className="flex justify-between items-start mb-0.5">
+                                                    <div>
+                                                        <Text strong className="truncate max-w-[120px] text-sm text-gray-800">
+                                                            {chat.user?.name || `Guest (${chat.guestId?.substring(0, 4)})`}
+                                                        </Text>
+                                                        <div className='absolute top-0 left-0 z-10'>
+                                                            {chat.messages?.filter((m: any) => m.sender === 'user' && !m.isRead).length > 0 && (
+                                                                <Tag color="purple-inverse" className="rounded-xl! px-1.5! text-[8px]! border-none! font-semibold">
+                                                                    New {chat.messages?.filter((m: any) => m.sender === 'user' && !m.isRead).length}
+                                                                </Tag>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-1">
+                                                        <Text className="text-[10px] text-gray-400 font-normal">
+                                                            {new Date(chat.updatedAt || chat.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </Text>
+
+                                                    </div>
                                                 </div>
                                             }
                                             description={
@@ -198,9 +218,7 @@ const ChatPage: React.FC = () => {
                                 {/* Chat Header */}
                                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shadow-sm z-10">
                                     <div className="flex items-center gap-4">
-                                        <Badge dot color={isUserOnline(selectedChat) ? "green" : "gray"} offset={[-5, 45]}>
-                                            <Avatar size="large" icon={<UserOutlined />} className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-md border-2 border-white" />
-                                        </Badge>
+                                        <Avatar size="large" icon={<UserOutlined />} className="bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-md border-2 border-white" />
                                         <div>
                                             <Title level={5} className="m-0! text-gray-800">
                                                 {selectedChat.user?.name || "Guest User"}
@@ -213,9 +231,6 @@ const ChatPage: React.FC = () => {
                                                 </Text>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <AppButton type="text" shape="circle" icon={<SearchOutlined />} />
                                     </div>
                                 </div>
 
