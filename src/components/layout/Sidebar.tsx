@@ -17,18 +17,19 @@ import {
   FiMessageSquare,
 } from "react-icons/fi";
 import { useGetAllChatsQuery } from "@/RTK/chat/chatApi";
+import { useGetOrdersQuery } from "@/RTK/order/orderApi";
 import { BASE_URL } from "@/RTK/api";
 
 const MENU_ITEMS = [
   { path: "/overview", label: "Dashboard", icon: FiHome },
-  { path: "/orders", label: "Orders", icon: FiShoppingCart },
+  { path: "/orders", label: "Orders", icon: FiShoppingCart, badgeType: "orders" },
   { path: "/products", label: "Products", icon: FiBox },
   { path: "/add-product", label: "Add Product", icon: FiPlusSquare },
   { path: "/drafts-product", label: "Draft Products", icon: FiArchive },
   { path: "/categories", label: "Categories", icon: FiLayers },
   { path: "/sliders", label: "Sliders", icon: FiImage },
   { path: "/coupons", label: "Coupons", icon: FiGift },
-  { path: "/chats", label: "Messages", icon: FiMessageSquare, hasBadge: true },
+  { path: "/chats", label: "Messages", icon: FiMessageSquare, badgeType: "chats" },
   { path: "/admins", label: "Admins", icon: FiUsers },
 ];
 
@@ -39,32 +40,40 @@ const SETTINGS_ITEMS = [
 ];
 
 const Sidebar: React.FC = () => {
-  const { data: chats, refetch } = useGetAllChatsQuery(undefined, {
-    pollingInterval: 30000, // Refresh every 30 seconds as fallback
+  const { data: chats, refetch: refetchChats } = useGetAllChatsQuery(undefined, {
+    pollingInterval: 30000,
   });
 
-  // Listen for real-time updates
+  const { data: ordersData, refetch: refetchOrders } = useGetOrdersQuery(
+    { page: 1, limit: 1 },
+    { pollingInterval: 60000 }
+  );
+
   React.useEffect(() => {
     const socket = io(BASE_URL);
 
     socket.on("chat_list_updated", () => {
-      refetch();
+      refetchChats();
+    });
+
+    socket.on("order_updated", () => {
+      refetchOrders();
     });
 
     return () => {
       socket.disconnect();
     };
-  }, [refetch]);
+  }, [refetchChats, refetchOrders]);
 
-  // Count chats with unread user messages
-  const unreadCount = useMemo(() => {
+  const unreadChatCount = useMemo(() => {
     if (!chats) return 0;
     return chats.filter((chat) =>
       chat.messages?.some((m) => m.sender === "user" && !m.isRead)
     ).length;
   }, [chats]);
 
-  // Memoized link class generator
+  const pendingOrderCount = ordersData?.pending || 0;
+
   const linkClass = useCallback(
     ({ isActive }: { isActive: boolean }) =>
       `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
@@ -84,17 +93,24 @@ const Sidebar: React.FC = () => {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-        {MENU_ITEMS.map((item) => (
-          <NavLink key={item.path} to={item.path} className={linkClass}>
-            <item.icon size={18} />
-            <span className="flex-1">{item.label}</span>
-            {item.hasBadge && unreadCount > 0 && (
-              <span className="min-w-5 h-5 flex items-center justify-center text-xs font-bold text-white bg-violet-500 rounded-full px-1.5">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </NavLink>
-        ))}
+        {MENU_ITEMS.map((item) => {
+          const badgeCount = item.badgeType === "chats" ? unreadChatCount
+            : item.badgeType === "orders" ? pendingOrderCount
+              : 0;
+          const badgeColor = item.badgeType === "orders" ? "bg-amber-500" : "bg-violet-500";
+
+          return (
+            <NavLink key={item.path} to={item.path} className={linkClass}>
+              <item.icon size={18} />
+              <span className="flex-1">{item.label}</span>
+              {item.badgeType && badgeCount > 0 && (
+                <span className={`min-w-5 h-5 flex items-center justify-center text-xs font-bold text-white ${badgeColor} rounded-full px-1.5`}>
+                  {badgeCount > 99 ? "99+" : badgeCount}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
 
         {/* Settings Section */}
         <div className="pt-6 mt-2 border-t border-gray-100">
