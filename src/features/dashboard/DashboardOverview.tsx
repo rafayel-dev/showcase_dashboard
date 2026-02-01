@@ -36,7 +36,7 @@ const DashboardOverview: React.FC = () => {
     "#f59e0b",
     "#ef4444",
     "#9ca3af",
-    
+
 
   ];
 
@@ -106,7 +106,7 @@ const DashboardOverview: React.FC = () => {
                 <YAxis tickLine={true} axisLine={true} />
                 <Tooltip formatter={(v: any) => `৳ ${v}`} cursor={{ fill: 'transparent' }} />
                 <Legend iconType="circle" />
-                <Bar dataKey="sales" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="sales" fill="#8B5CF6" radius={[6, 6, 0, 0]} minPointSize={2} />
               </BarChart>
             </ResponsiveContainer>
           </AppCard>

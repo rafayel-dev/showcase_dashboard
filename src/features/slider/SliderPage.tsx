@@ -136,6 +136,7 @@ const SliderPage: React.FC = () => {
             key: 'isActive',
             render: (isActive: boolean, record: any) => (
                 <Switch
+                    className='bg-violet-500!'
                     checked={isActive}
                     onChange={(checked) => updateSlider({ id: record._id, isActive: checked })}
                 />
@@ -219,7 +220,7 @@ const SliderPage: React.FC = () => {
                         </Form.Item>
 
                         <Form.Item name="isActive" label="Active" valuePropName="checked" initialValue={true}>
-                            <Switch />
+                            <Switch className='bg-violet-500!' />
                         </Form.Item>
                     </Form>
                 </AppModal>

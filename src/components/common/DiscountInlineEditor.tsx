@@ -61,7 +61,7 @@ const DiscountInlineEditor: React.FC<DiscountInlineEditorProps> = ({
                     checked={hasDiscount}
                     onChange={setHasDiscount}
                     size="small"
-                    className="bg-gray-300"
+                    className="bg-violet-500!"
                 />
             </div>
 

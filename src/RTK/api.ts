@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-export const BASE_URL = "http://10.10.20.43:5000";
+export const BASE_URL = "http://localhost:5000";
+// export const BASE_URL = "http://10.10.20.43:5000";
 // export const BASE_URL = "https://living-utility-pro-restored.trycloudflare.com";
 
 export const api = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
-    baseUrl: "/",
+    baseUrl: `${BASE_URL}/api`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) {
@@ -24,6 +25,7 @@ export const api = createApi({
     "Notification",
     "Setting",
     "Slider",
+    "Chat",
   ],
   endpoints: () => ({}),
 });

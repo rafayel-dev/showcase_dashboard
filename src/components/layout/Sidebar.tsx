@@ -13,6 +13,7 @@ import {
   FiInfo,
   FiShield,
   FiImage,
+  FiMessageSquare,
 } from "react-icons/fi";
 
 const MENU_ITEMS = [
@@ -24,6 +25,7 @@ const MENU_ITEMS = [
   { path: "/categories", label: "Categories", icon: FiLayers },
   { path: "/sliders", label: "Sliders", icon: FiImage },
   { path: "/coupons", label: "Coupons", icon: FiGift },
+  { path: "/chats", label: "Messages", icon: FiMessageSquare },
   { path: "/admins", label: "Admins", icon: FiUsers },
 ];
 

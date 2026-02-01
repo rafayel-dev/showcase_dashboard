@@ -23,6 +23,7 @@ const AboutPage = React.lazy(() => import("./features/setting/AboutPage"));
 const NotificationPage = React.lazy(() => import("./features/notifications/NotificationPage"));
 const CouponPage = React.lazy(() => import("./features/coupons/CouponPage"));
 const SliderPage = React.lazy(() => import("./features/slider/SliderPage"));
+const ChatPage = React.lazy(() => import("./features/chat/ChatPage"));
 
 const Loading: React.FC = () => <AppSpin />;
 
@@ -94,6 +95,7 @@ const App: React.FC = () => {
           <Route path="about" element={<Suspense fallback={<Loading />}><AboutPage /></Suspense>} />
           <Route path="notifications" element={<Suspense fallback={<Loading />}><NotificationPage /></Suspense>} />
           <Route path="sliders" element={<Suspense fallback={<Loading />}><SliderPage /></Suspense>} />
+          <Route path="chats" element={<Suspense fallback={<Loading />}><ChatPage /></Suspense>} />
         </Route>
 
         <Route path="*" element={<ErrorFallbackPage />} />
