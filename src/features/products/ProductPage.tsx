@@ -9,6 +9,9 @@ import {
   Tooltip,
   Row,
   Col,
+  Modal,
+  Form,
+  InputNumber,
 } from "antd";
 import AppSelect from "../../components/common/AppSelect";
 import {
@@ -29,6 +32,10 @@ import {
   useUpdateProductMutation,
   useDeleteProductMutation,
 } from "../../RTK/product/productApi";
+import {
+  useGetSettingQuery,
+  useUpdateSettingMutation,
+} from "../../RTK/setting/settingApi";
 import toast from "../../utils/toast";
 
 import InlineEditor from "../../components/common/InlineEditor";
@@ -64,7 +71,15 @@ const ProductPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [viewing, setViewing] = useState<Product | null>(null);
 
-  // 📝 Inline Editing State
+  // � Delivery Charge Modal State
+  const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
+  const [deliveryForm] = Form.useForm();
+
+  // Settings Queries
+  const { data: deliverySetting } = useGetSettingQuery("delivery_charge");
+  const [updateSetting, { isLoading: isUpdatingSettings }] = useUpdateSettingMutation();
+
+  // �📝 Inline Editing State
   const [editingId, setEditingId] = useState<{ id: string; field: "price" | "stock" | "discount" } | null>(null);
   const [editValue, setEditValue] = useState<number>(0);
 
@@ -342,6 +357,16 @@ const ProductPage: React.FC = () => {
                 onClick={() => setViewMode(viewMode === "table" ? "card" : "table")}
               />
               <AppButton
+                onClick={() => {
+                  if (deliverySetting?.value) {
+                    deliveryForm.setFieldsValue(deliverySetting.value);
+                  }
+                  setIsDeliveryModalOpen(true);
+                }}
+              >
+                Delivery Charge
+              </AppButton>
+              <AppButton
                 type="primary"
                 icon={<FiPlus />}
                 onClick={() => navigate("/add-product")}
@@ -439,18 +464,25 @@ const ProductPage: React.FC = () => {
             {/* Left Col: Images */}
             <Col xs={24} md={10}>
               <div className="mb-4">
-                <Image
-                  src={viewing.imageUrl?.startsWith("http") ? viewing.imageUrl : viewing.imageUrl ? `${BASE_URL}${viewing.imageUrl}` : "https://placehold.co/600x600?text=No+Image"}
-                  className="rounded-lg shadow-sm w-full! h-auto object-cover border border-gray-100"
-                />
+                <Image.PreviewGroup
+                  items={viewing.imageUrls?.map((url) => ({
+                    src: url.startsWith("http") ? url : `${BASE_URL}${url}`,
+                  }))}
+                >
+                  <Image
+                    src={viewing.imageUrl?.startsWith("http") ? viewing.imageUrl : viewing.imageUrl ? `${BASE_URL}${viewing.imageUrl}` : "https://placehold.co/600x600?text=No+Image"}
+                    className="rounded-lg shadow-sm w-full! h-auto object-cover border border-gray-100"
+                  />
+                </Image.PreviewGroup>
               </div>
               <Image.PreviewGroup>
                 <div className="flex gap-2 overflow-x-auto pb-2">
                   {viewing.imageUrls?.map((url, idx) => (
                     <Image
+                      preview={false}
                       key={idx}
                       src={url.startsWith('/') ? `${BASE_URL}${url}` : url}
-                      className="w-14! h-14! object-cover rounded shadow-xs cursor-pointer border border-gray-100"
+                      className="w-11! h-11! object-cover rounded shadow-xs"
                     />
                   ))}
                 </div>
@@ -555,6 +587,55 @@ const ProductPage: React.FC = () => {
           </Row>
         )}
       </AppModal>
+
+      {/* 🚚 Delivery Charge Update Modal */}
+      <Modal
+        title="Update Delivery Charges"
+        open={isDeliveryModalOpen}
+        onCancel={() => setIsDeliveryModalOpen(false)}
+        confirmLoading={isUpdatingSettings}
+        onOk={() => deliveryForm.submit()}
+        okText="Update Charges"
+      >
+        <Form
+          form={deliveryForm}
+          layout="vertical"
+          onFinish={async (values) => {
+            try {
+              await updateSetting({
+                key: "delivery_charge",
+                value: values,
+                type: "json"
+              }).unwrap();
+              toast.success("Delivery charges updated!");
+              setIsDeliveryModalOpen(false);
+            } catch (err) {
+              toast.error("Failed to update delivery charges");
+            }
+          }}
+          initialValues={{ dhaka: 80, outside: 150 }}
+        >
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <Form.Item
+              label="Inside Dhaka (৳)"
+              name="dhaka"
+              rules={[{ required: true, message: "Please enter amount" }]}
+            >
+              <InputNumber className="w-full" min={0} placeholder="80" />
+            </Form.Item>
+            <Form.Item
+              label="Outside Dhaka (৳)"
+              name="outside"
+              rules={[{ required: true, message: "Please enter amount" }]}
+            >
+              <InputNumber className="w-full" min={0} placeholder="150" />
+            </Form.Item>
+          </div>
+          <Text type="secondary" className="text-xs">
+            * These values will be used for calculation on the checkout page.
+          </Text>
+        </Form>
+      </Modal>
     </div>
   );
 };

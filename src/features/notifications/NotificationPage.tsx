@@ -77,7 +77,7 @@ const NotificationPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <AppCard className="rounded-2xl" bodyStyle={{ padding: "0" }}>
           {/* Header Section */}
           <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -103,12 +103,13 @@ const NotificationPage: React.FC = () => {
               />
               <Tabs
                 activeKey={filter}
+                size="small"
                 onChange={(k) => setFilter(k as "all" | "unread")}
                 items={[
                   { key: "all", label: "All" },
                   { key: "unread", label: "Unread" },
                 ]}
-                className="mb-[-16px]!" // Visual alignment hack for AntD tabs
+                className="mb-[-16px]!"
               />
               <AppButton
                 type="text"

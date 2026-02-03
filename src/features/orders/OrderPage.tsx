@@ -187,8 +187,8 @@ const OrderPage: React.FC = () => {
       render: (status, record) => (
         <Switch
           className="bg-violet-500!"
-          checked={["Confirmed", "Shipped", "Delivered", "Returned"].includes(status)}
-          disabled={["Shipped", "Delivered", "Returned", "Cancelled"].includes(status)}
+          checked={["Confirmed", "Shipped", "Delivered", "Returned", "Processing", "Cancelled"].includes(status)}
+          disabled={["Processing", "Shipped", "Delivered", "Returned", "Cancelled","Confirmed"].includes(status)}
           onChange={(checked) => {
             if (checked) {
               updateOrder({ id: record.id, status: "Confirmed" }).unwrap()
@@ -291,6 +291,7 @@ const OrderPage: React.FC = () => {
       <AppCard className="mt-6!">
         <Tabs
           activeKey={activeTab}
+          size="small"
           onChange={setActiveTab}
           items={["All", "Pending", "Processing", "Confirmed", "Shipped", "Delivered", "Cancelled", "Returned"].map((k) => ({
             key: k,
@@ -310,7 +311,7 @@ const OrderPage: React.FC = () => {
           <Table
             rowKey="id"
             rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
-            rowClassName={(r) => r.status === "Pending" && isSLABreached(r.orderDate) ? "bg-red-50" : ""}
+            rowClassName={(r) => r.status === "Pending" && isSLABreached(r.orderDate) ? "bg-red-50!" : ""}
             columns={columns}
             dataSource={filteredOrders}
             pagination={{

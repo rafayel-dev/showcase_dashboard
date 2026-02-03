@@ -26,15 +26,15 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
 
   return (
     <header className="flex justify-between items-center p-4 bg-white shadow-lg">
-      <h2 className="text-sm! text-violet-600">{name}</h2>
+      <h2 className="text-md! text-gray-700 font-serif italic">Welcome, <span className="text-violet-600 font-bold">{name}</span></h2>
       <div className="flex justify-between items-center gap-2">
         <Badge
+         onClick={() => navigate("/notifications")}
           className="cursor-pointer mr-2!"
           count={notificationCount}
           offset={[-10, 6]}
         >
           <span
-            onClick={() => navigate("/notifications")}
             className="p-2 cursor-pointer rounded-full hover:bg-gray-100 transition-colors block"
           >
             <FiBell className="text-xl text-gray-600" />
