@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { DatePicker, Switch, ConfigProvider, Popover } from "antd";
+import { DatePicker, Switch, ConfigProvider, Popover, Typography } from "antd";
 import AppSelect from "./AppSelect";
 import type { Dayjs } from "dayjs";
 import AppButton from "./AppButton";
 import AppInput from "./AppInput";
 
 const { RangePicker } = DatePicker;
+const { Text } = Typography;
 
 /**
  * Extended InlineEditor to support advanced Discount editing:
@@ -24,13 +25,15 @@ export interface DiscountData {
 interface DiscountInlineEditorProps {
     initialValue: DiscountData;
     onSave: (values: DiscountData) => void;
-    children?: React.ReactNode; // The trigger element (e.g. Edit icon)
+    children?: React.ReactNode;
+    price: number;
 }
 
 const DiscountInlineEditor: React.FC<DiscountInlineEditorProps> = ({
     initialValue,
     onSave,
     children,
+    price,
 }) => {
     const [open, setOpen] = useState(false);
     const [hasDiscount, setHasDiscount] = useState(initialValue.hasDiscount);
@@ -52,6 +55,10 @@ const DiscountInlineEditor: React.FC<DiscountInlineEditorProps> = ({
         onSave({ hasDiscount, discountType: type, discountValue: val, discountRange: range });
         setOpen(false);
     };
+
+    const discountPrice = type === "percentage"
+        ? Math.max(0, price - (price * val / 100))
+        : Math.max(0, price - val);
 
     const content = (
         <div className="flex flex-col gap-2 min-w-[280px]">
@@ -87,6 +94,7 @@ const DiscountInlineEditor: React.FC<DiscountInlineEditorProps> = ({
                             className="w-1/4!"
                             placeholder="Value"
                         />
+                        <Text className="text-xs text-gray-500 mt-1">Price: ৳{discountPrice.toLocaleString()}</Text>
                     </div>
                     <ConfigProvider theme={{ components: { DatePicker: { cellHeight: 20 } } }}>
                         <RangePicker

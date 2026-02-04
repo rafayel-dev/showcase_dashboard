@@ -188,7 +188,7 @@ const OrderPage: React.FC = () => {
         <Switch
           className="bg-violet-500!"
           checked={["Confirmed", "Shipped", "Delivered", "Returned", "Processing", "Cancelled"].includes(status)}
-          disabled={["Processing", "Shipped", "Delivered", "Returned", "Cancelled","Confirmed"].includes(status)}
+          disabled={["Processing", "Shipped", "Delivered", "Returned", "Cancelled", "Confirmed"].includes(status)}
           onChange={(checked) => {
             if (checked) {
               updateOrder({ id: record.id, status: "Confirmed" }).unwrap()
@@ -353,8 +353,13 @@ const OrderPage: React.FC = () => {
                     <Descriptions.Item label="Order Status"><Tag color={statusColor(viewOrder.status)}>{viewOrder.status}</Tag></Descriptions.Item>
                     <Descriptions.Item label="Payment Method">{viewOrder.paymentMethod}</Descriptions.Item>
                     <Descriptions.Item label="Payment Status"><Tag color={paymentStatusColor(viewOrder.paymentStatus)}>{viewOrder.paymentStatus}</Tag></Descriptions.Item>
-
-                    <Descriptions.Item label="Total">৳ {viewOrder.totalAmount}</Descriptions.Item>
+                    <Descriptions.Item label="Delivery Charge">৳ {viewOrder.deliveryCharge?.toLocaleString()}</Descriptions.Item>
+                    <Descriptions.Item label="Discount">
+                      <Text type="success">
+                        - ৳ {Math.max(0, ((viewOrder.itemsPrice || 0) + (viewOrder.deliveryCharge || 0)) - (viewOrder.totalAmount || 0)).toLocaleString()}
+                      </Text>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Total Amount">৳ {viewOrder.totalAmount?.toLocaleString()}</Descriptions.Item>
                   </Descriptions>
                 </AppCard>
               </Col>

@@ -64,6 +64,7 @@ export interface Order {
     | "Delivered"
     | "Cancelled"
     | "Returned";
+  itemsPrice: number;
   totalAmount: number;
   shippingAddress: string;
   paymentMethod: string;

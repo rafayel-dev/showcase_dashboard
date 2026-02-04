@@ -32,6 +32,7 @@ export const orderApi = api.injectEndpoints({
           customerDistrict: order.shippingAddress?.city || "",
           orderDate: order.createdAt ? order.createdAt.split("T")[0] : "",
           status: order.status,
+          itemsPrice: order.itemsPrice || 0,
           totalAmount: order.totalPrice,
           shippingAddress: order.shippingAddress?.address || "",
           paymentMethod: order.paymentMethod,

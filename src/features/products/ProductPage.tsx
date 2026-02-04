@@ -9,7 +9,6 @@ import {
   Tooltip,
   Row,
   Col,
-  Modal,
   Form,
   InputNumber,
 } from "antd";
@@ -280,6 +279,7 @@ const ProductPage: React.FC = () => {
                 : undefined,
           }}
           onSave={(val) => saveDiscount(record.id, val)}
+          price={record.price}
         >
           <Space align="center" className="w-full justify-center">
             <div className="flex flex-col items-center leading-tight">
@@ -589,7 +589,7 @@ const ProductPage: React.FC = () => {
       </AppModal>
 
       {/* 🚚 Delivery Charge Update Modal */}
-      <Modal
+      <AppModal
         title="Update Delivery Charges"
         open={isDeliveryModalOpen}
         onCancel={() => setIsDeliveryModalOpen(false)}
@@ -635,7 +635,7 @@ const ProductPage: React.FC = () => {
             * These values will be used for calculation on the checkout page.
           </Text>
         </Form>
-      </Modal>
+      </AppModal>
     </div>
   );
 };
