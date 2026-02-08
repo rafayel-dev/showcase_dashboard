@@ -13,12 +13,12 @@ import {
   FiArchive,
   FiInfo,
   FiShield,
-  FiImage,
   FiMessageSquare,
 } from "react-icons/fi";
 import { useGetAllChatsQuery } from "@/RTK/chat/chatApi";
 import { useGetOrdersQuery } from "@/RTK/order/orderApi";
 import { BASE_URL } from "@/RTK/api";
+import { MdAdsClick } from "react-icons/md";
 
 const MENU_ITEMS = [
   { path: "/overview", label: "Dashboard", icon: FiHome },
@@ -27,7 +27,7 @@ const MENU_ITEMS = [
   { path: "/add-product", label: "Add Product", icon: FiPlusSquare },
   { path: "/drafts-product", label: "Draft Products", icon: FiArchive },
   { path: "/categories", label: "Categories", icon: FiLayers },
-  { path: "/sliders", label: "Sliders", icon: FiImage },
+  { path: "/promotions", label: "Promotions", icon: MdAdsClick },
   { path: "/coupons", label: "Coupons", icon: FiGift },
   { path: "/chats", label: "Messages", icon: FiMessageSquare, badgeType: "chats" },
   { path: "/admins", label: "Admins", icon: FiUsers },

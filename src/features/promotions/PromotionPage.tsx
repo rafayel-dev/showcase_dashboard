@@ -4,6 +4,7 @@ import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
 import type { TableProps } from "antd";
 import { PlusOutlined } from '@ant-design/icons';
 import { useGetSlidersQuery, useAddSliderMutation, useUpdateSliderMutation, useDeleteSliderMutation } from '../../RTK/slider/sliderApi';
+import { useGetMarqueeQuery, useUpdateMarqueeMutation } from '../../RTK/setting/settingApi';
 import AppCard from "../../components/common/AppCard";
 import AppButton from "../../components/common/AppButton";
 import AppInput from "../../components/common/AppInput";
@@ -16,7 +17,7 @@ import { BASE_URL } from '@/RTK/api';
 
 const { Text } = Typography;
 
-const SliderPage: React.FC = () => {
+const PromotionPage: React.FC = () => {
     const { data: sliders = [], isLoading: tableLoading } = useGetSlidersQuery(undefined);
     const [addSlider, { isLoading: isAdding }] = useAddSliderMutation();
     const [updateSlider, { isLoading: isUpdating }] = useUpdateSliderMutation();
@@ -164,69 +165,134 @@ const SliderPage: React.FC = () => {
     ];
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <AppCard>
-                <PageHeader
-                    title="Slider Management"
-                    subtitle="Manage your home page sliders"
-                    actionLabel="Add Slide"
-                    actionIcon={<FiPlus />}
-                    onAction={handleAdd}
+        <AppCard>
+            <PageHeader
+                title="Slider Management"
+                subtitle="Manage your home page sliders"
+                actionLabel="Add Slide"
+                actionIcon={<FiPlus />}
+                onAction={handleAdd}
+            />
+
+            <AppSpin spinning={tableLoading}>
+                <Table
+                    dataSource={sliders}
+                    columns={columns}
+                    rowKey="_id"
+                    pagination={{ pageSize: 10 }}
+                    locale={{
+                        emptyText: <Empty description="No sliders found" />,
+                    }}
                 />
+            </AppSpin>
 
-                <AppSpin spinning={tableLoading}>
-                    <Table
-                        dataSource={sliders}
-                        columns={columns}
-                        rowKey="_id"
-                        pagination={{ pageSize: 10 }}
-                        locale={{
-                            emptyText: <Empty description="No sliders found" />,
-                        }}
-                    />
-                </AppSpin>
+            <AppModal
+                title={editingSlider ? "Edit Slide" : "Add Slide"}
+                open={modalOpen}
+                onCancel={() => setModalOpen(false)}
+                onOk={handleFinish}
+                confirmLoading={formLoading}
+                okText={editingSlider ? "Update Slide" : "Add Slide"}
+            >
+                <Form form={form} layout="vertical">
+                    <Form.Item name="title" label="Title">
+                        <AppInput placeholder="Slide Title (Optional)" />
+                    </Form.Item>
 
-                <AppModal
-                    title={editingSlider ? "Edit Slide" : "Add Slide"}
-                    open={modalOpen}
-                    onCancel={() => setModalOpen(false)}
-                    onOk={handleFinish}
-                    confirmLoading={formLoading}
-                    okText={editingSlider ? "Update Slide" : "Add Slide"}
-                >
-                    <Form form={form} layout="vertical">
-                        <Form.Item name="title" label="Title">
-                            <AppInput placeholder="Slide Title (Optional)" />
+                    <Form.Item name="link" label="Link URL">
+                        <AppInput placeholder="Link (Optional) e.g. /product/123" />
+                    </Form.Item>
+
+                    <Form.Item label="Image" required>
+                        <Upload
+                            accept="image/*"
+                            listType="picture-card"
+                            fileList={fileList}
+                            onChange={({ fileList }) => setFileList(fileList)}
+                            beforeUpload={() => false}
+                            maxCount={1}
+                        >
+                            <div>
+                                <PlusOutlined />
+                                <div style={{ marginTop: 8 }}>Upload</div>
+                            </div>
+                        </Upload>
+                    </Form.Item>
+
+                    <Form.Item name="isActive" label="Active" valuePropName="checked" initialValue={true}>
+                        <Switch className='bg-violet-500!' />
+                    </Form.Item>
+                </Form>
+            </AppModal>
+        </AppCard>
+    );
+};
+
+// Sub-component for Marquee Management to keep things clean
+const MarqueeManager: React.FC = () => {
+    const { data: marquee, isLoading } = useGetMarqueeQuery();
+    const [updateMarquee, { isLoading: isUpdating }] = useUpdateMarqueeMutation();
+    const [text, setText] = useState("");
+    const [isActive, setIsActive] = useState(true);
+
+    // Sync state when data loads
+    React.useEffect(() => {
+        if (marquee) {
+            setText(marquee.text || "");
+            setIsActive(marquee.isActive !== undefined ? marquee.isActive : true);
+        }
+    }, [marquee]);
+
+    const handleSave = async () => {
+        try {
+            await updateMarquee({ text, isActive }).unwrap();
+            toast.success("Marquee settings updated");
+        } catch (err) {
+            toast.error("Failed to update marquee");
+        }
+    };
+
+    return (
+        <AppCard className="mt-6!">
+            <PageHeader
+                title="Marquee Management"
+                subtitle="Manage the scrolling text at the top of the storefront"
+            />
+            <AppSpin spinning={isLoading}>
+                <div className="max-w-full!">
+                    <Form layout="vertical">
+                        <Form.Item label="Marquee Text">
+                            <AppInput
+                                value={text}
+                                className="w-full!"
+                                onChange={(e) => setText(e.target.value)}
+                                placeholder="e.g. Welcome to our store! Free shipping..."
+                            />
                         </Form.Item>
-
-                        <Form.Item name="link" label="Link URL">
-                            <AppInput placeholder="Link (Optional) e.g. /product/123" />
+                        <Form.Item label="Active Status">
+                            <Switch
+                                className='bg-violet-500!'
+                                checked={isActive}
+                                onChange={setIsActive}
+                            />
                         </Form.Item>
-
-                        <Form.Item label="Image" required>
-                            <Upload
-                                accept="image/*"
-                                listType="picture-card"
-                                fileList={fileList}
-                                onChange={({ fileList }) => setFileList(fileList)}
-                                beforeUpload={() => false}
-                                maxCount={1}
-                            >
-                                <div>
-                                    <PlusOutlined />
-                                    <div style={{ marginTop: 8 }}>Upload</div>
-                                </div>
-                            </Upload>
-                        </Form.Item>
-
-                        <Form.Item name="isActive" label="Active" valuePropName="checked" initialValue={true}>
-                            <Switch className='bg-violet-500!' />
-                        </Form.Item>
+                        <AppButton type="primary" onClick={handleSave} loading={isUpdating}>
+                            Save Changes
+                        </AppButton>
                     </Form>
-                </AppModal>
-            </AppCard>
+                </div>
+            </AppSpin>
+        </AppCard>
+    );
+};
+
+const PromotionPageWrapper: React.FC = () => {
+    return (
+        <div className="p-6 bg-gray-50 min-h-screen">
+            <PromotionPage />
+            <MarqueeManager />
         </div>
     );
 };
 
-export default SliderPage;
+export default PromotionPageWrapper;

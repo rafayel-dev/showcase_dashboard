@@ -37,6 +37,24 @@ export const settingApi = api.injectEndpoints({
       }),
       invalidatesTags: ["Setting"],
     }),
+    getMarquee: builder.query<{ text: string; isActive: boolean }, void>({
+      query: () => "/api/settings/marquee",
+      transformResponse: (response: Setting) =>
+        response?.value || { text: "", isActive: true },
+      providesTags: ["Setting"],
+    }),
+    updateMarquee: builder.mutation<
+      { text: string; isActive: boolean },
+      { text: string; isActive: boolean }
+    >({
+      query: (data) => ({
+        url: "/api/settings/marquee",
+        method: "PUT",
+        body: { value: data, type: "json" },
+      }),
+      transformResponse: (response: Setting) => response.value,
+      invalidatesTags: ["Setting"],
+    }),
   }),
 });
 
@@ -45,4 +63,6 @@ export const {
   useUpdateSettingMutation,
   useGetAboutQuery,
   useUpdateAboutMutation,
+  useGetMarqueeQuery,
+  useUpdateMarqueeMutation,
 } = settingApi;

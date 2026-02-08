@@ -28,6 +28,10 @@ const AboutPage: React.FC = () => {
   const [coverImage, setCoverImage] = useState("");
   const [fileList, setFileList] = useState<any[]>([]);
 
+  // New state for deferred uploads
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [teamFiles, setTeamFiles] = useState<{ [key: number]: File }>({});
+
   const [team, setTeam] = useState<TeamMember[]>([
     { name: "", role: "", image: "" },
     { name: "", role: "", image: "" },
@@ -67,8 +71,8 @@ const AboutPage: React.FC = () => {
     }
   }, [aboutData]);
 
-  const handleUploadCover = async (options: any) => {
-    const { file, onSuccess, onError } = options;
+  // Helper to upload a single file
+  const uploadFile = async (file: File): Promise<string | null> => {
     const formData = new FormData();
     formData.append('image', file);
     try {
@@ -77,43 +81,73 @@ const AboutPage: React.FC = () => {
         body: formData,
       });
       const data = await res.json();
-      if (data.filePath || data.image) {
-        const url = data.filePath || data.image;
-        setCoverImage(url);
-        setFileList([{ uid: file.uid, name: file.name, status: 'done', url: url.startsWith('http') ? url : `${BASE_URL}${url}` }]);
-        onSuccess("Ok");
-      }
-    } catch {
-      onError("Upload failed");
+      return data.filePath || data.image || null;
+    } catch (error) {
+      console.error("Upload failed", error);
+      return null;
     }
   };
 
-  const handleTeamImageUpload = async (index: number, file: any) => {
-    const formData = new FormData();
-    formData.append('image', file);
-    try {
-      const res = await fetch(`${BASE_URL}/api/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.filePath || data.image) {
-        handleTeamChange(index, 'image', data.filePath || data.image);
-      }
-    } catch (e) {
-      toast.error("Team image upload failed");
-    }
+  const handleUploadCover = (options: any) => {
+    const { file, onSuccess } = options;
+    const previewUrl = URL.createObjectURL(file);
+    setCoverImage(previewUrl);
+    setCoverFile(file);
+    setFileList([{ uid: file.uid, name: file.name, status: 'done', url: previewUrl }]);
+    onSuccess("Ok");
+  };
+
+  const handleTeamMemberImageUpload = (index: number, file: any) => {
+    const previewUrl = URL.createObjectURL(file);
+    handleTeamChange(index, 'image', previewUrl);
+    setTeamFiles(prev => ({ ...prev, [index]: file }));
+    return false;
   };
 
   const handleSave = async () => {
     try {
+      let finalCoverImage = coverImage;
+
+      // Upload cover image if changed
+      if (coverFile) {
+        const uploadedUrl = await uploadFile(coverFile);
+        if (uploadedUrl) {
+          finalCoverImage = uploadedUrl;
+        } else {
+          toast.error("Failed to upload cover image");
+          return;
+        }
+      }
+
+      // Upload team images if changed
+      const finalTeam = await Promise.all(team.map(async (member, index) => {
+        let memberImage = member.image;
+        if (teamFiles[index]) {
+          const uploadedUrl = await uploadFile(teamFiles[index]);
+          if (uploadedUrl) {
+            memberImage = uploadedUrl;
+          } else {
+            toast.error(`Failed to upload image for ${member.name || 'team member'}`);
+          }
+        }
+        return {
+          ...member,
+          image: memberImage
+        };
+      }));
+
       await updateAbout({
         title,
         description,
         ourStory,
-        team: team.filter(t => t.name || t.role || t.image),
-        coverImage
+        team: finalTeam.filter(t => t.name || t.role || t.image),
+        coverImage: finalCoverImage
       }).unwrap();
+
+      // Clear dirty files
+      setCoverFile(null);
+      setTeamFiles({});
+
       toast.success("About Us page updated successfully!");
     } catch (error) {
       toast.error("Failed to update settings");
@@ -169,7 +203,7 @@ const AboutPage: React.FC = () => {
               listType="picture-card"
               fileList={fileList}
               customRequest={handleUploadCover}
-              onRemove={() => { setCoverImage(""); setFileList([]); }}
+              onRemove={() => { setCoverImage(""); setFileList([]); setCoverFile(null); }}
               maxCount={1}
             >
               {fileList.length < 1 && <div><PlusOutlined /><div style={{ marginTop: 8 }}>Upload</div></div>}
@@ -186,14 +220,34 @@ const AboutPage: React.FC = () => {
                       <Upload
                         accept="image/*"
                         showUploadList={false}
-                        customRequest={({ file }) => handleTeamImageUpload(index, file)}
+                        customRequest={({ file }) => handleTeamMemberImageUpload(index, file)}
                       >
                         {member.image ? (
-                          <img
-                            src={member.image.startsWith('http') ? member.image : `${BASE_URL}${member.image}`}
-                            alt="Team"
-                            className="w-24 h-24 rounded-full object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-all duration-300"
-                          />
+                          <div className="relative group">
+                            <img
+                              src={
+                                member.image.startsWith('http') || member.image.startsWith('blob:')
+                                  ? member.image
+                                  : `${BASE_URL}${member.image}`
+                              }
+                              alt="Team"
+                              className="w-24 h-24 rounded-full object-cover border border-gray-200"
+                            />
+                            <div
+                              className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 cursor-pointer text-white text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleTeamChange(index, 'image', "");
+                                setTeamFiles(prev => {
+                                  const newFiles = { ...prev };
+                                  delete newFiles[index];
+                                  return newFiles;
+                                });
+                              }}
+                            >
+                              Remove
+                            </div>
+                          </div>
                         ) : (
                           <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 border border-dashed border-gray-300">
                             <PlusOutlined />
