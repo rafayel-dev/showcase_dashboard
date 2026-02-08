@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import { NavLink } from "react-router-dom";
 import { io } from "socket.io-client";
 import {
@@ -13,9 +13,8 @@ import {
   FiArchive,
   FiInfo,
   FiShield,
-  FiMessageSquare,
+  FiLayout,
 } from "react-icons/fi";
-import { useGetAllChatsQuery } from "@/RTK/chat/chatApi";
 import { useGetOrdersQuery } from "@/RTK/order/orderApi";
 import { BASE_URL } from "@/RTK/api";
 import { MdAdsClick } from "react-icons/md";
@@ -29,8 +28,8 @@ const MENU_ITEMS = [
   { path: "/categories", label: "Categories", icon: FiLayers },
   { path: "/promotions", label: "Promotions", icon: MdAdsClick },
   { path: "/coupons", label: "Coupons", icon: FiGift },
-  { path: "/chats", label: "Messages", icon: FiMessageSquare, badgeType: "chats" },
   { path: "/admins", label: "Admins", icon: FiUsers },
+  { path: "/landing-page", label: "Landing Page", icon: FiLayout },
 ];
 
 const SETTINGS_ITEMS = [
@@ -40,9 +39,6 @@ const SETTINGS_ITEMS = [
 ];
 
 const Sidebar: React.FC = () => {
-  const { data: chats, refetch: refetchChats } = useGetAllChatsQuery(undefined, {
-    pollingInterval: 30000,
-  });
 
   const { data: ordersData, refetch: refetchOrders } = useGetOrdersQuery(
     { page: 1, limit: 1 },
@@ -52,10 +48,6 @@ const Sidebar: React.FC = () => {
   React.useEffect(() => {
     const socket = io(BASE_URL);
 
-    socket.on("chat_list_updated", () => {
-      refetchChats();
-    });
-
     socket.on("order_updated", () => {
       refetchOrders();
     });
@@ -63,14 +55,9 @@ const Sidebar: React.FC = () => {
     return () => {
       socket.disconnect();
     };
-  }, [refetchChats, refetchOrders]);
+  }, [refetchOrders]);
 
-  const unreadChatCount = useMemo(() => {
-    if (!chats) return 0;
-    return chats.filter((chat) =>
-      chat.messages?.some((m) => m.sender === "user" && !m.isRead)
-    ).length;
-  }, [chats]);
+
 
   const pendingOrderCount = ordersData?.pending || 0;
 
@@ -94,9 +81,7 @@ const Sidebar: React.FC = () => {
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {MENU_ITEMS.map((item) => {
-          const badgeCount = item.badgeType === "chats" ? unreadChatCount
-            : item.badgeType === "orders" ? pendingOrderCount
-              : 0;
+          const badgeCount = item.badgeType === "orders" ? pendingOrderCount : 0;
           const badgeColor = item.badgeType === "orders" ? "bg-amber-500" : "bg-violet-500";
 
           return (

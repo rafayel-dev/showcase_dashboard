@@ -20,7 +20,7 @@ const InlineEditor: React.FC<InlineEditorProps> = ({
     onChange,
     onSave,
     onCancel,
-    widthClass = "w-16",
+    widthClass,
     options = [],
 }) => (
     <Space>
@@ -38,7 +38,7 @@ const InlineEditor: React.FC<InlineEditorProps> = ({
                     min={type === "number" ? 0 : undefined}
                     value={value}
                     onChange={(e) => onChange(type === "number" ? Number(e.target.value) : e.target.value)}
-                    className={`${widthClass}!`}
+                    className="w-18!"
                 />
             )}
 

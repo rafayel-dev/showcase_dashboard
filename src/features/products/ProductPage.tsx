@@ -221,7 +221,7 @@ const ProductPage: React.FC = () => {
             onChange={(v) => setEditValue(Number(v))}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            widthClass="w-16"
+            widthClass="w-16!"
           />
         ) : (
           <Space>
@@ -246,7 +246,7 @@ const ProductPage: React.FC = () => {
             onChange={(v) => setEditValue(Number(v))}
             onSave={saveEdit}
             onCancel={cancelEdit}
-            widthClass="w-14"
+            widthClass="w-16!"
           />
         ) : (
           <Space>
