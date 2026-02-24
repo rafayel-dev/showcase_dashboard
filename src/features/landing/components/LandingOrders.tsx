@@ -13,7 +13,8 @@ import {
     Badge,
     Avatar,
     Card,
-    Select
+    Select,
+    Dropdown
 } from "antd";
 import AppSelect from "../../../components/common/AppSelect";
 import AppModal from "../../../components/common/AppModal";
@@ -42,11 +43,13 @@ const DUMMY_ORDERS = [
         customerMobile: "01712345678",
         address: "House 12, Road 5, Dhanmondi, Dhaka",
         productName: "Premium Wireless Earbuds Pro",
+        productImage: "https://placehold.net/default.svg",
         quantity: 1,
         price: 1250,
         totalAmount: 1310,
         sku: "SH-SP-09",
         status: "Pending",
+        orderConfirm: "Pending",
         paymentMethod: "Cash on Delivery",
         paymentStatus: "Unpaid",
         orderDate: "2024-02-08T10:00:00Z",
@@ -58,11 +61,13 @@ const DUMMY_ORDERS = [
         customerMobile: "01812345678",
         address: "Flat 4B, Uttara Sector 7, Dhaka",
         productName: "Smart Watch Ultra",
+        productImage: "https://placehold.net/default.svg",
         quantity: 2,
         price: 3500,
         totalAmount: 7120,
         sku: "SH-SP-09",
         status: "Confirmed",
+        orderConfirm: "Confirmed",
         paymentMethod: "Cash on Delivery",
         paymentStatus: "Unpaid",
         orderDate: "2024-02-07T14:30:00Z",
@@ -74,11 +79,13 @@ const DUMMY_ORDERS = [
         customerMobile: "01912345678",
         address: "Mirpur 10, Dhaka",
         productName: "Premium Wireless Earbuds Pro",
+        productImage: "https://placehold.net/default.svg",
         quantity: 1,
         price: 1250,
         totalAmount: 1310,
         sku: "SH-SP-09",
         status: "Delivered",
+        orderConfirm: "Confirmed",
         paymentMethod: "Bkash",
         paymentStatus: "Paid",
         orderDate: "2024-02-05T09:15:00Z",
@@ -90,11 +97,13 @@ const DUMMY_ORDERS = [
         customerMobile: "01612345678",
         address: "Banani, Dhaka",
         productName: "Gaming Headset",
+        productImage: "https://placehold.net/default.svg",
         quantity: 1,
         price: 2200,
         totalAmount: 2260,
         sku: "SH-SP-09",
         status: "Cancelled",
+        orderConfirm: "Confirmed",
         paymentMethod: "Cash on Delivery",
         paymentStatus: "Unpaid",
         orderDate: "2024-02-06T11:00:00Z",
@@ -132,6 +141,13 @@ const LandingOrders: React.FC = () => {
     const handleStatusChange = (id: string, newStatus: string) => {
         setOrders((prev) =>
             prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
+        );
+        toast.success(`Order status updated to ${newStatus}`);
+    };
+
+    const handleOrderStatusChange = (id: string, newStatus: string) => {
+        setOrders((prev) =>
+            prev.map((o) => (o.id === id ? { ...o, orderStatus: newStatus } : o))
         );
         toast.success(`Order status updated to ${newStatus}`);
     };
@@ -176,28 +192,50 @@ const LandingOrders: React.FC = () => {
         {
             title: "SKU",
             dataIndex: "sku",
+            align: "center",
             render: (sku) => <Text>{sku}</Text>,
         },
         {
             title: "Status",
             dataIndex: "status",
+            align: "right",
+            render: (status, r) => {
+                const items = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map(s => ({
+                    key: s,
+                    label: s,
+                    onClick: () => handleStatusChange(r.id, s),
+                }));
+
+                return (
+                    <div className="flex justify-end">
+                        <Dropdown menu={{ items }} trigger={['click']}>
+                            <div className="flex items-center gap-2 cursor-pointer">
+                                <Tag
+                                    color={statusColor(status)}
+                                    className="m-0 px-2 py-1 items-center! gap-2! font-medium border-none"
+                                >
+                                    {status}
+                                </Tag>
+                                <FiEdit size={14} className="text-violet-600!" />
+                            </div>
+                        </Dropdown>
+                    </div>
+                );
+            },
+        },
+        {
+            title: "Order Confirm",
+            dataIndex: "orderConfirm",
             align: "center",
             render: (status, r) => (
-                <div>
-                    <Tag color={statusColor(status)}>{status}</Tag>
-                    <AppSelect
-                        value={status}
-                        onChange={(val) => handleStatusChange(r.id, val)}
-                        options={["Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"].map(s => ({ label: s, value: s }))}
-                        className="w-28"
-                        bordered={false}
-                        suffixIcon={<FiEdit size={14} className="text-gray-800" />}
-                    >
-                    </AppSelect>
-
-                </div>
-
-
+                <Switch
+                    className="bg-violet-500!"
+                    checked={status === "Confirmed"}
+                    disabled={status === "Confirmed"}
+                    onChange={(checked) => handleOrderStatusChange(r.id, checked ? "Confirmed" : "Pending")}
+                    checkedChildren="Yes"
+                    unCheckedChildren="No"
+                />
             ),
         },
         {
@@ -288,9 +326,11 @@ const LandingOrders: React.FC = () => {
                         <Row gutter={24}>
                             <Col span={14}>
                                 <Card title="Items" className="shadow-sm rounded-xl h-full">
-                                    <div className="flex justify-between items-center mb-4 border-b pb-4">
+                                    <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-4">
                                         <div className="flex gap-4">
-                                            <div className="w-16 h-16 bg-gray-100 rounded-lg"></div> {/* Placeholder Img */}
+                                            <div className="w-16 h-16 rounded-lg">
+                                                <img src={viewOrder.productImage} alt="Product" />
+                                            </div>
                                             <div>
                                                 <Text strong className="block">{viewOrder.productName}</Text>
                                                 <Text type="secondary">Unit Price: ৳{viewOrder.price}</Text>
@@ -310,7 +350,7 @@ const LandingOrders: React.FC = () => {
                                             <span>Delivery Fee</span>
                                             <span>৳{viewOrder.totalAmount - (viewOrder.price * viewOrder.quantity)}</span>
                                         </div>
-                                        <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                                        <div className="flex justify-between font-bold text-lg pt-2 border-t border-gray-200">
                                             <span>Total</span>
                                             <span>৳{viewOrder.totalAmount}</span>
                                         </div>
@@ -352,8 +392,5 @@ const LandingOrders: React.FC = () => {
         </div>
     );
 };
-
-// Helper for Icon
-const FilterButtonIcon = () => <FiFilter />;
 
 export default LandingOrders;

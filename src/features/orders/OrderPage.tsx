@@ -35,6 +35,7 @@ import InlineEditor from "../../components/common/InlineEditor";
 import StatsCard from "../../components/common/StatsCard";
 import AppSpin from "@/components/common/AppSpin";
 import { BASE_URL } from "@/RTK/api";
+import "./order.css";
 
 const { Title, Text } = Typography;
 

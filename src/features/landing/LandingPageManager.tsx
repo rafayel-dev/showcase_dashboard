@@ -4,6 +4,7 @@ import PageHeader from "../../components/common/PageHeader";
 import LandingOrders from "./components/LandingOrders";
 import LandingProducts from "./components/LandingProducts";
 import LandingForm from "./components/LandingForm";
+import "./components/tab.css";
 
 const LandingPageManager: React.FC = () => {
     const [activeTab, setActiveTab] = useState<string>("1");
@@ -35,11 +36,13 @@ const LandingPageManager: React.FC = () => {
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <Tabs
+                    animated
                     activeKey={activeTab}
                     onChange={setActiveTab}
                     items={items}
                     type="card"
                     className="landing-tabs"
+                    tabBarStyle={{ fontWeight: "bold", color: "#8b5cf6" }}
                 />
             </div>
         </div>

@@ -1,0 +1,23 @@
+/* Active tab */
+.landing-tabs .ant-tabs-card .ant-tabs-tab-active {
+    background-color: #8b5cf6 !important;
+}
+
+/* Active tab text */
+.landing-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #8b5cf6 !important;
+}
+
+/* Inactive tab text */
+.landing-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+    color: #6b7280;
+}
+
+.landing-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+    color: #8b5cf6;
+}
+
+/* Active tab underline color */
+.ant-tabs-ink-bar {
+    background-color: #8b5cf6 !important;
+}

@@ -11,6 +11,7 @@ import {
     Col,
     Card,
     Avatar,
+    Switch,
 } from "antd";
 import AppSelect from "../../../components/common/AppSelect";
 import {
@@ -26,6 +27,7 @@ import type { TableProps } from "antd";
 import AppButton from "../../../components/common/AppButton";
 import AppModal from "../../../components/common/AppModal";
 import toast from "../../../utils/toast";
+import AppPopconfirm from "@/components/common/AppPopconfirm";
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = AppSelect;
@@ -91,6 +93,10 @@ const LandingProducts: React.FC = () => {
         p.sku.toLowerCase().includes(searchText.toLowerCase())
     );
 
+    const handleStatusChange = (id: string, status: string) => {
+        setProducts(prev => prev.map(p => p.id === id ? { ...p, status } : p));
+    };
+
     const columns: TableProps<any>["columns"] = [
         {
             title: "Product",
@@ -143,16 +149,35 @@ const LandingProducts: React.FC = () => {
         {
             title: "Status",
             dataIndex: "status",
-            render: (s) => <Tag color={statusColor(s)}>{s}</Tag>,
+            render: (s, record) =>
+                <>
+                    <Switch
+                        className="mr-2! bg-violet-500!"
+                        checked={s === "Active"}
+                        onChange={(checked) => {
+                            if (checked) {
+                                handleStatusChange(record.id, "Active");
+                            } else {
+                                handleStatusChange(record.id, "Inactive");
+                            }
+                        }}
+                    />
+                    <Tag color={statusColor(s)}>{s}</Tag>
+                </>
         },
         {
             title: "Actions",
             align: "right",
             render: (_, record) => (
                 <Space>
-                    <Tooltip title="View"><AppButton type="text" icon={<FiEye />} onClick={() => setViewing(record)} /></Tooltip>
-                    <Tooltip title="Edit"><AppButton type="text" icon={<FiEdit />} /></Tooltip>
-                    <Tooltip title="Remove"><AppButton type="text" danger icon={<FiTrash2 />} onClick={() => handleDelete(record.id)} /></Tooltip>
+                    <Tooltip title="Edit"><AppButton type="text" icon={<FiEdit size={20} className="text-violet-500!" />} /></Tooltip>
+                    <AppPopconfirm
+                        title="Remove Product"
+                        description="Are you sure to remove this product?"
+                        onConfirm={() => handleDelete(record.id)}
+                    >
+                        <AppButton title="Remove" type="text" danger icon={<FiTrash2 size={20} />} />
+                    </AppPopconfirm>
                 </Space>
             ),
         },
@@ -176,7 +201,7 @@ const LandingProducts: React.FC = () => {
                 </Space>
 
                 <Space>
-                    <AppButton
+                    <AppButton className="text-violet-500! border-violet-500!"
                         icon={viewMode === "table" ? <FiGrid /> : <FiList />}
                         onClick={() => setViewMode(viewMode === "table" ? "card" : "table")}
                     />
@@ -218,62 +243,13 @@ const LandingProducts: React.FC = () => {
                                             <Text strong className="text-xl text-violet-600">৳{p.price}</Text>
                                         )}
                                     </div>
-                                    <AppButton size="small" icon={<FiEdit />} />
+                                    <AppButton className="border-none! shadow-none!" size="small" icon={<FiEdit size={20} className="text-violet-500!" />} />
                                 </div>
                             </div>
                         </Card>
                     ))}
                 </div>
             )}
-
-            {/* View Modal */}
-            <AppModal
-                title="Product Details"
-                width={700}
-                open={!!viewing}
-                footer={null}
-                onCancel={() => setViewing(null)}
-            >
-                {viewing && (
-                    <Row gutter={24}>
-                        <Col span={10}>
-                            <img src={viewing.imageUrl} className="w-full rounded-xl" alt="product" />
-                        </Col>
-                        <Col span={14}>
-                            <Title level={4}>{viewing.productName}</Title>
-                            <div className="mb-4">
-                                <Tag color="blue">{viewing.category}</Tag>
-                            </div>
-
-                            <div className="bg-gray-50 p-4 rounded-xl mb-4">
-                                <Row gutter={[16, 16]}>
-                                    <Col span={12}>
-                                        <Text type="secondary" className="text-xs uppercase block">Price</Text>
-                                        <Text strong className="text-lg">৳{viewing.discountPrice || viewing.price}</Text>
-                                    </Col>
-                                    <Col span={12}>
-                                        <Text type="secondary" className="text-xs uppercase block">Status</Text>
-                                        <Text strong className="text-lg">{statusColor(viewing.status)}</Text>
-                                    </Col>
-                                    <Col span={12}>
-                                        <Text type="secondary" className="text-xs uppercase block">Total Orders</Text>
-                                        <Text strong className="text-lg text-violet-600">{viewing.orders}</Text>
-                                    </Col>
-                                    <Col span={12}>
-                                        <Text type="secondary" className="text-xs uppercase block">Views</Text>
-                                        <Text strong className="text-lg">{viewing.views}</Text>
-                                    </Col>
-                                </Row>
-                            </div>
-
-                            <Text strong className="block mb-2">Description</Text>
-                            <Paragraph type="secondary" className="text-sm">
-                                This is a high-quality product designed to meet all your needs. It features premium materials and advanced technology to ensure durability and performance. Perfect for daily use.
-                            </Paragraph>
-                        </Col>
-                    </Row>
-                )}
-            </AppModal>
         </div>
     );
 };

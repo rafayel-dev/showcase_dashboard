@@ -1,0 +1,13 @@
+/* Active tab text */
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: #8b5cf6 !important;
+}
+
+/* Active tab underline color */
+.ant-tabs-ink-bar {
+    background-color: #8b5cf6 !important;
+}
+
+.ant-tabs-tab:hover .ant-tabs-tab-btn {
+    color: #8b5cf6 !important;
+}
