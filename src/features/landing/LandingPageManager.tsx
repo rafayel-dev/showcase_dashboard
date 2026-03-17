@@ -4,7 +4,7 @@ import PageHeader from "../../components/common/PageHeader";
 import LandingOrders from "./components/LandingOrders";
 import LandingProducts from "./components/LandingProducts";
 import LandingForm from "./components/LandingForm";
-import "./components/tab.css";
+import LandingSettings from "./components/LandingSettings";
 
 const LandingPageManager: React.FC = () => {
     const [activeTab, setActiveTab] = useState<string>("1");
@@ -25,10 +25,15 @@ const LandingPageManager: React.FC = () => {
             label: "Update / Add Product",
             children: <LandingForm />,
         },
+        {
+            key: "4",
+            label: "Settings",
+            children: <LandingSettings />,
+        },
     ];
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-6! bg-gray-50 min-h-screen">
             <PageHeader
                 title="Landing Page Manager"
                 subtitle="Manage your storefront landing page content"
@@ -41,8 +46,6 @@ const LandingPageManager: React.FC = () => {
                     onChange={setActiveTab}
                     items={items}
                     type="card"
-                    className="landing-tabs"
-                    tabBarStyle={{ fontWeight: "bold", color: "#8b5cf6" }}
                 />
             </div>
         </div>

@@ -11,6 +11,7 @@ import {
   Col,
   Form,
   InputNumber,
+  Switch,
 } from "antd";
 import AppSelect from "../../components/common/AppSelect";
 import {
@@ -37,8 +38,10 @@ import {
 } from "../../RTK/setting/settingApi";
 import toast from "../../utils/toast";
 
-import InlineEditor from "../../components/common/InlineEditor";
-import DiscountInlineEditor, { type DiscountData } from "../../components/common/DiscountInlineEditor";
+import DiscountInlineEditor, {
+  type DiscountData,
+} from "../../components/common/DiscountInlineEditor";
+import QuickEditPopover from "../../components/common/QuickEditPopover";
 import AppButton from "../../components/common/AppButton";
 import dayjs from "dayjs";
 
@@ -57,9 +60,12 @@ const ProductPage: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
 
   // RTK Query Hooks
-  const { data: productsData, isLoading: loading } = useGetProductsQuery({ page, limit: pageSize }, {
-    refetchOnMountOrArgChange: true
-  });
+  const { data: productsData, isLoading: loading } = useGetProductsQuery(
+    { page, limit: pageSize },
+    {
+      refetchOnMountOrArgChange: true,
+    },
+  );
 
   const products = productsData?.products || [];
   const totalProducts = productsData?.total || 0;
@@ -76,27 +82,12 @@ const ProductPage: React.FC = () => {
 
   // Settings Queries
   const { data: deliverySetting } = useGetSettingQuery("delivery_charge");
-  const [updateSetting, { isLoading: isUpdatingSettings }] = useUpdateSettingMutation();
-
-  // �📝 Inline Editing State
-  const [editingId, setEditingId] = useState<{ id: string; field: "price" | "stock" | "discount" } | null>(null);
-  const [editValue, setEditValue] = useState<number>(0);
+  const [updateSetting, { isLoading: isUpdatingSettings }] =
+    useUpdateSettingMutation();
 
   // 🔍 Filters
   const [searchText, setSearchText] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
-
-  const startEdit = (record: Product, field: "price" | "stock" | "discount") => {
-    setEditingId({ id: record.id, field });
-    if (field === "price") setEditValue(record.price);
-    else if (field === "stock") setEditValue(record.stock);
-    // discount logic handled in render prop via initialValue
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-  };
-
 
   const saveDiscount = async (id: string, values: DiscountData) => {
     try {
@@ -112,8 +103,10 @@ const ProductPage: React.FC = () => {
           discountPayload.discountType = values.discountType;
           discountPayload.discountValue = values.discountValue;
           if (values.discountRange) {
-            discountPayload.discountStartDate = values.discountRange[0].toISOString();
-            discountPayload.discountEndDate = values.discountRange[1].toISOString();
+            discountPayload.discountStartDate =
+              values.discountRange[0].toISOString();
+            discountPayload.discountEndDate =
+              values.discountRange[1].toISOString();
           }
         } else {
           // We need to explicitly clear these if untoggling discount
@@ -130,57 +123,61 @@ const ProductPage: React.FC = () => {
 
         await updateProduct(discountPayload).unwrap();
         toast.success("Discount updated successfully!");
-        setEditingId(null);
       }
     } catch {
       toast.error("Update failed");
     }
   };
 
-  const saveEdit = async () => {
-    if (!editingId) return;
+  const handlePriceUpdate = async (id: string, newPrice: number) => {
     try {
-      const product = products.find((p) => p.id === editingId.id);
-      if (product) {
-        let updatedPayload: any = { id: product.id };
-
-        if (editingId.field === "price") {
-          updatedPayload.price = editValue;
-          toast.success("Price updated!");
-        } else if (editingId.field === "stock") {
-          updatedPayload.stock = editValue;
-
-          // Status logic recalculation
-          // Note: Backend might not auto-calculate status unless we explicitly tell it or have pre-save hooks
-          // Let's optimize it on client side for the payload
-          if (editValue === 0) updatedPayload.status = "Out of Stock";
-          else if (product.status === "Out of Stock" && editValue > 0) updatedPayload.status = "In Stock";
-
-          toast.success("Stock updated!");
-        }
-
-        await updateProduct(updatedPayload).unwrap();
-        setEditingId(null);
-      }
+      await updateProduct({ id, price: newPrice }).unwrap();
+      toast.success("Price updated!");
     } catch {
-      toast.error("Update failed.");
+      toast.error("Failed to update price");
     }
   };
 
-  const statusColor = (status: Product["status"]) => {
-    const colors = { "In Stock": "success", "Out of Stock": "warning", "Discontinued": "error" };
-    return colors[status] || "default";
+  const handleStockUpdate = async (id: string, newStock: number) => {
+    try {
+      await updateProduct({ id, stock: newStock }).unwrap();
+      toast.success("Stock updated!");
+    } catch {
+      toast.error("Failed to update stock");
+    }
+  };
+
+  const handlePublishToggle = async (id: string, isPublished: boolean) => {
+    try {
+      await updateProduct({ id, isPublished }).unwrap();
+      toast.success(
+        isPublished ? "Product published!" : "Product unpublished!",
+      );
+    } catch {
+      toast.error("Failed to update status");
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    if (status === "Published") return "success"; // Green
+    if (status === "Unpublished") return "error"; // Red
+    if (status === "Discontinued") return "warning"; // Yellow
+    if (status === "Draft") return "default"; // Gray
+    return "default";
   };
 
   // ✅ Filter logic (Client-side, on current page only)
   const filteredProducts = products.filter((p) => {
-    const isPublished = p.isPublished !== false; // Show only published products
     const lowerSearch = searchText.toLowerCase();
     const matchSearch =
       p.productName?.toLowerCase().includes(lowerSearch) ||
       p.sku?.toLowerCase().includes(lowerSearch);
     const matchCategory = categoryFilter ? p.category === categoryFilter : true;
-    return isPublished && matchSearch && matchCategory;
+
+    // Filter out Draft products (but KEEP Unpublished visible)
+    const isNotDraft = p.status !== "Draft";
+
+    return matchSearch && matchCategory && isNotDraft;
   });
 
   const columns: TableProps<Product>["columns"] = [
@@ -192,7 +189,9 @@ const ProductPage: React.FC = () => {
           src={
             url?.startsWith("http")
               ? url
-              : url ? `${BASE_URL}${url}` : "https://placehold.co/40x40"
+              : url
+                ? `${BASE_URL}${url}`
+                : "https://placehold.co/40x40"
           }
           alt="Product"
           className="w-10 h-10 object-cover rounded border border-gray-200"
@@ -214,51 +213,27 @@ const ProductPage: React.FC = () => {
       title: "Price",
       dataIndex: "price",
       align: "center",
-      render: (_, record) =>
-        editingId?.id === record.id && editingId.field === "price" ? (
-          <InlineEditor
-            value={editValue}
-            onChange={(v) => setEditValue(Number(v))}
-            onSave={saveEdit}
-            onCancel={cancelEdit}
-            widthClass="w-16!"
-          />
-        ) : (
-          <Space>
-            <Text>৳ {record.price}</Text>
-            <AppButton
-              type="text"
-              size="small"
-              icon={<FiEdit />}
-              onClick={() => startEdit(record, "price")}
-            />
-          </Space>
-        ),
+      render: (_, record) => (
+        <QuickEditPopover
+          initialValue={record.price}
+          onSave={(val) => handlePriceUpdate(record.id, val)}
+          title="Update Price"
+          prefix="৳ "
+        />
+      ),
     },
     {
       title: "Stock",
       dataIndex: "stock",
       align: "center",
-      render: (_, record) =>
-        editingId?.id === record.id && editingId.field === "stock" ? (
-          <InlineEditor
-            value={editValue}
-            onChange={(v) => setEditValue(Number(v))}
-            onSave={saveEdit}
-            onCancel={cancelEdit}
-            widthClass="w-16!"
-          />
-        ) : (
-          <Space>
-            <Text type={record.stock < 5 ? "danger" : undefined}>{record.stock}</Text>
-            <AppButton
-              type="text"
-              size="small"
-              icon={<FiEdit />}
-              onClick={() => startEdit(record, "stock")}
-            />
-          </Space>
-        ),
+      render: (_, record) => (
+        <QuickEditPopover
+          initialValue={record.stock}
+          onSave={(val) => handleStockUpdate(record.id, val)}
+          title="Update Stock"
+          isStock
+        />
+      ),
     },
     {
       title: "Discount",
@@ -273,20 +248,21 @@ const ProductPage: React.FC = () => {
             discountRange:
               record.discountStartDate && record.discountEndDate
                 ? [
-                  dayjs(record.discountStartDate),
-                  dayjs(record.discountEndDate),
-                ]
+                    dayjs(record.discountStartDate),
+                    dayjs(record.discountEndDate),
+                  ]
                 : undefined,
           }}
           onSave={(val) => saveDiscount(record.id, val)}
           price={record.price}
         >
-          <Space align="center" className="w-full justify-center">
+          <Space align="center" className="w-full justify-end">
             <div className="flex flex-col items-center leading-tight">
               <Text>
                 {record.hasDiscount
-                  ? `${record.discountValue}${record.discountType === "percentage" ? "%" : "৳"
-                  }`
+                  ? `${record.discountValue}${
+                      record.discountType === "percentage" ? "%" : "৳"
+                    }`
                   : "-"}
               </Text>
               {record.hasDiscount && record.discountEndDate && (
@@ -296,10 +272,9 @@ const ProductPage: React.FC = () => {
               )}
             </div>
             <AppButton
-              type="text"
+              className="text-violet-600!"
               size="small"
               icon={<FiEdit />}
-              onClick={() => startEdit(record, "discount")}
             />
           </Space>
         </DiscountInlineEditor>
@@ -308,15 +283,37 @@ const ProductPage: React.FC = () => {
     {
       title: "Status",
       dataIndex: "status",
-      render: (s) => <Tag color={statusColor(s)}>{s}</Tag>,
+      width: 100,
+      align: "center",
+      render: (status) => <Tag className="font-medium!" color={getStatusColor(status)}>{status}</Tag>,
+    },
+    {
+      title: "Published",
+      dataIndex: "isPublished",
+      align: "center",
+      render: (checked, record) => (
+        <Switch
+          checked={checked}
+          onChange={(val) => handlePublishToggle(record.id, val)}
+          size="small"
+        />
+      ),
     },
     {
       title: "Actions",
       align: "right",
       render: (_, record) => (
         <Space>
-          <Tooltip title="View"><AppButton icon={<FiEye />} onClick={() => setViewing(record)} /></Tooltip>
-          <Tooltip title="Edit"><AppButton icon={<FiEdit />} onClick={() => navigate(`/edit-product/${record.id}`)} /></Tooltip>
+          <Tooltip title="View">
+            <AppButton className="text-violet-600! text-xl!" icon={<FiEye />} onClick={() => setViewing(record)} />
+          </Tooltip>
+          <Tooltip title="Edit">
+            <AppButton
+            className="text-violet-600! text-xl!"
+              icon={<FiEdit />}
+              onClick={() => navigate(`/edit-product/${record.id}`)}
+            />
+          </Tooltip>
           <AppPopconfirm
             title="Delete this product?"
             okText="Yes"
@@ -329,7 +326,13 @@ const ProductPage: React.FC = () => {
               }
             }}
           >
-            <AppButton danger title="Delete" icon={<FiTrash2 />} loading={isDeleting} />
+            <AppButton
+              danger
+              title="Delete"
+              className="text-xl!"
+              icon={<FiTrash2 />}
+              loading={isDeleting}
+            />
           </AppPopconfirm>
         </Space>
       ),
@@ -354,7 +357,9 @@ const ProductPage: React.FC = () => {
             <Space>
               <AppButton
                 icon={viewMode === "table" ? <FiGrid /> : <FiList />}
-                onClick={() => setViewMode(viewMode === "table" ? "card" : "table")}
+                onClick={() =>
+                  setViewMode(viewMode === "table" ? "card" : "table")
+                }
               />
               <AppButton
                 onClick={() => {
@@ -380,7 +385,7 @@ const ProductPage: React.FC = () => {
         {/* 🔍 Filters */}
         <Space className="mb-4">
           <Input.Search
-            placeholder="Search product (this page)"
+            placeholder="Search product"
             allowClear
             style={{ width: 220 }}
             onChange={(e) => setSearchText(e.target.value)}
@@ -392,7 +397,9 @@ const ProductPage: React.FC = () => {
             onChange={(v) => setCategoryFilter(v)}
           >
             {uniqueCategories.map((cat) => (
-              <Option key={cat} value={cat}>{cat}</Option>
+              <Option key={cat} value={cat}>
+                {cat}
+              </Option>
             ))}
           </AppSelect>
         </Space>
@@ -410,12 +417,13 @@ const ProductPage: React.FC = () => {
                 total: totalProducts,
                 showSizeChanger: true,
                 pageSizeOptions: ["10", "20", "50", "100"],
-                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} products`,
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} of ${total} products`,
                 onChange: (p, ps) => {
                   setPage(p);
                   setPageSize(ps);
                 },
-                position: ["bottomRight"]
+                position: ["bottomRight"],
               }}
               rowClassName={(record) => (record.stock < 5 ? "bg-red-50" : "")}
             />
@@ -440,9 +448,21 @@ const ProductPage: React.FC = () => {
                 <div className="flex justify-center w-full mt-4">
                   {/* Simplified Pagination for Card View */}
                   <Space>
-                    <AppButton disabled={page === 1} onClick={() => setPage(p => p - 1)}>&lt; Prev</AppButton>
-                    <Text>Page {page} of {Math.ceil(totalProducts / pageSize)}</Text>
-                    <AppButton disabled={page >= Math.ceil(totalProducts / pageSize)} onClick={() => setPage(p => p + 1)}>Next &gt;</AppButton>
+                    <AppButton
+                      disabled={page === 1}
+                      onClick={() => setPage((p) => p - 1)}
+                    >
+                      &lt; Prev
+                    </AppButton>
+                    <Text>
+                      Page {page} of {Math.ceil(totalProducts / pageSize)}
+                    </Text>
+                    <AppButton
+                      disabled={page >= Math.ceil(totalProducts / pageSize)}
+                      onClick={() => setPage((p) => p + 1)}
+                    >
+                      Next &gt;
+                    </AppButton>
                   </Space>
                 </div>
               </Row>
@@ -470,7 +490,13 @@ const ProductPage: React.FC = () => {
                   }))}
                 >
                   <Image
-                    src={viewing.imageUrl?.startsWith("http") ? viewing.imageUrl : viewing.imageUrl ? `${BASE_URL}${viewing.imageUrl}` : "https://placehold.co/600x600?text=No+Image"}
+                    src={
+                      viewing.imageUrl?.startsWith("http")
+                        ? viewing.imageUrl
+                        : viewing.imageUrl
+                          ? `${BASE_URL}${viewing.imageUrl}`
+                          : "https://placehold.co/600x600?text=No+Image"
+                    }
                     className="rounded-lg shadow-sm w-full! h-auto object-cover border border-gray-100"
                   />
                 </Image.PreviewGroup>
@@ -481,7 +507,7 @@ const ProductPage: React.FC = () => {
                     <Image
                       preview={false}
                       key={idx}
-                      src={url.startsWith('/') ? `${BASE_URL}${url}` : url}
+                      src={url.startsWith("/") ? `${BASE_URL}${url}` : url}
                       className="w-11! h-11! object-cover rounded shadow-xs"
                     />
                   ))}
@@ -493,16 +519,31 @@ const ProductPage: React.FC = () => {
             <Col xs={24} md={14}>
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <Title level={4} className="mb-1!">{viewing.productName}</Title>
+                  <Title level={4} className="mb-1!">
+                    {viewing.productName}
+                  </Title>
                   <Space>
                     <Tag color="blue">{viewing.category}</Tag>
-                    <Tag color={viewing.isPublished ? "green" : "default"}>{viewing.isPublished ? "Published" : "Draft"}</Tag>
+                    <Tag color={viewing.isPublished ? "green" : "default"}>
+                      {viewing.isPublished ? "Published" : "Draft"}
+                    </Tag>
                   </Space>
                 </div>
                 <div className="text-right">
-                  <Title level={3} className="mb-0! text-violet-600!">৳ {viewing.price}</Title>
+                  <Title level={3} className="mb-0! text-violet-600!">
+                    ৳ {viewing.price}
+                  </Title>
                   {viewing.hasDiscount && (
-                    <Text delete type="secondary">৳ {Math.round(viewing.price + (viewing.discountType === 'flat' ? viewing.discountValue || 0 : (viewing.price * (viewing.discountValue || 0) / 100)))}</Text>
+                    <Text delete type="secondary">
+                      ৳{" "}
+                      {Math.round(
+                        viewing.price +
+                          (viewing.discountType === "flat"
+                            ? viewing.discountValue || 0
+                            : (viewing.price * (viewing.discountValue || 0)) /
+                              100),
+                      )}
+                    </Text>
                   )}
                 </div>
               </div>
@@ -510,32 +551,61 @@ const ProductPage: React.FC = () => {
               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mb-4 flow-root">
                 <Space size="large" className="w-full justify-between">
                   <div className="text-center">
-                    <Text type="secondary" className="block text-xs uppercase">Stock</Text>
-                    <Text strong className={viewing.stock < 5 ? "text-red-500" : ""}>{viewing.stock}</Text>
+                    <Text type="secondary" className="block text-xs uppercase">
+                      Stock
+                    </Text>
+                    <Text
+                      strong
+                      className={viewing.stock < 5 ? "text-red-500" : ""}
+                    >
+                      {viewing.stock}
+                    </Text>
                   </div>
                   <div className="text-center">
-                    <Text type="secondary" className="block text-xs uppercase">SKU</Text>
+                    <Text type="secondary" className="block text-xs uppercase">
+                      SKU
+                    </Text>
                     <Text strong>{viewing.sku || "N/A"}</Text>
                   </div>
                   <div className="text-center">
-                    <Text type="secondary" className="block text-xs uppercase">Status</Text>
-                    <Tag color={statusColor(viewing.status)} className="mr-0!">{viewing.status}</Tag>
+                    <Text type="secondary" className="block text-xs uppercase">
+                      Status
+                    </Text>
+                    <Tag
+                      color={getStatusColor(viewing.status)}
+                      className="mr-0!"
+                    >
+                      {viewing.status}
+                    </Tag>
                   </div>
                 </Space>
               </div>
 
               {/* Descriptions */}
               <div className="mb-4">
-                <Text strong className="block mb-1">Description</Text>
-                <Paragraph type="secondary" ellipsis={{ rows: 3, expandable: true, symbol: 'more' }} className="text-sm">
-                  {viewing.description || viewing.productDetails?.description?.replace(/<[^>]*>/g, '') || "No description available."}
+                <Text strong className="block mb-1">
+                  Description
+                </Text>
+                <Paragraph
+                  type="secondary"
+                  ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
+                  className="text-sm"
+                >
+                  {viewing.description ||
+                    viewing.productDetails?.description?.replace(
+                      /<[^>]*>/g,
+                      "",
+                    ) ||
+                    "No description available."}
                 </Paragraph>
               </div>
 
               {/* Specifications Grid */}
               {(viewing.specifications || viewing.productDetails?.features) && (
                 <div className="mb-4">
-                  <Text strong className="block mb-2">Specifications</Text>
+                  <Text strong className="block mb-2">
+                    Specifications
+                  </Text>
                   <div className="grid grid-cols-2 gap-y-2 text-sm">
                     {viewing.specifications?.brand && (
                       <>
@@ -559,7 +629,11 @@ const ProductPage: React.FC = () => {
                       <>
                         <Text type="secondary">Colors:</Text>
                         <Space size={4}>
-                          {viewing.specifications.availableColors.map(c => <Tag key={c} color="default" className="text-xs!">{c}</Tag>)}
+                          {viewing.specifications.availableColors.map((c) => (
+                            <Tag key={c} color="default" className="text-xs!">
+                              {c}
+                            </Tag>
+                          ))}
                         </Space>
                       </>
                     ) : null}
@@ -567,7 +641,11 @@ const ProductPage: React.FC = () => {
                       <>
                         <Text type="secondary">Sizes:</Text>
                         <Space size={4}>
-                          {viewing.specifications.availableSizes.map(s => <Tag key={s} className="text-xs!">{s}</Tag>)}
+                          {viewing.specifications.availableSizes.map((s) => (
+                            <Tag key={s} className="text-xs!">
+                              {s}
+                            </Tag>
+                          ))}
                         </Space>
                       </>
                     ) : null}
@@ -577,9 +655,18 @@ const ProductPage: React.FC = () => {
 
               {viewing.tags && viewing.tags.length > 0 && (
                 <div>
-                  <Text strong className="block mb-2 text-xs uppercase text-gray-400">Tags</Text>
+                  <Text
+                    strong
+                    className="block mb-2 text-xs uppercase text-gray-400"
+                  >
+                    Tags
+                  </Text>
                   <div className="flex flex-wrap gap-1">
-                    {viewing.tags.map(tag => <Tag key={tag} className="mr-0 rounded-full px-2 text-xs">{tag}</Tag>)}
+                    {viewing.tags.map((tag) => (
+                      <Tag key={tag} className="mr-0 rounded-full px-2 text-xs">
+                        {tag}
+                      </Tag>
+                    ))}
                   </div>
                 </div>
               )}
@@ -605,7 +692,7 @@ const ProductPage: React.FC = () => {
               await updateSetting({
                 key: "delivery_charge",
                 value: values,
-                type: "json"
+                type: "json",
               }).unwrap();
               toast.success("Delivery charges updated!");
               setIsDeliveryModalOpen(false);

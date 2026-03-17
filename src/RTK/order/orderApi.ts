@@ -41,6 +41,8 @@ export const orderApi = api.injectEndpoints({
           customerMobile: order.customerInfo?.phone || "",
           courier: order.courier,
           deliveryCharge: order.shippingPrice || 60,
+          walletNumber: order.walletNumber,
+          transactionId: order.transactionId,
           items:
             order.orderItems?.map((item: any) => ({
               productId: item.product?._id || item.product,

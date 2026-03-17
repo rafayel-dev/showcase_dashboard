@@ -54,7 +54,7 @@ const AddProductPage: React.FC = () => {
   // RTK Query hooks
   const { data: productData, isLoading: isFetching } = useGetProductByIdQuery(
     productId || "",
-    { skip: !isEditMode }
+    { skip: !isEditMode },
   );
   const { data: categories = [] } = useGetCategoriesQuery({});
   const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
@@ -68,16 +68,13 @@ const AddProductPage: React.FC = () => {
 
   useEffect(() => {
     if (isEditMode && productData) {
-      const formValues: Partial<Product> & { discountRange?: [dayjs.Dayjs, dayjs.Dayjs] } = { ...productData };
+      const formValues: Partial<Product> & {
+        discountRange?: [dayjs.Dayjs, dayjs.Dayjs];
+      } = { ...productData };
 
-      // Map productName to title for form if needed, though form uses 'title'
+      // Explicitly set productName to title if it exists
       if (productData.productName) {
         form.setFieldsValue({ title: productData.productName });
-      }
-
-      // Explicitly set isPublished to ensure switch reflects state
-      if (productData.isPublished !== undefined) {
-        form.setFieldsValue({ isPublished: productData.isPublished });
       }
 
       if (formValues.discountStartDate && formValues.discountEndDate) {
@@ -94,8 +91,8 @@ const AddProductPage: React.FC = () => {
             uid: String(index),
             name: `image-${index}.png`,
             status: "done",
-            url: url.startsWith('/') ? `${BASE_URL}${url}` : url,
-          }))
+            url: url.startsWith("/") ? `${BASE_URL}${url}` : url,
+          })),
         );
       } else if (productData.imageUrl) {
         setFileList([
@@ -103,7 +100,9 @@ const AddProductPage: React.FC = () => {
             uid: "-1",
             name: "image.png",
             status: "done",
-            url: productData.imageUrl.startsWith('/') ? `${BASE_URL}${productData.imageUrl}` : productData.imageUrl,
+            url: productData.imageUrl.startsWith("/")
+              ? `${BASE_URL}${productData.imageUrl}`
+              : productData.imageUrl,
           },
         ]);
       }
@@ -112,7 +111,11 @@ const AddProductPage: React.FC = () => {
 
   const [uploadImage] = useUploadImageMutation();
 
-  const onFinish = async (values: Omit<Product, "id" | "key"> & { discountRange?: [dayjs.Dayjs, dayjs.Dayjs] }) => {
+  const onFinish = async (
+    values: Omit<Product, "id" | "key"> & {
+      discountRange?: [dayjs.Dayjs, dayjs.Dayjs];
+    },
+  ) => {
     if (!fileList.length) {
       toast.error("Please upload at least one product image.");
       return;
@@ -125,8 +128,11 @@ const AddProductPage: React.FC = () => {
 
     try {
       // Prepare base payload from form values
-      const { discountRange, ...restValues } = values;
-      const productPayload: any = { ...restValues };
+      const { discountRange, status, ...restValues } = values;
+      const productPayload: any = { ...restValues, status };
+
+      // Set isPublished based on status
+      productPayload.isPublished = status === "Published";
 
       // Transform title -> productName
       if ((values as any).title) {
@@ -151,8 +157,8 @@ const AddProductPage: React.FC = () => {
       // STEP 1: Determine ID (Create if new, use existing if edit)
       if (isEditMode && productId) {
         targetId = productId;
-        // For Edit Mode, we need to update basic info *now* if we want to be safe, 
-        // or just accumulate it for the final update. 
+        // For Edit Mode, we need to update basic info *now* if we want to be safe,
+        // or just accumulate it for the final update.
         // We'll accumulate for final update to keep logic unified.
       } else {
         // [NEW] Create initial product record to Generating ID
@@ -161,7 +167,7 @@ const AddProductPage: React.FC = () => {
           ...productPayload,
           imageUrl: "",
           imageUrls: [],
-          status: "In Stock" // Default status
+          status: "Draft", // Default status
         }).unwrap();
         targetId = res.id;
         isNewProduct = true;
@@ -181,7 +187,7 @@ const AddProductPage: React.FC = () => {
 
           const res = await uploadImage({
             formData,
-            productId: targetId
+            productId: targetId,
           }).unwrap();
           uploadedUrls.push(res.filePath);
         }
@@ -193,14 +199,17 @@ const AddProductPage: React.FC = () => {
         id: targetId,
         ...productPayload,
         imageUrl: uploadedUrls[0],
-        imageUrls: uploadedUrls
+        imageUrls: uploadedUrls,
       };
 
       await updateProduct(finalPayload).unwrap();
 
-      toast.success(isNewProduct ? "Product added successfully✅" : "Product updated successfully✅");
+      toast.success(
+        isNewProduct
+          ? "Product added successfully✅"
+          : "Product updated successfully✅",
+      );
       navigate("/products");
-
     } catch (err) {
       console.error(err);
       toast.error("❌ Operation failed");
@@ -248,7 +257,9 @@ const AddProductPage: React.FC = () => {
                     >
                       <AppSelect placeholder="Select category">
                         {categories.map((cat: any) => (
-                          <Option key={cat.id} value={cat.name}>{cat.name}</Option>
+                          <Option key={cat.id} value={cat.name}>
+                            {cat.name}
+                          </Option>
                         ))}
                       </AppSelect>
                     </Form.Item>
@@ -256,12 +267,18 @@ const AddProductPage: React.FC = () => {
 
                   <Col xs={24} md={12} lg={8}>
                     <Form.Item name="tags" label="Tags">
-                      <AppSelect mode="tags" placeholder="Enter tags (e.g. summer, new)" />
+                      <AppSelect
+                        mode="tags"
+                        placeholder="Enter tags (e.g. summer, new)"
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
 
-                <Form.Item name={["specifications", "shortDescription"]} label="Short Description">
+                <Form.Item
+                  name={["specifications", "shortDescription"]}
+                  label="Short Description"
+                >
                   <AppInput.TextArea
                     rows={3}
                     placeholder="Short summary for product list"
@@ -365,7 +382,8 @@ const AddProductPage: React.FC = () => {
                                   rules={[
                                     {
                                       required: true,
-                                      message: "Discount start/end date is required",
+                                      message:
+                                        "Discount start/end date is required",
                                     },
                                   ]}
                                 >
@@ -489,20 +507,38 @@ const AddProductPage: React.FC = () => {
                   />
                 </Form.Item>
 
-                <Form.Item name={["productDetails", "features"]} label="Key Features">
-                  <AppSelect mode="tags" placeholder="Enter key features (e.g. Waterproof, 1 Year Warranty)" />
+                <Form.Item
+                  name={["productDetails", "features"]}
+                  label="Key Features"
+                >
+                  <AppSelect
+                    mode="tags"
+                    placeholder="Enter key features (e.g. Waterproof, 1 Year Warranty)"
+                  />
                 </Form.Item>
 
                 <Row gutter={24}>
                   <Col xs={24} md={12}>
-                    <Form.Item name={["productDetails", "deliveryInfo"]} label="Delivery Information">
-                      <AppInput.TextArea rows={2} placeholder="Delivery within 2-3 days..." />
+                    <Form.Item
+                      name={["productDetails", "deliveryInfo"]}
+                      label="Delivery Information"
+                    >
+                      <AppInput.TextArea
+                        rows={2}
+                        placeholder="Delivery within 2-3 days..."
+                      />
                     </Form.Item>
                   </Col>
 
                   <Col xs={24} md={12}>
-                    <Form.Item name={["productDetails", "returnPolicy"]} label="Return Policy">
-                      <AppInput.TextArea rows={2} placeholder="7 days return policy..." />
+                    <Form.Item
+                      name={["productDetails", "returnPolicy"]}
+                      label="Return Policy"
+                    >
+                      <AppInput.TextArea
+                        rows={2}
+                        placeholder="7 days return policy..."
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -526,13 +562,14 @@ const AddProductPage: React.FC = () => {
                       );
                     }
                     const url = file.url || (file.preview as string);
-                    setPreviewImage(url?.startsWith('/') ? `${BASE_URL}${url}` : url || "");
+                    setPreviewImage(
+                      url?.startsWith("/") ? `${BASE_URL}${url}` : url || "",
+                    );
                     setPreviewOpen(true);
                   }}
                 >
                   {fileList.length < 6 && <PlusOutlined />}
                 </Upload>
-
 
                 <AppModal
                   open={previewOpen}
@@ -545,43 +582,39 @@ const AddProductPage: React.FC = () => {
               </AppCard>
 
               {/* ================= STATUS ================= */}
-              <AppCard className="mb-6 bg-gray-50" bordered={false}>
-                <Title level={5}>Product Status</Title>
+              <AppCard className="mb-6!" bordered={false}>
+                <Title level={4}>Product Status</Title>
+                <Divider className="mt-2 mb-4" />
 
-                <Form.Item name="status" label="Availability Status" initialValue="In Stock" className="mb-4">
+                <Form.Item
+                  name="status"
+                  label="Product Lifecycle"
+                  initialValue="Draft"
+                  rules={[{ required: true }]}
+                >
                   <AppSelect
                     placeholder="Select Status"
+                    className="max-w-md"
                     options={[
-                      { value: 'In Stock', label: 'In Stock' },
-                      { value: 'Out of Stock', label: 'Out of Stock' },
-                      { value: 'Discontinued', label: 'Discontinued' }
+                      { value: "Draft", label: "Draft (Hidden from Store)" },
+                      {
+                        value: "Published",
+                        label: "Published (Visible on Store)",
+                      },
+                      {
+                        value: "Discontinued",
+                        label: "Discontinued (Visible but Locked)",
+                      },
                     ]}
                   />
                 </Form.Item>
-
-                <Space>
-                  <Text>Draft</Text>
-                  <Form.Item
-                    name="isPublished"
-                    valuePropName="checked"
-                    initialValue={false}
-                    noStyle
-                  >
-                    <Switch className="bg-violet-500!" />
-                  </Form.Item>
-                  <Text>Publish</Text>
-                </Space>
               </AppCard>
 
               <Divider />
 
               {/* ================= ACTIONS ================= */}
               <Space>
-                <AppButton
-                  type="primary"
-                  htmlType="submit"
-                  size="large"
-                >
+                <AppButton type="primary" htmlType="submit" size="large">
                   {isEditMode ? "Save Changes" : "Add Product"}
                 </AppButton>
                 <AppButton
@@ -596,7 +629,7 @@ const AddProductPage: React.FC = () => {
           </AppSpin>
         </AppCard>
       </div>
-    </div >
+    </div>
   );
 };
 

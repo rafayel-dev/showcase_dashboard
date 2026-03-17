@@ -7,7 +7,7 @@ export interface Product {
   category: string;
   price: number;
   stock: number;
-  status: "In Stock" | "Out of Stock" | "Discontinued";
+  status: "Published" | "Unpublished" | "Draft" | "Discontinued";
   description?: string; // Short description, if still used
   imageUrl?: string;
   imageUrls?: string[];
@@ -72,6 +72,8 @@ export interface Order {
   customerMobile: string;
   deliveryCharge: number;
   paymentStatus: "Paid" | "Unpaid" | "Refunded";
+  walletNumber: string;
+  transactionId: string;
 }
 
 export interface Admin {

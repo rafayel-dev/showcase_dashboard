@@ -1,19 +1,13 @@
 import React from "react";
-import {
-  Table,
-  Tag,
-  Space,
-  Typography,
-  Row,
-  Col,
-  Tooltip,
-  Empty,
-} from "antd";
+import { Table, Tag, Space, Typography, Row, Col, Tooltip, Empty } from "antd";
 import AppCard from "../../components/common/AppCard";
 import AppButton from "../../components/common/AppButton";
 import { useNavigate } from "react-router-dom";
 import { FiEdit2, FiUploadCloud } from "react-icons/fi";
-import { useGetProductsQuery, useUpdateProductMutation } from "../../RTK/product/productApi";
+import {
+  useGetProductsQuery,
+  useUpdateProductMutation,
+} from "../../RTK/product/productApi";
 import type { Product } from "../../types";
 import toast from "../../utils/toast";
 import AppSpin from "@/components/common/AppSpin";
@@ -22,16 +16,19 @@ const { Title, Text } = Typography;
 
 const DraftPage: React.FC = () => {
   const navigate = useNavigate();
-  // Use RTK Query - fetching a reasonably large batch to find drafts, 
+  // Use RTK Query - fetching a reasonably large batch to find drafts,
   // though backend filtering would be ideal later.
-  const { data: productsData, isLoading: loading } = useGetProductsQuery({ page: 1, limit: 100 });
+  const { data: productsData, isLoading: loading } = useGetProductsQuery({
+    page: 1,
+    limit: 100,
+  });
 
   const products = productsData?.products || [];
   const [updateProduct] = useUpdateProductMutation();
 
-  // Local state for table data not strictly needed unless filtering, 
+  // Local state for table data not strictly needed unless filtering,
   // but we can just derive it.
-  const draftProducts = products.filter((p) => p.isPublished === false);
+  const draftProducts = products.filter((p) => p.status === "Draft");
 
   const publishProduct = async (product: Product) => {
     try {
@@ -51,9 +48,7 @@ const DraftPage: React.FC = () => {
             <Title level={3} className="mb-0">
               Draft Products
             </Title>
-            <Text type="secondary">
-              Products saved but not yet published
-            </Text>
+            <Text type="secondary">Products saved but not yet published</Text>
           </Col>
         </Row>
 
@@ -65,11 +60,7 @@ const DraftPage: React.FC = () => {
             loading={loading}
             pagination={false}
             locale={{
-              emptyText: (
-                <Empty
-                  description="No draft products found"
-                />
-              ),
+              emptyText: <Empty description="No draft products found" />,
             }}
             columns={[
               {
@@ -90,9 +81,7 @@ const DraftPage: React.FC = () => {
                     <Tooltip title="Edit Product">
                       <AppButton
                         icon={<FiEdit2 />}
-                        onClick={() =>
-                          navigate(`/edit-product/${record.id}`)
-                        }
+                        onClick={() => navigate(`/edit-product/${record.id}`)}
                       >
                         Edit
                       </AppButton>
