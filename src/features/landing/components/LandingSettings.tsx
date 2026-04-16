@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Form,
-  Space,
   Row,
   Col,
   Upload,
@@ -27,13 +26,13 @@ import AppButton from "@/components/common/AppButton";
 import AppInput from "@/components/common/AppInput";
 import AppPopconfirm from "@/components/common/AppPopconfirm";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const LandingSettings = () => {
   const [form] = Form.useForm();
 
   // Mock State for "Design Only" approach
-  const [logoUrl, setLogoUrl] = useState<string>(
+  const [logoUrl] = useState<string>(
     "https://placehold.co/200x60?text=Your+Logo",
   );
   const [categories, setCategories] = useState([
@@ -65,7 +64,7 @@ const LandingSettings = () => {
   };
 
   return (
-    <div className="p-6! min-h-screen">
+    <div className="min-h-screen">
       <Form
         form={form}
         layout="vertical"
@@ -80,26 +79,16 @@ const LandingSettings = () => {
         }}
       >
         {/* Superior Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4! mb-8!">
-          <div>
-            <Title level={2} className="mb-1! text-slate-800">
-              Store Settings
-            </Title>
-            <Text type="secondary" className="text-base">
-              Customize your storefront's core information and appearance
-            </Text>
-          </div>
-          <Space>
-            <AppButton
-              type="primary"
-              icon={<FiSave />}
-              size="large"
-              onClick={() => form.submit()}
-              className="bg-violet-600! h-12! px-8! text-base! font-semibold!"
-            >
-              Save Settings
-            </AppButton>
-          </Space>
+        <div className="flex justify-end mb-4!">
+          <AppButton
+            type="primary"
+            icon={<FiSave />}
+            size="large"
+            onClick={() => form.submit()}
+            className="bg-violet-600 text-base! font-semibold!"
+          >
+            Save Settings
+          </AppButton>
         </div>
 
         <Row gutter={24}>
@@ -111,7 +100,7 @@ const LandingSettings = () => {
                   <FiImage className="text-violet-600" />
                   <Text
                     strong
-                    className="text-violet-900 uppercase tracking-wider text-xs"
+                    className="text-violet-900 uppercase tracking-wider"
                   >
                     Branding & Identity
                   </Text>
@@ -174,7 +163,7 @@ const LandingSettings = () => {
                   <FiPhone className="text-blue-600" />
                   <Text
                     strong
-                    className="text-blue-900 uppercase tracking-wider text-xs"
+                    className="text-blue-900 uppercase tracking-wider"
                   >
                     Contact & Social Support
                   </Text>
@@ -210,7 +199,7 @@ const LandingSettings = () => {
                   <span className="text-orange-600 font-bold">৳</span>
                   <Text
                     strong
-                    className="text-orange-900 uppercase tracking-wider text-xs"
+                    className="text-orange-900 uppercase tracking-wider"
                   >
                     Delivery & Logistics
                   </Text>
@@ -222,11 +211,7 @@ const LandingSettings = () => {
                       label="Delivery Charge (Inside Dhaka)"
                       name="dhakaCharge"
                     >
-                      <InputNumber
-                        prefix="৳"
-                        className="rounded-lg!"
-                        min={0}
-                      />
+                      <InputNumber prefix="৳" className="rounded-lg!" min={0} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
@@ -234,11 +219,7 @@ const LandingSettings = () => {
                       label="Delivery Charge (Outside Dhaka)"
                       name="outsideDhakaCharge"
                     >
-                      <InputNumber
-                        prefix="৳"
-                        className="rounded-lg!"
-                        min={0}
-                      />
+                      <InputNumber prefix="৳" className="rounded-lg!" min={0} />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -260,7 +241,7 @@ const LandingSettings = () => {
                 <FiGrid className="text-emerald-600" />
                 <Text
                   strong
-                  className="text-emerald-900 uppercase tracking-wider text-xs"
+                  className="text-emerald-900 uppercase tracking-wider"
                 >
                   Categories Management
                 </Text>
@@ -279,7 +260,7 @@ const LandingSettings = () => {
                     type="primary"
                     icon={<FiPlus />}
                     onClick={handleAddCategory}
-                    className="bg-emerald-600! h-10!"
+                    className="bg-emerald-600! h-10! font-semibold!"
                   >
                     Add
                   </AppButton>

@@ -19,7 +19,6 @@ import AppButton from "@/components/common/AppButton";
 import AppSelect from "@/components/common/AppSelect";
 import { AiFillProduct } from "react-icons/ai";
 import { Typography } from "antd";
-import { FaFileMedicalAlt } from "react-icons/fa";
 import { GoFileMedia } from "react-icons/go";
 import { TbFileDescription } from "react-icons/tb";
 
@@ -57,6 +56,7 @@ const LandingForm: React.FC = () => {
           icon={<FiSave />}
           size="large"
           onClick={() => form.submit()}
+          className="text-base! font-semibold!"
         >
           Save Product
         </AppButton>
@@ -68,10 +68,7 @@ const LandingForm: React.FC = () => {
           <AppCard className="mb-6!">
             <div className="p-1 px-4 mb-6 bg-purple-50 -mx-6 -mt-6 flex items-center gap-2 h-12">
               <AiFillProduct className="text-purple-600" />
-              <Text
-                strong
-                className="text-purple-900 uppercase tracking-wider text-xs"
-              >
+              <Text strong className="text-purple-900 uppercase tracking-wider">
                 Product Info
               </Text>
             </div>
@@ -162,10 +159,7 @@ const LandingForm: React.FC = () => {
           <AppCard className="mb-6!">
             <div className="p-1 px-4 mb-6 bg-blue-50 -mx-6 -mt-6 flex items-center gap-2 h-12">
               <FiList className="text-blue-600" />
-              <Text
-                strong
-                className="text-blue-900 uppercase tracking-wider text-xs!"
-              >
+              <Text strong className="text-blue-900 uppercase tracking-wider">
                 Features
               </Text>
             </div>
@@ -181,7 +175,10 @@ const LandingForm: React.FC = () => {
                       >
                         <AppInput placeholder="Feature" />
                       </Form.Item>
-                      <FiTrash onClick={() => remove(name)} className="cursor-pointer! text-red-400! text-lg!"/>
+                      <FiTrash
+                        onClick={() => remove(name)}
+                        className="cursor-pointer! text-red-400! text-lg!"
+                      />
                     </Space>
                   ))}
 
@@ -197,10 +194,7 @@ const LandingForm: React.FC = () => {
           <AppCard className="mb-6!">
             <div className="p-1 px-4 mb-6 bg-indigo-50 -mx-6 -mt-6 flex items-center gap-2 h-12">
               <TbFileDescription className="text-indigo-600" />
-              <Text
-                strong
-                className="text-indigo-900 uppercase tracking-wider text-xs"
-              >
+              <Text strong className="text-indigo-900 uppercase tracking-wider">
                 Description
               </Text>
             </div>
@@ -213,10 +207,7 @@ const LandingForm: React.FC = () => {
           <AppCard className="mb-6!">
             <div className="p-1 px-4 mb-6 bg-violet-50 -mx-6 -mt-6 flex items-center gap-2 h-12">
               <GoFileMedia className="text-violet-600" />
-              <Text
-                strong
-                className="text-violet-900 uppercase tracking-wider text-xs"
-              >
+              <Text strong className="text-violet-900 uppercase tracking-wider">
                 Media
               </Text>
             </div>
@@ -252,7 +243,7 @@ const LandingForm: React.FC = () => {
                 <AiFillProduct className="text-green-600" />
                 <Text
                   strong
-                  className="text-green-900 uppercase tracking-wider text-xs"
+                  className="text-green-900 uppercase tracking-wider"
                 >
                   Quick Actions
                 </Text>

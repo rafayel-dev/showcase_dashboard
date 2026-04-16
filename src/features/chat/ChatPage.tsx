@@ -281,7 +281,7 @@ const ChatPage: React.FC = () => {
                                             onClick={handleReply}
                                             loading={isSending}
                                             className={`${replyText.trim() ? 'opacity-100 scale-100' : 'opacity-80 scale-95'
-                                                } transition-all duration-300 bg-violet-600 hover:bg-violet-700 border-none shadow-lg shadow-violet-200 h-11 w-11 flex-shrink-0 flex items-center justify-center`}
+                                                } transition-all duration-300 bg-violet-600 hover:bg-violet-700 border-none shadow-lg shadow-violet-200 h-11 w-11 shrink-0 flex items-center justify-center`}
                                         />
                                     </div>
                                     <div className="text-center mt-2">

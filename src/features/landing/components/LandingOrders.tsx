@@ -4,19 +4,15 @@ import {
   Space,
   Tag,
   Typography,
-  Descriptions,
   Row,
   Col,
   Tabs,
   Tooltip,
   Switch,
   Badge,
-  Avatar,
   Card,
-  Select,
   Dropdown,
 } from "antd";
-import AppSelect from "../../../components/common/AppSelect";
 import AppModal from "../../../components/common/AppModal";
 import type { TableProps } from "antd";
 import {
@@ -26,13 +22,11 @@ import {
   PhoneOutlined,
   EnvironmentOutlined,
 } from "@ant-design/icons";
-import { FiEdit, FiTrash2, FiSearch, FiFilter } from "react-icons/fi";
+import { FiEdit, FiSearch } from "react-icons/fi";
 import AppButton from "../../../components/common/AppButton";
 import toast from "../../../utils/toast";
-import { BASE_URL } from "../../../RTK/api";
-import { color } from "jodit/esm/plugins/color/color";
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 // --- DUMMY DATA FOR UI FLOW ---
 const DUMMY_ORDERS = [
@@ -51,6 +45,8 @@ const DUMMY_ORDERS = [
     status: "Pending",
     orderConfirm: "Pending",
     paymentMethod: "Cash on Delivery",
+    walletNumber: "",
+    transactionId: "",
     paymentStatus: "Unpaid",
     orderDate: "2024-02-08T10:00:00Z",
   },
@@ -68,8 +64,10 @@ const DUMMY_ORDERS = [
     sku: "SH-SP-09",
     status: "Confirmed",
     orderConfirm: "Confirmed",
-    paymentMethod: "Cash on Delivery",
-    paymentStatus: "Unpaid",
+    paymentMethod: "Nagad",
+    walletNumber: "01812345678",
+    transactionId: "1KJFG789",
+    paymentStatus: "Paid",
     orderDate: "2024-02-07T14:30:00Z",
   },
   {
@@ -87,6 +85,8 @@ const DUMMY_ORDERS = [
     status: "Delivered",
     orderConfirm: "Confirmed",
     paymentMethod: "Bkash",
+    walletNumber: "01912345678",
+    transactionId: "1KJFG789",
     paymentStatus: "Paid",
     orderDate: "2024-02-05T09:15:00Z",
   },
@@ -105,6 +105,8 @@ const DUMMY_ORDERS = [
     status: "Cancelled",
     orderConfirm: "Confirmed",
     paymentMethod: "Cash on Delivery",
+    walletNumber: "",
+    transactionId: "",
     paymentStatus: "Unpaid",
     orderDate: "2024-02-06T11:00:00Z",
   },
@@ -113,7 +115,6 @@ const DUMMY_ORDERS = [
 const LandingOrders: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("All");
   const [orders, setOrders] = useState(DUMMY_ORDERS);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [viewOrder, setViewOrder] = useState<any | null>(null);
   const [searchText, setSearchText] = useState("");
 
@@ -125,7 +126,12 @@ const LandingOrders: React.FC = () => {
       Shipped: "geekblue",
       Delivered: "green",
       Cancelled: "red",
-      Returned: "purple",
+    })[status] || "default";
+
+  const paymentStatusColor = (status: string) =>
+    ({
+      Paid: "green",
+      Unpaid: "red",
     })[status] || "default";
 
   // Filter Logic
@@ -168,6 +174,20 @@ const LandingOrders: React.FC = () => {
       ),
     },
     {
+      title: "Product",
+      dataIndex: "productName",
+      render: (name, r) => (
+        <div>
+          <Text>{r.quantity > 1 ? `${name} x${r.quantity}` : name}</Text>
+        </div>
+      ),
+    },
+    {
+      title: "SKU",
+      dataIndex: "sku",
+      render: (sku) => <Text>{sku}</Text>,
+    },
+    {
       title: "Customer",
       dataIndex: "customerName",
       render: (name, r) => (
@@ -180,13 +200,16 @@ const LandingOrders: React.FC = () => {
       ),
     },
     {
-      title: "Product",
-      dataIndex: "productName",
-      render: (name, r) => (
-        <div>
-          <Text>
-            {r.quantity > 1 ? `${name} x${r.quantity}` : name}
-          </Text>
+      title: "Payment Method",
+      dataIndex: "paymentMethod",
+      render: (method, r) => (
+        <div className="flex flex-col">
+          <Text>{method}</Text>
+          {r.transactionId && (
+            <Text type="secondary" className="text-[12px]! uppercase">
+              TID: {r.transactionId}
+            </Text>
+          )}
         </div>
       ),
     },
@@ -194,12 +217,6 @@ const LandingOrders: React.FC = () => {
       title: "Total",
       dataIndex: "totalAmount",
       render: (amount) => <Text strong>৳{amount}</Text>,
-    },
-    {
-      title: "SKU",
-      dataIndex: "sku",
-      align: "center",
-      render: (sku) => <Text>{sku}</Text>,
     },
     {
       title: "Status",
@@ -214,8 +231,15 @@ const LandingOrders: React.FC = () => {
           "Cancelled",
         ].map((s) => ({
           key: s,
-          label: <Tag className="border-none! bg-transparent! font-medium!" color={statusColor(s)}>{s}</Tag>,
-          
+          label: (
+            <Tag
+              className="border-none! bg-transparent! font-medium!"
+              color={statusColor(s)}
+            >
+              {s}
+            </Tag>
+          ),
+
           onClick: () => handleStatusChange(r.id, s),
           disabled: s === status,
         }));
@@ -231,8 +255,8 @@ const LandingOrders: React.FC = () => {
                   {status}
                 </Tag>
                 <AppButton
-                size="small"
-                icon={<FiEdit className="text-violet-600!" />}
+                  size="small"
+                  icon={<FiEdit className="text-violet-600!" />}
                 />
               </div>
             </Dropdown>
@@ -264,12 +288,18 @@ const LandingOrders: React.FC = () => {
         <Space>
           <Tooltip title="View Details">
             <AppButton
-              icon={<EyeOutlined className="text-violet-600! text-xl! justify-center! items-center! w-10! h-10!" />}
+              icon={
+                <EyeOutlined className="text-violet-600! text-xl! justify-center! items-center! w-10! h-10!" />
+              }
               onClick={() => setViewOrder(record)}
             />
           </Tooltip>
           <Tooltip title="Download Invoice">
-            <AppButton icon={<DownloadOutlined className="text-violet-600! text-xl! justify-center! items-center! w-10! h-10!" />} />
+            <AppButton
+              icon={
+                <DownloadOutlined className="text-violet-600! text-xl! justify-center! items-center! w-10! h-10!" />
+              }
+            />
           </Tooltip>
         </Space>
       ),
@@ -354,7 +384,12 @@ const LandingOrders: React.FC = () => {
               </div>
               <div className="flex flex-col">
                 <Text strong>Payment Status</Text>
-                <Text>{viewOrder.paymentStatus}</Text>
+                <Tag
+                  color={paymentStatusColor(viewOrder.paymentStatus)}
+                  className="rounded-full! font-bold! w-fit!"
+                >
+                  {viewOrder.paymentStatus}
+                </Tag>
               </div>
               <div className="flex flex-col">
                 <Text strong>Payment Method</Text>
@@ -364,7 +399,7 @@ const LandingOrders: React.FC = () => {
                 <Text strong>Order Status</Text>
                 <Tag
                   color={statusColor(viewOrder.status)}
-                  className="text-sm px-3 py-1 rounded-full uppercase font-bold"
+                  className="rounded-full! font-bold! w-fit!"
                 >
                   {viewOrder.status}
                 </Tag>

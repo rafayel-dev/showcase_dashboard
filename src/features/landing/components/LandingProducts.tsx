@@ -4,11 +4,8 @@ import {
   Space,
   Typography,
   Input,
-  Image,
   Tag,
   Tooltip,
-  Row,
-  Col,
   Card,
   Avatar,
   Switch,
@@ -16,22 +13,18 @@ import {
 import AppSelect from "../../../components/common/AppSelect";
 import {
   FiEdit,
-  FiEye,
   FiGrid,
   FiLink,
   FiList,
-  FiMoreVertical,
   FiPlus,
   FiTrash2,
 } from "react-icons/fi";
 import type { TableProps } from "antd";
 import AppButton from "../../../components/common/AppButton";
-import AppModal from "../../../components/common/AppModal";
 import toast from "../../../utils/toast";
 import AppPopconfirm from "@/components/common/AppPopconfirm";
 
-const { Title, Text, Paragraph } = Typography;
-const { Option } = AppSelect;
+const { Text } = Typography;
 
 // --- DUMMY DATA ---
 const DUMMY_PRODUCTS = [
@@ -83,7 +76,6 @@ const LandingProducts: React.FC = () => {
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [products, setProducts] = useState(DUMMY_PRODUCTS);
   const [searchText, setSearchText] = useState("");
-  const [viewing, setViewing] = useState<any | null>(null);
 
   const handleDelete = (id: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
@@ -216,11 +208,7 @@ const LandingProducts: React.FC = () => {
             description="Are you sure to remove this product?"
             onConfirm={() => handleDelete(record.id)}
           >
-            <AppButton
-              danger
-              className="text-lg!"
-              icon={<FiTrash2 />}
-            />
+            <AppButton danger className="text-lg!" icon={<FiTrash2 />} />
           </AppPopconfirm>
         </Space>
       ),
@@ -249,11 +237,17 @@ const LandingProducts: React.FC = () => {
 
         <Space>
           <AppButton
+            size="large"
             className="text-violet-500! border-violet-500!"
             icon={viewMode === "table" ? <FiGrid /> : <FiList />}
             onClick={() => setViewMode(viewMode === "table" ? "card" : "table")}
           />
-          <AppButton type="primary" icon={<FiPlus />}>
+          <AppButton
+            type="primary"
+            size="large"
+            className="font-semibold!"
+            icon={<FiPlus />}
+          >
             Add Product
           </AppButton>
         </Space>
