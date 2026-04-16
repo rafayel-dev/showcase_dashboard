@@ -32,7 +32,7 @@ import AppSpin from "../../components/common/AppSpin";
 import AppModal from "../../components/common/AppModal";
 import { BASE_URL } from "@/RTK/api";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = AppSelect;
 const { RangePicker } = DatePicker;
 
