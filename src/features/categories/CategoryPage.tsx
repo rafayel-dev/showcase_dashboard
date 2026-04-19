@@ -6,7 +6,11 @@ import {
   Form,
   Tooltip,
   Empty,
+  Avatar,
+  Upload,
 } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import type { UploadFile } from "antd/es/upload/interface";
 import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
 import type { TableProps } from "antd";
 import type { Category } from "../../types";
@@ -18,6 +22,7 @@ import {
   useUpdateCategoryMutation,
   useDeleteCategoryMutation
 } from "../../RTK/category/categoryApi";
+import { useUploadImageMutation } from "../../RTK/product/productApi";
 
 import AppCard from "../../components/common/AppCard";
 import AppButton from "../../components/common/AppButton";
@@ -26,6 +31,7 @@ import AppModal from "../../components/common/AppModal";
 import AppPopconfirm from "../../components/common/AppPopconfirm";
 import AppSpin from "../../components/common/AppSpin";
 import PageHeader from "../../components/common/PageHeader";
+import { BASE_URL } from "../../RTK/api";
 
 const { Text } = Typography;
 
@@ -33,47 +39,85 @@ const CategoryPage: React.FC = () => {
   const { data: categories = [], isLoading: tableLoading } = useGetCategoriesQuery({});
   const [addCategory, { isLoading: isAdding }] = useAddCategoryMutation();
   const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
-  const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation();
+  const [deleteCategory] = useDeleteCategoryMutation();
+  const [uploadImage, { isLoading: isUploadingImage }] = useUploadImageMutation();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form] = Form.useForm();
 
-  const formLoading = isAdding || isUpdating;
+  const formLoading = isAdding || isUpdating || isUploadingImage;
 
   const openAddModal = () => {
     setEditingCategory(null);
     form.resetFields();
+    setFileList([]);
     setModalOpen(true);
   };
 
   const openEditModal = (record: Category) => {
     setEditingCategory(record);
-    form.setFieldsValue({ name: record.name });
+    form.setFieldsValue({ 
+      name: record.name,
+      imageUrl: record.imageUrl 
+    });
+    
+    if (record.imageUrl) {
+      const url = record.imageUrl.startsWith("http") ? record.imageUrl : `${BASE_URL}${record.imageUrl}`;
+      setFileList([
+        {
+          uid: "-1",
+          name: "image.png",
+          status: "done",
+          url: url,
+        },
+      ]);
+    } else {
+      setFileList([]);
+    }
+    
     setModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
     try {
+      setDeletingId(id);
       await deleteCategory(id).unwrap();
       toast.success("Category deleted successfully");
     } catch {
       toast.error("Failed to delete category");
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
+      let finalImageUrl = editingCategory?.imageUrl || "";
+
+      // Handle Image Upload
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+        const formData = new FormData();
+        formData.append("image", fileList[0].originFileObj);
+        const res = await uploadImage({ formData }).unwrap();
+        finalImageUrl = res.filePath;
+      } else if (fileList.length === 0) {
+        finalImageUrl = "";
+      }
+
+      const payload = { ...values, imageUrl: finalImageUrl };
 
       if (editingCategory) {
         await updateCategory({
           id: editingCategory.id,
-          ...values,
+          ...payload,
         }).unwrap();
         toast.success("Category updated successfully");
       } else {
-        await addCategory(values).unwrap();
+        await addCategory(payload).unwrap();
         toast.success("Category added successfully");
       }
 
@@ -86,6 +130,20 @@ const CategoryPage: React.FC = () => {
   };
 
   const columns: TableProps<Category>["columns"] = [
+    {
+      title: "Image",
+      dataIndex: "imageUrl",
+      key: "imageUrl",
+      width: 80,
+      render: (url: string) => (
+        <Avatar
+          src={url ? (url.startsWith("http") ? url : `${BASE_URL}${url}`) : "https://placehold.co/100x100?text=No+Image"}
+          shape="square"
+          size={50}
+          className="border border-gray-200"
+        />  
+      ),
+    },
     {
       title: "Category Name",
       dataIndex: "name",
@@ -108,7 +166,7 @@ const CategoryPage: React.FC = () => {
             okText="Delete"
             onConfirm={() => handleDelete(record.id)}
           >
-            <AppButton danger title="Delete" icon={<FiTrash2 />} loading={isDeleting}>
+            <AppButton danger title="Delete" icon={<FiTrash2 />} loading={deletingId === record.id}>
               Delete
             </AppButton>
           </AppPopconfirm>
@@ -158,6 +216,24 @@ const CategoryPage: React.FC = () => {
             rules={[{ required: true, message: "Category name is required" }]}
           >
             <AppInput placeholder="e.g. Electronics" />
+          </Form.Item>
+
+          <Form.Item label="Category Image" rules={[{ required: !editingCategory, message: "Category image is required" }]}>
+            <Upload
+              listType="picture-card"
+              accept="image/webp,image/jpeg,image/png,image/jpg"
+              fileList={fileList}
+              onChange={({ fileList }) => setFileList(fileList)}
+              beforeUpload={() => false}
+              maxCount={1}
+            >
+              {fileList.length < 1 && (
+                <div>
+                  <PlusOutlined />
+                  <div style={{ marginTop: 4 }}>Upload</div>
+                </div>
+              )}
+            </Upload>
           </Form.Item>
         </Form>
       </AppModal>

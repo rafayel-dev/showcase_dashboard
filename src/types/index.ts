@@ -88,7 +88,7 @@ export interface Category {
   key: string;
   id: string;
   name: string;
-  description: string;
+  imageUrl?: string;
 }
 
 export interface Coupon {
