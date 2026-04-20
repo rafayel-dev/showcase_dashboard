@@ -65,7 +65,9 @@ const CategoryPage: React.FC = () => {
     });
     
     if (record.imageUrl) {
-      const url = record.imageUrl.startsWith("http") ? record.imageUrl : `${BASE_URL}${record.imageUrl}`;
+      const url = record.imageUrl.startsWith("http") 
+        ? record.imageUrl 
+        : `${BASE_URL}${record.imageUrl.startsWith('/') ? '' : '/'}${record.imageUrl}`;
       setFileList([
         {
           uid: "-1",
@@ -135,14 +137,20 @@ const CategoryPage: React.FC = () => {
       dataIndex: "imageUrl",
       key: "imageUrl",
       width: 80,
-      render: (url: string) => (
-        <Avatar
-          src={url ? (url.startsWith("http") ? url : `${BASE_URL}${url}`) : "https://placehold.co/100x100?text=No+Image"}
-          shape="square"
-          size={50}
-          className="border border-gray-200"
-        />  
-      ),
+      render: (url: string) => {
+        const fullUrl = url 
+          ? (url.startsWith("http") ? url : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`)
+          : "https://placehold.co/100x100?text=No+Image";
+        
+        return (
+          <Avatar
+            src={fullUrl}
+            shape="square"
+            size={50}
+            className="border border-gray-200"
+          />
+        );
+      },
     },
     {
       title: "Category Name",

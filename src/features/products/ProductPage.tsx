@@ -190,7 +190,7 @@ const ProductPage: React.FC = () => {
             url?.startsWith("http")
               ? url
               : url
-                ? `${BASE_URL}${url}`
+                ? `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`
                 : "https://placehold.co/40x40"
           }
           alt="Product"
@@ -486,7 +486,7 @@ const ProductPage: React.FC = () => {
               <div className="mb-4">
                 <Image.PreviewGroup
                   items={viewing.imageUrls?.map((url) => ({
-                    src: url.startsWith("http") ? url : `${BASE_URL}${url}`,
+                    src: url.startsWith("http") ? url : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`,
                   }))}
                 >
                   <Image
@@ -494,7 +494,7 @@ const ProductPage: React.FC = () => {
                       viewing.imageUrl?.startsWith("http")
                         ? viewing.imageUrl
                         : viewing.imageUrl
-                          ? `${BASE_URL}${viewing.imageUrl}`
+                          ? `${BASE_URL}${viewing.imageUrl.startsWith('/') ? '' : '/'}${viewing.imageUrl}`
                           : "https://placehold.co/600x600?text=No+Image"
                     }
                     className="rounded-lg shadow-sm w-full! h-auto object-cover border border-gray-100"
@@ -507,7 +507,7 @@ const ProductPage: React.FC = () => {
                     <Image
                       preview={false}
                       key={idx}
-                      src={url.startsWith("/") ? `${BASE_URL}${url}` : url}
+                      src={url.startsWith("http") ? url : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`}
                       className="w-11! h-11! object-cover rounded shadow-xs"
                     />
                   ))}
